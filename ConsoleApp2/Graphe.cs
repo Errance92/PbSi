@@ -44,11 +44,35 @@ namespace Karaté
 
             foreach (var lien in Liens)
             {
-                int index1 = Noeuds.FindIndex(n => n.Id == lien.Noeud1.Id);
-                int index2 = Noeuds.FindIndex(n => n.Id == lien.Noeud2.Id);
-                MatriceAdjacence[index1, index2] = 1;
-                MatriceAdjacence[index2, index1] = 1;
+                int index1 = -1;
+                int index2 = -1;
+
+                
+                for (int i = 0; i < Noeuds.Count; i++)
+                {
+                    if (Noeuds[i].Id == lien.Noeud1.Id)
+                    {
+                        index1 = i;
+                        break; 
+                    }
+                }
+           
+                for (int i = 0; i < Noeuds.Count; i++)
+                {
+                    if (Noeuds[i].Id == lien.Noeud2.Id)
+                    {
+                        index2 = i;
+                        break; 
+                    }
+                }
+
+                if (index1 != -1 && index2 != -1)
+                {
+                    MatriceAdjacence[index1, index2] = 1;
+                    MatriceAdjacence[index2, index1] = 1;
+                }
             }
+
         }
     }
 
