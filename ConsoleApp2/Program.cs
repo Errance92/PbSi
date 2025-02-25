@@ -53,10 +53,10 @@ namespace Karaté
                 }
 
                 listeAdjacence[relation.Item1].Add(relation.Item2);
-                listeAdjacence[relation.Item2].Add(relation.Item1); // Relation réciproque
+                listeAdjacence[relation.Item2].Add(relation.Item1); 
             }
 
-            // Dessiner le graphe avec SkiaSharp
+
             var width = 1800;
             var height = 1800;
             using (var surface = SKSurface.Create(new SKImageInfo(width, height)))
@@ -66,16 +66,13 @@ namespace Karaté
 
                 var positions = new Dictionary<int, SKPoint>();
 
-                // Calculer les positions des nœuds sur un cercle
                 float centerX = width / 2;
                 float centerY = height / 2;
-                float radius = 700; // Rayon du cercle
+                float radius = 700; 
                 int nodeCount = listeAdjacence.Count;
 
-                // Calculer un angle de séparation entre chaque nœud
                 float angleStep = 360f / nodeCount;
 
-                // Placer les nœuds en cercle
                 List<int> noeudsList = new List<int>(listeAdjacence.Keys);
                 for (int i = 0; i < nodeCount; i++)
                 {
@@ -86,7 +83,6 @@ namespace Karaté
                 }
 
 
-                // Dessiner les arêtes
                 foreach (var relation in relations)
                 {
                     var point1 = positions[relation.Item1];
@@ -99,7 +95,6 @@ namespace Karaté
                     });
                 }
 
-                // Dessiner les nœuds en cercle
                 foreach (var noeud in listeAdjacence.Keys)
                 {
                     var point = positions[noeud];
@@ -117,7 +112,6 @@ namespace Karaté
                 }
 
 
-                // Sauvegarder l'image
                 using (var stream = System.IO.File.OpenWrite("graphe.png"))
                 {
                     surface.Snapshot().Encode().SaveTo(stream);
@@ -126,7 +120,6 @@ namespace Karaté
                 Console.WriteLine("Le graphe a été dessiné et sauvegardé sous 'graphe.png'.");
             }
 
-            // Ouvrir l'image générée
             Process.Start("open", "graphe.png");
         }
     }
