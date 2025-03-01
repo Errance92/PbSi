@@ -3,16 +3,23 @@ namespace Karaté
 {
     public class Noeud
     {
-        private int id;
+        private int identifiant;
 
-        public Noeud(int id)
+        public Noeud(int identifiant)
         {
-            this.id = id;
+            if(identifiant <= 0)
+            {
+                Console.WriteLine("Il y a une erreur");
+            }
+            else
+            {
+                this.identifiant = identifiant;
+            }
         }
 
-        public int Id
+        public int Identifiant
         {
-            get { return id; }
+            get { return identifiant; }
         }
     }
 }

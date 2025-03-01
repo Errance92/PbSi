@@ -3,23 +3,23 @@ namespace Karaté
 {
     public class Lien
     {
-        private Noeud noeud1;
-        private Noeud noeud2;
+        private Noeud noeudUn;
+        private Noeud noeudDeux;
 
-        public Lien(Noeud noeud1, Noeud noeud2)
+        public Lien(Noeud noeudUn, Noeud noeudDeux)
         {
-            this.noeud1 = noeud1;
-            this.noeud2 = noeud2;
+            this.noeudUn = noeudUn;
+            this.noeudDeux = noeudDeux;
         }
 
-        public Noeud Noeud1
+        public Noeud NoeudUn
         {
-            get { return noeud1; }
+            get { return noeudUn; }
         }
 
-        public Noeud Noeud2
+        public Noeud NoeudDeux
         {
-            get { return noeud2; }
+            get { return noeudDeux; }
         }
     }
 }
