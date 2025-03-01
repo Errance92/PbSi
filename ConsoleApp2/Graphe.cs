@@ -4,6 +4,9 @@ using SkiaSharp;
 
 namespace Karaté
 {
+    /// <summary>
+    /// Represente le graphe avec les liens entre les differents noeuds 
+    /// </summary>
     public class Graphe
     {
         List<Noeud> noeuds;
@@ -12,27 +15,41 @@ namespace Karaté
         int[,] matriceAdjacence;
         string filepath;
 
+        /// <summary>
+        /// Recupere la liste de noeuds
+        /// </summary>
         public List<Noeud> Noeuds
         {
             get { return noeuds; }
         }
 
+        /// <summary>
+        /// recupere la liste de liens
+        /// </summary>
         public List<Lien> Liens
         {
             get { return liens; }
         }
 
+        /// <summary>
+        /// recupere la liste d'adjacence
+        /// </summary>
         public Dictionary<int, List<int>> ListeAdjacence
         {
             get { return listeAdjacence; }
         }
 
+        /// <summary>
+        /// recupere la matrice d'adjacence
+        /// </summary>
         public int[,] MatriceAdjacence
         {
             get { return matriceAdjacence; }
         }
 
-
+        /// <summary>
+        /// Constructeur de la classe graphe 
+        /// </summary>
         public Graphe()
         {
             noeuds = new List<Noeud>(); 
@@ -46,7 +63,7 @@ namespace Karaté
             {
                 if (ligne.Trim() != "" && !ligne.Trim().StartsWith("%"))
                 {
-                    string[] partie = ligne.Split(separation);//, StringSplitOptions.RemoveEmptyEntries);
+                    string[] partie = ligne.Split(separation);
 
                     if (partie.Length == 2)
                     {
@@ -90,6 +107,9 @@ namespace Karaté
             RemplirListeAdj();
         }
 
+        /// <summary>
+        /// Affiche les propriétés du graphe (bonus)
+        /// </summary>
         public void Propriété()
         {
             Console.WriteLine("Taille du graphe : " + liens.Count);
@@ -104,6 +124,10 @@ namespace Karaté
             }
         }
 
+        /// <summary>
+        /// Rempli la matrice d'adjacence
+        /// </summary>
+        /// <param name="matriceAdjacence"></param>
         public void RemplirMatriceAdj(int [,]matriceAdjacence)
         {
             for (int i = 0; i < noeuds.Count - 1; i++)
@@ -148,7 +172,9 @@ namespace Karaté
             }
         }
 
-
+        /// <summary>
+        /// Rempli la liste d'adjacence
+        /// </summary>
         public void RemplirListeAdj()
         {
             for (int i = 0; i < noeuds.Count - 1; i++)
@@ -199,10 +225,15 @@ namespace Karaté
 
             foreach (var key in listeAdjacence.Keys.ToList())
             {
-                listeAdjacence[key].Sort(); // Trier les voisins de chaque noeud
+                listeAdjacence[key].Sort(); 
             }
         }
 
+        /// <summary>
+        /// Effectue le parcours en largeur a partir d'un noeud
+        /// </summary>
+        /// <param name="debut">noeud a partir duquel on commence le parcours</param>
+        /// <returns>Le parcours sous forme d'une chaine de caracteres</returns>
         public string BFS (int debut)
         {
             string res = "";
@@ -238,6 +269,11 @@ namespace Karaté
             return res;
         }
 
+        /// <summary>
+        /// Effectue le parcours en profondeur a partir d'un noeud
+        /// </summary>
+        /// <param name="debut">noeud a partir duquel on commence le parcours</param>
+        /// <returns>Le parcours sous forme d'une chaine de caracteres</returns>
         public string DFS(int debut)
         {
             string res = "";
@@ -274,13 +310,17 @@ namespace Karaté
             return res;
         }
 
+        /// <summary>
+        /// verifie si le graphe est connexe en verifiant si le parcours DFS parcours bien tout les noeuds
+        /// </summary>
+        /// <returns>true si connexe, false sinon</returns>
         public bool Connexe()
         {
             bool res = false;
             string dfs = DFS(noeuds[0].Identifiant);
             string dfsSansEspace = dfs.Replace(" ", "");
 
-            if (dfsSansEspace.Length == noeuds.Count.ToString().Length)
+            if (dfsSansEspace.Length == noeuds.Count.ToString().Length+1)
             {
                 res = true; 
             }
@@ -292,6 +332,10 @@ namespace Karaté
             return res;
         }
 
+        /// <summary>
+        /// trouve les cycles d'un graphe (je crois qu'il fonctionne pas super bien)
+        /// </summary>
+        /// <returns>une liste de cycle</returns>
         public List<List<int>> Cycles()
         {
             var cycles = new List<List<int>>();
@@ -374,7 +418,9 @@ namespace Karaté
         }
 
 
-        // Méthode pour dessiner le graphe avec SkiaSharp
+        /// <summary>
+        /// dessine le graphe avec SkiSharp 
+        /// </summary>
         public void DessinerGraphe()
         {
             int largeur = 1800;

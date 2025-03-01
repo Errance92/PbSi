@@ -9,8 +9,13 @@ namespace Karaté
     {
         public static void Main()
         {
+            ///je sais pas pq mais ici les /// ne s'affiche pas automatiquement
             Graphe graphe = new Graphe();
 
+            /// <summary>
+            /// Affiche la matrice d'adjacence
+            /// </summary>
+            /// <param name="matriceAdj">matrice d'adjacence a afficher</param>
             static void AfficherMatriceAdj(int[,] matriceAdj)
             {
                 Console.WriteLine("Matrice d'adjacence :");
@@ -24,6 +29,10 @@ namespace Karaté
                 }
             }
 
+            /// <summary>
+            /// Affiche la liste d'adjacence 
+            /// </summary>
+            /// <param name="listeAdj">Liste d'adjacence a afficher</param>
             static void AfficherListeAdj(Dictionary<int, List<int>> listeAdj)
             {
                 Console.WriteLine("Liste d'adjacence :");
@@ -38,24 +47,53 @@ namespace Karaté
                 }
             }
 
+            /// <summary>
+            /// Affiche le résultat du parcours en largeur 
+            /// </summary>
+            /// <param name="graphe">Le graphe a traiter</param>
             static void AfficherBFS(Graphe graphe)
             {
                 Random r = new Random();
-                int aleatoire = r.Next(graphe.Noeuds.Count); 
-                int debut = graphe.Noeuds[aleatoire].Identifiant; 
+                int aleatoire = r.Next(graphe.Noeuds.Count);
+                int debut = graphe.Noeuds[aleatoire].Identifiant;
                 string res = graphe.BFS(debut);
-                Console.WriteLine("Parcours BFS à partir du nœud " + debut + ": " + res);
+                Console.WriteLine("Parcours BFS a partir du noeud " + debut + ": " + res);
             }
 
+            /// <summary>
+            /// Affiche le résultat du parcours en profondeur
+            /// </summary>
+            /// <param name="graphe">Le graphe a traiter</param>
             static void AfficherDFS(Graphe graphe)
             {
                 Random r = new Random();
                 int aleatoire = r.Next(graphe.Noeuds.Count);
                 int debut = graphe.Noeuds[aleatoire].Identifiant;
                 string res = graphe.DFS(debut);
-                Console.WriteLine("Parcours DFS à partir du nœud " + debut + ": " + res);
+                Console.WriteLine("Parcours DFS à partir du noeud " + debut + ": " + res);
             }
 
+            /// <summary>
+            /// Affiche si le graphe est connexe ou non
+            /// </summary>
+            /// <param name="graphe">Le graphe à traiter</param>
+            static void Connexite(Graphe graphe)
+            {
+                bool connexe = graphe.Connexe();
+                if (connexe == true)
+                {
+                    Console.WriteLine("Le graphe est connexe");
+                }
+                else
+                {
+                    Console.WriteLine("Le graphe n'est pas connexe");
+                }
+            }
+
+            /// <summary>
+            /// Affiche tous les cycles du graphe
+            /// </summary>
+            /// <param name="graphe">Le graphe a traiter</param>
             static void AfficherCycles(Graphe graphe)
             {
                 var cycles = graphe.Cycles();
@@ -64,15 +102,15 @@ namespace Karaté
                 {
                     for (int i = 0; i < cycle.Count; i++)
                     {
-                        Console.Write(cycle[i]); 
-                        Console.Write(" "); 
+                        Console.Write(cycle[i]);
+                        Console.Write(" ");
                     }
-                    Console.WriteLine(); 
+                    Console.WriteLine();
                 }
 
-                Console.WriteLine("Nombre de cycles détectés : " + cycles.Count);
+                Console.WriteLine("Nombre de cycles détectes : " + cycles.Count);
             }
-
+            
             graphe.DessinerGraphe();
             Console.WriteLine();
             graphe.Propriété();
@@ -84,6 +122,8 @@ namespace Karaté
             AfficherBFS(graphe);
             Console.WriteLine();
             AfficherDFS(graphe);
+            Console.WriteLine();
+            Connexite(graphe);
             Console.WriteLine();
             AfficherCycles(graphe);
         }
