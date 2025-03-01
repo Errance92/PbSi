@@ -316,20 +316,27 @@ namespace Karaté
         /// <returns>true si connexe, false sinon</returns>
         public bool Connexe()
         {
-            bool res = false;
-            string dfs = DFS(noeuds[0].Identifiant);
-            string dfsSansEspace = dfs.Replace(" ", "");
+            bool[] visite = new bool[noeuds.Count];
+            string dfs = DFS(noeuds[0].Identifiant); // Effectuer DFS à partir du premier nœud
+            string[] dfsSansEspace = dfs.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
-            if (dfsSansEspace.Length == noeuds.Count.ToString().Length+1)
+            // Vérifier si tous les nœuds ont été visités
+            foreach (var noeud in dfsSansEspace)
             {
-                res = true; 
-            }
-            else
-            {
-                res = false; 
+                int noeudIdentifiant = Convert.ToInt32(noeud);
+                visite[noeudIdentifiant - 1] = true;
             }
 
-            return res;
+            // Si tous les nœuds sont visités, le graphe est connexe
+            foreach (var vis in visite)
+            {
+                if (!vis)
+                {
+                    return false; // Si un nœud n'a pas été visité, le graphe n'est pas connexe
+                }
+            }
+
+            return true; // Si tous les nœuds ont été visités, le graphe est connexe
         }
 
         /// <summary>
