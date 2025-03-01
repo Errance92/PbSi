@@ -106,6 +106,19 @@ namespace Karaté
 
         public void RemplirMatriceAdj(int [,]matriceAdjacence)
         {
+            for (int i = 0; i < noeuds.Count - 1; i++)
+            {
+                for (int j = 0; j < noeuds.Count - 1 - i; j++)
+                {
+                    if (noeuds[j].Identifiant > noeuds[j + 1].Identifiant)
+                    {                       
+                        Noeud t = noeuds[j];
+                        noeuds[j] = noeuds[j + 1];
+                        noeuds[j + 1] = t;
+                    }
+                }
+            }
+
             foreach (var lien in liens)
             {
                 int a = -1;
@@ -130,6 +143,7 @@ namespace Karaté
                 if (a != -1 && b != -1)
                 {
                     matriceAdjacence[a, b] = 1;
+                    matriceAdjacence[b, a] = 1;
                 }
             }
         }
@@ -137,6 +151,20 @@ namespace Karaté
 
         public void RemplirListeAdj()
         {
+            for (int i = 0; i < noeuds.Count - 1; i++)
+            {
+                for (int j = 0; j < noeuds.Count - 1 - i; j++)
+                {
+                    if (noeuds[j].Identifiant > noeuds[j + 1].Identifiant)
+                    {
+
+                        Noeud t = noeuds[j];
+                        noeuds[j] = noeuds[j + 1];
+                        noeuds[j + 1] = t;
+                    }
+                }
+            }
+
             foreach (var noeud in noeuds)
             {
                 listeAdjacence[noeud.Identifiant] = new List<int>();
@@ -167,6 +195,11 @@ namespace Karaté
                     listeAdjacence[un.Identifiant].Add(deux.Identifiant);
                     listeAdjacence[deux.Identifiant].Add(un.Identifiant);
                 }
+            }
+
+            foreach (var key in listeAdjacence.Keys.ToList())
+            {
+                listeAdjacence[key].Sort(); // Trier les voisins de chaque noeud
             }
         }
 
