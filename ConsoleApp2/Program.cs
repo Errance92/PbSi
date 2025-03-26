@@ -126,6 +126,9 @@ namespace Karaté
             Connexite(graphe);
             Console.WriteLine();
             AfficherCycles(graphe);
+
+
+            Console.WriteLine("test");
         }
     }
 }
