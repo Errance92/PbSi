@@ -110,25 +110,66 @@ namespace Karaté
 
                 Console.WriteLine("Nombre de cycles détectes : " + cycles.Count);
             }
-            
-            graphe.DessinerGraphe();
-            Console.WriteLine();
-            graphe.Propriété();
-            Console.WriteLine();
-            AfficherMatriceAdj(graphe.MatriceAdjacence);
-            Console.WriteLine();
-            AfficherListeAdj(graphe.ListeAdjacence);
-            Console.WriteLine();
-            AfficherBFS(graphe);
-            Console.WriteLine();
-            AfficherDFS(graphe);
-            Console.WriteLine();
-            Connexite(graphe);
-            Console.WriteLine();
-            AfficherCycles(graphe);
 
+            bool continu = true;
+            while (continu)
+            {
+                Console.Clear();
+                Console.WriteLine("Veuillez choisir une option :");
+                Console.WriteLine("1: Dessiner le graphe");
+                Console.WriteLine("2: Afficher les propriétés du graphe");
+                Console.WriteLine("3: Afficher la matrice d'adjacence");
+                Console.WriteLine("4: Afficher la liste d'adjacence");
+                Console.WriteLine("5: Effectuer un parcours BFS");
+                Console.WriteLine("6: Effectuer un parcours DFS");
+                Console.WriteLine("7: Vérifier la connexité du graphe");
+                Console.WriteLine("8: Afficher les cycles du graphe");
+                Console.WriteLine("0: Quitter");
+                Console.Write("Votre choix : ");
 
-            Console.WriteLine("test");
+                string choix = Console.ReadLine();
+                Console.Clear();
+
+                switch (choix)
+                {
+                    case "1":
+                        graphe.DessinerGraphe();
+                        break;
+                    case "2":
+                        graphe.Propriété();
+                        break;
+                    case "3":
+                        AfficherMatriceAdj(graphe.MatriceAdjacence);
+                        break;
+                    case "4":
+                        AfficherListeAdj(graphe.ListeAdjacence);
+                        break;
+                    case "5":
+                        AfficherBFS(graphe);
+                        break;
+                    case "6":
+                        AfficherDFS(graphe);
+                        break;
+                    case "7":
+                        Connexite(graphe);
+                        break;
+                    case "8":
+                        AfficherCycles(graphe);
+                        break;
+                    case "0":
+                        continu = false;
+                        break;
+                    default:
+                        Console.WriteLine("Choix non reconnu, veuillez réessayer.");
+                        break;
+                }
+
+                Console.WriteLine("\nTapez 'q' pour revenir au menu principal...");
+                while (Console.ReadLine().ToLower() != "q")
+                {
+                    Console.WriteLine("Tapez 'q' pour revenir au menu principal...");
+                }
+            }
         }
     }
 }
