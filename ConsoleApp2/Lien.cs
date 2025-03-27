@@ -10,16 +10,18 @@ namespace Karaté
 
         private Noeud noeudUn;
         private Noeud noeudDeux;
+        private int ponderation;
 
         /// <summary>
         /// Constructeur de la classe Lien
         /// </summary>
         /// <param name="noeudUn">premier noeud</param>
         /// <param name="noeudDeux">deuxieme noeud</param>
-        public Lien(Noeud noeudUn, Noeud noeudDeux)
+        public Lien(Noeud noeudUn, Noeud noeudDeux, int ponderation)
         {
             this.noeudUn = noeudUn;
             this.noeudDeux = noeudDeux;
+            this.ponderation = ponderation;
         }
 
         /// <summary>
@@ -36,6 +38,11 @@ namespace Karaté
         public Noeud NoeudDeux
         {
             get { return noeudDeux; }
+        }
+
+        public int Ponderation
+        {
+            get { return ponderation;  }
         }
     }
 }
