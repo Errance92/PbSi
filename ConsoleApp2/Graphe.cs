@@ -12,8 +12,8 @@ namespace Karaté
         List<Noeud> noeuds;
         List<Lien> liens;
         Dictionary<int, List<int>> listeAdjacence = new Dictionary<int, List<int>>();
+        Dictionary<string, List<string>> listeAdjacenceNom = new Dictionary<string, List<string>>();
         int[,] matriceAdjacence;
-        string filepath;
 
         /// <summary>
         /// Recupere la liste de noeuds
@@ -37,6 +37,11 @@ namespace Karaté
         public Dictionary<int, List<int>> ListeAdjacence
         {
             get { return listeAdjacence; }
+        }
+
+        public Dictionary<string, List<string>> ListeAdjacenceNom
+        {
+            get { return listeAdjacenceNom; }
         }
 
         /// <summary>
@@ -117,6 +122,7 @@ namespace Karaté
             matriceAdjacence = new int[noeuds.Count, noeuds.Count];
             RemplirMatriceAdj(matriceAdjacence);
             RemplirListeAdj();
+            RemplirListeAdjNom();
         }
 
         /// <summary>
@@ -142,41 +148,20 @@ namespace Karaté
         /// <param name="matriceAdjacence"></param>
         public void RemplirMatriceAdj(int [,]matriceAdjacence)
         {
-            for (int i = 0; i < noeuds.Count - 1; i++)
+            for (int i = 0; i < noeuds.Count ; i++)
             {
-                for (int j = 0; j < noeuds.Count - 1 - i; j++)
+                for (int j = 0; j < noeuds.Count ; j++)
                 {
-                    if (noeuds[j].Identifiant > noeuds[j + 1].Identifiant)
-                    {                       
-                        Noeud t = noeuds[j];
-                        noeuds[j] = noeuds[j + 1];
-                        noeuds[j + 1] = t;
-                    }
+                    matriceAdjacence[i, j] = 0;
                 }
             }
 
             foreach (var lien in liens)
             {
-                int a = -1;
-                int b = -1;
+                int a = lien.NoeudUn.Identifiant -1;
+                int b = lien.NoeudDeux.Identifiant - 1;
 
-                for (int i = 0; i < noeuds.Count; i++)
-                {
-                    if (noeuds[i].Identifiant == Convert.ToInt32(lien.NoeudUn.Identifiant))
-                    {
-                        a = i; 
-                    }
-                }
-
-                for (int i = 0; i < noeuds.Count; i++)
-                {
-                    if (noeuds[i].Identifiant == Convert.ToInt32(lien.NoeudDeux.Identifiant))
-                    {
-                        b = i;
-                    }
-                }
-
-                if (a != -1 && b != -1)
+                if (matriceAdjacence[a, b] == 0 || lien.Ponderation < matriceAdjacence[a, b])
                 {
                     matriceAdjacence[a, b] = lien.Ponderation;
                     matriceAdjacence[b, a] = lien.Ponderation;
@@ -201,11 +186,6 @@ namespace Karaté
                         noeuds[j + 1] = t;
                     }
                 }
-            }
-
-            foreach (var noeud in noeuds)
-            {
-                listeAdjacence[noeud.Identifiant] = new List<int>();
             }
 
             foreach (var noeud in noeuds)
@@ -240,6 +220,71 @@ namespace Karaté
                 listeAdjacence[key].Sort(); 
             }
         }
+
+        public void RemplirListeAdjNom()
+        {
+            for (int i = 0; i < noeuds.Count - 1; i++)
+            {
+                for (int j = 0; j < noeuds.Count - 1 - i; j++)
+                {
+                    if (noeuds[j].Identifiant > noeuds[j + 1].Identifiant)
+                    {
+
+                        Noeud t = noeuds[j];
+                        noeuds[j] = noeuds[j + 1];
+                        noeuds[j + 1] = t;
+                    }
+                }
+            }
+
+            foreach (var noeud in noeuds)
+            {
+                listeAdjacenceNom[noeud.Station] = new List<string>();
+            }
+
+            foreach (var lien in liens)
+            {
+                Noeud un = null;
+                Noeud deux = null;
+
+                if (listeAdjacenceNom.ContainsKey(lien.NoeudUn.Station))
+                {
+                    un = lien.NoeudUn;
+                }
+
+                if (listeAdjacenceNom.ContainsKey(lien.NoeudDeux.Station))
+                {
+                    deux = lien.NoeudDeux;
+                }
+
+                if (un != null && deux != null)
+                {
+                    listeAdjacenceNom[un.Station].Add(deux.Station);
+                    listeAdjacenceNom[deux.Station].Add(un.Station);
+                }
+            }
+
+        }
+
+        /*public void RemplirListeAdjNom()
+        {
+
+            listeAdjacenceNom = new Dictionary<string, List<string>>();
+            foreach (var n in noeuds)
+            {
+                listeAdjacenceNom.Add(n.Station, new List<string>());
+            }
+            for (int i = 0; i < noeuds.Count; i++)
+            {
+                for (int j = 0; j < noeuds.Count; j++)
+                {
+                    if (matriceAdjacence[i, j] != 0)
+                    {
+                        listeAdjacenceNom[noeuds[i].Station].Add(noeuds[j].Station);
+                    }
+                }
+            }
+        }*/
 
         /// <summary>
         /// Effectue le parcours en largeur a partir d'un noeud

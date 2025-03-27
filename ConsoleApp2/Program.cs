@@ -33,6 +33,23 @@ namespace Karaté
             /// Affiche la liste d'adjacence 
             /// </summary>
             /// <param name="listeAdj">Liste d'adjacence a afficher</param>
+            static void AfficherListeAdjNom(Dictionary<string, List<string>> listeAdj)
+            {
+                Console.WriteLine("Liste d'adjacence :");
+                foreach (var noeud in listeAdj)
+                {
+                    if (noeud.Value.Count >= 3)
+                    {
+                        Console.Write(noeud.Key + ": ");
+                        foreach (var autreNoeud in noeud.Value)
+                        {
+                            Console.Write(autreNoeud + " ");
+                        }
+                        Console.WriteLine();
+                    }
+                }
+            }
+
             static void AfficherListeAdj(Dictionary<int, List<int>> listeAdj)
             {
                 Console.WriteLine("Liste d'adjacence :");
@@ -142,7 +159,7 @@ namespace Karaté
                         AfficherMatriceAdj(graphe.MatriceAdjacence);
                         break;
                     case "4":
-                        AfficherListeAdj(graphe.ListeAdjacence);
+                        AfficherListeAdjNom(graphe.ListeAdjacenceNom);
                         break;
                     case "5":
                         AfficherBFS(graphe);
