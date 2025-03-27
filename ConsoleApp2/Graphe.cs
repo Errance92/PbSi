@@ -54,51 +54,63 @@ namespace Karaté
         {
             noeuds = new List<Noeud>(); 
             liens = new List<Lien>();
-            this.filepath = "soc-karate.mtx";
-            List<string> lignes = new List<string>();
-            string separation = " ";
-            string[] lignesFichier = File.ReadAllLines(filepath);
 
-            foreach (string ligne in lignesFichier)
+            Dictionary<string, Noeud> station = new Dictionary<string, Noeud>();
+
+            string filepathStation = "MetroParis.csv";
+            string separation = ",";
+            string[] lignesFichier = File.ReadAllLines(filepathStation);
+
+            for (int i = 1; i < lignesFichier.Length; i++)
             {
-                if (ligne.Trim() != "" && !ligne.Trim().StartsWith("%"))
+                string ligne = lignesFichier[i];
+                if (ligne.Trim() != "")
                 {
                     string[] partie = ligne.Split(separation);
-
-                    if (partie.Length == 2)
+                    if (partie.Length >= 3)
                     {
+                        string nomStation = partie[2].Trim();
+                        if (station.ContainsKey(nomStation) == false)
+                        {
+                            Noeud n = new Noeud(station.Count + 1, nomStation);
+                            station.Add(nomStation, n);
+                            noeuds.Add(n);
+                        }
+                    }
+                }
+            }
+
+            string filepathLinks = "Liens.csv";
+            string[] lignesLiens = File.ReadAllLines(filepathLinks);
+
+            for (int i = 1; i < lignesLiens.Length; i++)
+            {
+                string ligne = lignesLiens[i];
+                if (ligne.Trim() != "")
+                {
+                    string[] partie = ligne.Split(separation);
+                    if (partie.Length >= 4)
+                    {
+                        string stationDepart = partie[1].Trim();
+                        string stationArrivee = partie[2].Trim();
+                        int temps = Convert.ToInt32(partie[3].Trim());
+
                         Noeud un = null;
                         Noeud deux = null;
 
-                        for (int i = 0; i < noeuds.Count; i++)
+                        if (station.ContainsKey(stationDepart))
                         {
-                            if (noeuds[i].Identifiant == Convert.ToInt32(partie[0]))
-                            {
-                                un = noeuds[i];
-                            }
+                            un = station[stationDepart];
+                        }
+                        if (station.ContainsKey(stationArrivee))
+                        {
+                            deux = station[stationArrivee];
                         }
 
-                        if (un == null)
+                        if (un != null && deux != null)
                         {
-                            un = new Noeud(Convert.ToInt32(partie[0]));
-                            noeuds.Add(un);
+                            liens.Add(new Lien(un, deux, temps));
                         }
-
-                        for (int i = 0; i < noeuds.Count; i++)
-                        {
-                            if (noeuds[i].Identifiant == Convert.ToInt32(partie[1]))
-                            {
-                                deux = noeuds[i];
-                            }
-                        }
-
-                        if (deux == null)
-                        {
-                            deux = new Noeud(Convert.ToInt32(partie[1]));
-                            noeuds.Add(deux);
-                        }
-
-                        liens.Add(new Lien(un, deux));
                     }
                 }
             }
@@ -166,8 +178,8 @@ namespace Karaté
 
                 if (a != -1 && b != -1)
                 {
-                    matriceAdjacence[a, b] = 1;
-                    matriceAdjacence[b, a] = 1;
+                    matriceAdjacence[a, b] = lien.Ponderation;
+                    matriceAdjacence[b, a] = lien.Ponderation;
                 }
             }
         }
@@ -424,8 +436,8 @@ namespace Karaté
         /// </summary>
         public void DessinerGraphe()
         {
-            int largeur = 1800;
-            int hauteur = 1800;
+            int largeur = 3300;
+            int hauteur = 3300;
             using (var surface = SKSurface.Create(new SKImageInfo(largeur, hauteur)))
             {
                 var toile = surface.Canvas;
@@ -433,7 +445,7 @@ namespace Karaté
 
                 float centreX = largeur / 2;
                 float centreY = hauteur / 2;
-                float rayon = 700; 
+                float rayon = 1500; 
                 int nombreDeNoeuds = noeuds.Count;
                 float anglePas = 360f / nombreDeNoeuds;
 
@@ -462,16 +474,17 @@ namespace Karaté
                 foreach (var noeud in noeuds)
                 {
                     var point = positions[noeud.Identifiant];
-                    toile.DrawCircle(point, 30, new SKPaint
+                    toile.DrawCircle(point, 10, new SKPaint
                     {
                         Color = SKColors.Blue,
                         Style = SKPaintStyle.Fill
                     });
 
-                    toile.DrawText(noeud.Identifiant.ToString(), point.X - 2, point.Y + 9, new SKPaint
+                    toile.DrawText(noeud.Identifiant.ToString(), point.X - 2 , point.Y + 3
+                        , new SKPaint
                     {
                         Color = SKColors.White,
-                        TextSize = 30,
+                        TextSize = 10,
                         TextAlign = SKTextAlign.Center
                     });
                 }
