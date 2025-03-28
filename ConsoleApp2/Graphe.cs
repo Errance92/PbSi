@@ -99,6 +99,7 @@ namespace Karaté
                         string stationDepart = partie[1].Trim();
                         string stationArrivee = partie[2].Trim();
                         int temps = Convert.ToInt32(partie[3].Trim());
+                        string ligne_metro = partie[0].Trim();
 
                         Noeud un = null;
                         Noeud deux = null;
@@ -114,7 +115,7 @@ namespace Karaté
 
                         if (un != null && deux != null)
                         {
-                            liens.Add(new Lien(un, deux, temps));
+                            liens.Add(new Lien(un, deux, temps, ligne_metro));
                         }
                     }
                 }
@@ -266,31 +267,6 @@ namespace Karaté
 
         }
 
-        /*public void RemplirListeAdjNom()
-        {
-
-            listeAdjacenceNom = new Dictionary<string, List<string>>();
-            foreach (var n in noeuds)
-            {
-                listeAdjacenceNom.Add(n.Station, new List<string>());
-            }
-            for (int i = 0; i < noeuds.Count; i++)
-            {
-                for (int j = 0; j < noeuds.Count; j++)
-                {
-                    if (matriceAdjacence[i, j] != 0)
-                    {
-                        listeAdjacenceNom[noeuds[i].Station].Add(noeuds[j].Station);
-                    }
-                }
-            }
-        }*/
-
-        /// <summary>
-        /// Effectue le parcours en largeur a partir d'un noeud
-        /// </summary>
-        /// <param name="debut">noeud a partir duquel on commence le parcours</param>
-        /// <returns>Le parcours sous forme d'une chaine de caracteres</returns>
         public string BFS (int debut)
         {
             string res = "";
