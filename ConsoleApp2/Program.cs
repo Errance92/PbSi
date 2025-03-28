@@ -128,6 +128,38 @@ namespace Karaté
                 Console.WriteLine("Nombre de cycles détectes : " + cycles.Count);
             }
 
+
+            static void TesterDijkstra(Graphe graphe)
+            {
+                Console.Write("Entrez la station de départ : ");
+                string depart = Console.ReadLine();
+                Console.Write("Entrez la station d'arrivée : ");
+                string arrivee = Console.ReadLine();
+                try
+                {
+                    List<string> chemin = graphe.DijkstraChemin(depart, arrivee);
+                    int cout = graphe.DijkstraCout(depart, arrivee);
+                    if (chemin.Count == 0)
+                    {
+                        Console.WriteLine("Aucun chemin trouvé entre " + depart + " et " + arrivee);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Chemin le plus court entre " + depart + " et " + arrivee + " :");
+                        foreach (string segment in chemin)
+                        {
+                            Console.WriteLine(segment);
+                        }
+                        Console.WriteLine("Coût total : " + cout);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Erreur : " + ex.Message);
+                }
+            }
+
+
             bool continu = true;
             while (continu)
             {
@@ -141,6 +173,7 @@ namespace Karaté
                 Console.WriteLine("6: Effectuer un parcours DFS");
                 Console.WriteLine("7: Vérifier la connexité du graphe");
                 Console.WriteLine("8: Afficher les cycles du graphe");
+                Console.WriteLine("9: Tester Dijkstra (chemin le plus court entre deux stations)");
                 Console.WriteLine("0: Quitter");
                 Console.Write("Votre choix : ");
 
@@ -172,6 +205,9 @@ namespace Karaté
                         break;
                     case "8":
                         AfficherCycles(graphe);
+                        break;
+                    case "9":
+                        TesterDijkstra(graphe);
                         break;
                     case "0":
                         continu = false;
