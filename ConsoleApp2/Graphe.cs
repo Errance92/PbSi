@@ -577,25 +577,22 @@ namespace Karaté
                         Lien lienCourant = liens[k];
                         int indice1 = lienCourant.NoeudUn.Identifiant - 1;
                         int indice2 = lienCourant.NoeudDeux.Identifiant - 1;
-                        // Vérifier si le lien est incident à u
                         if (indice1 == a || indice2 == a)
                         {
                             int v = (indice1 == a) ? indice2 : indice1;
-                            if (!visite[v] && distances[a] != int.MaxValue)
+                            if (!visite[v] && distances[a] != 10000)
                             {
-                                // Récupération de la ligne du lien courant
                                 string ligneCourante = "";
                                 if (lienCourant != null)
                                 {
                                     ligneCourante = lienCourant.Ligne;
                                 }
-                                // Calcul du coût de changement de ligne
                                 int coutChangement = 0;
                                 if (a != id)
                                 {
                                     if (ligneUtilisee[a] != "" && !ligneUtilisee[a].Equals(ligneCourante, StringComparison.OrdinalIgnoreCase))
                                     {
-                                        coutChangement = 50;
+                                        coutChangement = 8;
                                     }
                                 }
                                 int nouvelleDistance = distances[a] + lienCourant.Ponderation + coutChangement;
