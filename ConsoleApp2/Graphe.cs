@@ -74,7 +74,9 @@ namespace Karaté
                     string[] partie = ligne.Split(separation);
                     if (partie.Length >= 3)
                     {
+                        string libelleLigne = partie[1].Trim();
                         string nomStation = partie[2].Trim();
+                        string cle = nomStation + "_" + libelleLigne;
                         if (station.ContainsKey(nomStation) == false)
                         {
                             Noeud n = new Noeud(station.Count + 1, nomStation);
@@ -100,6 +102,9 @@ namespace Karaté
                         string stationArrivee = partie[2].Trim();
                         int temps = Convert.ToInt32(partie[3].Trim());
                         string ligne_metro = partie[0].Trim();
+
+                        string cleDepart = stationDepart + "_" + ligne_metro;
+                        string cleArrivee = stationArrivee + "_" + ligne_metro;
 
                         Noeud un = null;
                         Noeud deux = null;
@@ -519,17 +524,19 @@ namespace Karaté
             }
         }
 
-        private Tuple<int[], int[]> CalculerDijkstra(string depart)
+        private Tuple<int[], int[], string[]> CalculerDijkstra(string depart)
         {
             int[] distances = new int[noeuds.Count];
             bool[] visite = new bool[noeuds.Count];
             int[] precedent = new int[noeuds.Count];
+            string[] ligneUtilisee = new string[noeuds.Count];
 
             for (int i = 0; i < noeuds.Count; i++)
             {
-                distances[i] = 1000;
+                distances[i] = 10000;
                 visite[i] = false;
                 precedent[i] = -1;
+                ligneUtilisee[i] = "";
             }
 
             int id = -1;
@@ -545,11 +552,12 @@ namespace Karaté
                 throw new Exception("Station de départ introuvable : " + depart);
             }
             distances[id] = 0;
+            ligneUtilisee[id] = "";
 
             for (int i = 0; i < noeuds.Count; i++)
             {
                 int a = -1;
-                int minimum = 1000;
+                int minimum = 10000;
                 for (int j = 0; j < noeuds.Count; j++)
                 {
                     if (visite[j] == false)
@@ -564,33 +572,54 @@ namespace Karaté
                 if (a != -1)
                 {
                     visite[a] = true;
-                    for (int v = 0; v < noeuds.Count; v++)
+                    for (int k = 0; k < liens.Count; k++)
                     {
-                        if (visite[v] == false)
+                        Lien lienCourant = liens[k];
+                        int indice1 = lienCourant.NoeudUn.Identifiant - 1;
+                        int indice2 = lienCourant.NoeudDeux.Identifiant - 1;
+                        // Vérifier si le lien est incident à u
+                        if (indice1 == a || indice2 == a)
                         {
-                            if (matriceAdjacence[a, v] != 0 && distances[a] != int.MaxValue)
+                            int v = (indice1 == a) ? indice2 : indice1;
+                            if (!visite[v] && distances[a] != int.MaxValue)
                             {
-                                int nouvelleDistance = distances[a] + matriceAdjacence[a, v];
+                                // Récupération de la ligne du lien courant
+                                string ligneCourante = "";
+                                if (lienCourant != null)
+                                {
+                                    ligneCourante = lienCourant.Ligne;
+                                }
+                                // Calcul du coût de changement de ligne
+                                int coutChangement = 0;
+                                if (a != id)
+                                {
+                                    if (ligneUtilisee[a] != "" && !ligneUtilisee[a].Equals(ligneCourante, StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        coutChangement = 50;
+                                    }
+                                }
+                                int nouvelleDistance = distances[a] + lienCourant.Ponderation + coutChangement;
                                 if (nouvelleDistance < distances[v])
                                 {
                                     distances[v] = nouvelleDistance;
                                     precedent[v] = a;
+                                    ligneUtilisee[v] = ligneCourante;
                                 }
                             }
                         }
                     }
                 }
             }
-            return Tuple.Create(distances, precedent);
+            return Tuple.Create(distances, precedent, ligneUtilisee);
         }
 
         public List<string> DijkstraChemin(string depart, string arrivee)
         {
-            Tuple<int[], int[]> res = CalculerDijkstra(depart);
+            Tuple<int[], int[], string[]> res = CalculerDijkstra(depart);
             int[] distances = res.Item1;
             int[] precedent = res.Item2;
+            string[] ligneUtilisee = res.Item3;
 
-            // Recherche de l'indice de la station d'arrivée
             int id = -1;
             for (int i = 0; i < noeuds.Count; i++)
             {
@@ -603,7 +632,7 @@ namespace Karaté
             {
                 throw new Exception("Station d'arrivée introuvable : " + arrivee);
             }
-            if (distances[id] == 1000)
+            if (distances[id] == 10000)
             {
                 return new List<string>();
             }
@@ -615,7 +644,7 @@ namespace Karaté
                 idChemin.Add(idActuel);
                 if (precedent[idActuel] == -1)
                 {
-                    break; // Forcer la fin de la boucle sans utiliser break
+                    break; 
                 }
                 else
                 {
@@ -631,54 +660,37 @@ namespace Karaté
                 idChemin[c - i - 1] = temp;
             }
 
-            // Construction du chemin avec indication de la ligne utilisée pour chaque segment
             List<string> chemin = new List<string>();
-            // Ajout de la station de départ
             chemin.Add(noeuds[idChemin[0]].Station);
             for (int i = 0; i < idChemin.Count - 1; i++)
             {
                 int indiceDepart = idChemin[i];
                 int indiceArrivee = idChemin[i + 1];
-                string ligneUtilisee = "";
-                // Recherche dans la liste des liens de la ligne utilisée entre ces deux stations
-                for (int j = 0; j < liens.Count; j++)
-                {
-                    int idxU = liens[j].NoeudUn.Identifiant - 1;
-                    int idxV = liens[j].NoeudDeux.Identifiant - 1;
-                    if ((idxU == indiceDepart && idxV == indiceArrivee) ||
-                        (idxU == indiceArrivee && idxV == indiceDepart))
-                    {
-                        ligneUtilisee = liens[j].Ligne; // Assurez-vous que la propriété Ligne est définie dans Lien
-                    }
-                }
-                string segment = "-> (Ligne : " + ligneUtilisee + ") " + noeuds[indiceArrivee].Station;
+                string ligneSegment = ligneUtilisee[indiceArrivee];
+                string segment = "-> (Ligne : " + ligneSegment + ") " + noeuds[indiceArrivee].Station;
                 chemin.Add(segment);
             }
             return chemin;
         }
 
-        /// <summary>
-        /// Renvoie le coût total du chemin le plus court entre deux stations.
-        /// </summary>
         public int DijkstraCout(string depart, string arrivee)
         {
-            Tuple<int[], int[]> resultat = CalculerDijkstra(depart);
+            Tuple<int[], int[], string[]> resultat = CalculerDijkstra(depart);
             int[] distances = resultat.Item1;
-            int nbNoeuds = noeuds.Count;
+            int id = -1;
 
-            int cible = -1;
-            for (int i = 0; i < nbNoeuds; i++)
+            for (int i = 0; i < noeuds.Count; i++)
             {
                 if (noeuds[i].Station.Equals(arrivee, StringComparison.OrdinalIgnoreCase))
                 {
-                    cible = i;
+                    id = i;
                 }
             }
-            if (cible == -1)
+            if (id == -1)
             {
                 throw new Exception("Station d'arrivée introuvable : " + arrivee);
             }
-            return distances[cible];
+            return distances[id];
         }
     }
 }
