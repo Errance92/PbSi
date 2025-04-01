@@ -159,6 +159,66 @@ namespace Karaté
                 }
             }
 
+            static void TesterBellman(Graphe graphe)
+            {
+                Console.Write("Entrez la station de départ : ");
+                string depart = Console.ReadLine();
+                Console.Write("Entrez la station d'arrivée : ");
+                string arrivee = Console.ReadLine();
+                try
+                {
+                    List<string> chemin = graphe.BellmanFordChemin(depart, arrivee);
+                    int cout = graphe.BellmanFordCout(depart, arrivee);
+                    if (chemin.Count == 0)
+                    {
+                        Console.WriteLine("Aucun chemin trouvé entre " + depart + " et " + arrivee);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Chemin le plus court entre " + depart + " et " + arrivee + " :");
+                        foreach (string segment in chemin)
+                        {
+                            Console.WriteLine(segment);
+                        }
+                        Console.WriteLine("Coût total : " + cout);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Erreur : " + ex.Message);
+                }
+            }
+
+            static void TesterFloyd(Graphe graphe)
+            {
+                Console.Write("Entrez la station de départ : ");
+                string depart = Console.ReadLine();
+                Console.Write("Entrez la station d'arrivée : ");
+                string arrivee = Console.ReadLine();
+                try
+                {
+                    List<string> chemin = graphe.FloydChemin(depart, arrivee);
+                    int cout = graphe.FloydCout(depart, arrivee);
+                    if (chemin.Count == 0)
+                    {
+                        Console.WriteLine("Aucun chemin trouvé entre " + depart + " et " + arrivee);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Chemin le plus court entre " + depart + " et " + arrivee + " :");
+                        foreach (string segment in chemin)
+                        {
+                            Console.WriteLine(segment);
+                        }
+                        Console.WriteLine("Coût total : " + cout);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Erreur : " + ex.Message);
+                }
+            }
+
 
             bool continu = true;
             while (continu)
@@ -208,6 +268,11 @@ namespace Karaté
                         break;
                     case "9":
                         TesterDijkstra(graphe);
+                        TesterBellman(graphe);
+                        TesterFloyd(graphe);
+                        break;
+                    case "10":
+                        TesterBellman(graphe);
                         break;
                     case "0":
                         continu = false;
