@@ -1,0 +1,564 @@
+using System;
+using System.Collections.Generic;
+
+namespace LivinParis
+{
+    public class UserInterface
+    {
+        private readonly DbAccess _db;
+        
+        public UserInterface()
+        {
+            _db = new DbAccess();
+        }
+        
+        public void Run()
+        {
+            bool exit = false;
+            
+            while (!exit)
+            {
+                Console.Clear();
+                DisplayMainMenu();
+                
+                string choice = Console.ReadLine();
+                
+                switch (choice)
+                {
+                    case "1": ClientModule(); break;
+                    case "2": CuisinierModule(); break;
+                    case "3": CommandeModule(); break;
+                    case "4": StatistiquesModule(); break;
+                    case "0": exit = true; break;
+                    default: 
+                        Console.WriteLine("Option invalide.");
+                        WaitForKey();
+                        break;
+                }
+            }
+            
+            _db.CloseConnection();
+        }
+        
+        private void DisplayMainMenu()
+        {
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.WriteLine("=== LIV'IN PARIS ===");
+            Console.ResetColor();
+            Console.WriteLine("1. Gestion des Clients");
+            Console.WriteLine("2. Gestion des Cuisiniers");
+            Console.WriteLine("3. Gestion des Commandes");
+            Console.WriteLine("4. Statistiques");
+            Console.WriteLine("0. Quitter");
+            Console.Write("\nVotre choix: ");
+        }
+        
+        // ===== MODULE CLIENT =====
+        
+        private void ClientModule()
+        {
+            bool exit = false;
+            
+            while (!exit)
+            {
+                Console.Clear();
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("=== MODULE CLIENT ===");
+                Console.ResetColor();
+                Console.WriteLine("1. Ajouter un client");
+                Console.WriteLine("2. Modifier un client");
+                Console.WriteLine("3. Supprimer un client");
+                Console.WriteLine("4. Afficher tous les clients");
+                Console.WriteLine("0. Retour au menu principal");
+                Console.Write("\nVotre choix: ");
+                
+                string choice = Console.ReadLine();
+                
+                switch (choice)
+                {
+                    case "1": AddClient(); break;
+                    case "2": ModifyClient(); break;
+                    case "3": DeleteClient(); break;
+                    case "4": DisplayAllClients(); break;
+                    case "0": exit = true; break;
+                    default: 
+                        Console.WriteLine("Option invalide.");
+                        WaitForKey();
+                        break;
+                }
+            }
+        }
+        
+        private void AddClient()
+        {
+            Console.Clear();
+            Console.WriteLine("=== AJOUTER UN CLIENT ===\n");
+            
+            Client client = new Client
+            {
+                IdClient = _db.GetNextClientId()
+            };
+            
+            Console.Write("Nom: ");
+            client.Nom = Console.ReadLine();
+            
+            Console.Write("Prénom: ");
+            client.Prenom = Console.ReadLine();
+            
+            Console.Write("Adresse: ");
+            client.Adresse = Console.ReadLine();
+            
+            Console.Write("Email (optionnel): ");
+            client.Email = Console.ReadLine();
+            
+            Console.Write("Téléphone (optionnel): ");
+            client.Telephone = Console.ReadLine();
+            
+            if (_db.AddClient(client))
+                Console.WriteLine("\nClient ajouté avec succès!");
+            else
+                Console.WriteLine("\nErreur lors de l'ajout du client.");
+                
+            WaitForKey();
+        }
+        
+        private void ModifyClient()
+        {
+            Console.Clear();
+            Console.WriteLine("=== MODIFIER UN CLIENT ===\n");
+            
+            Console.Write("ID du client à modifier: ");
+            if (!int.TryParse(Console.ReadLine(), out int id))
+            {
+                Console.WriteLine("ID invalide.");
+                WaitForKey();
+                return;
+            }
+            
+            Client client = _db.GetClientById(id);
+            
+            if (client == null)
+            {
+                Console.WriteLine($"Aucun client trouvé avec l'ID {id}.");
+                WaitForKey();
+                return;
+            }
+            
+            Console.WriteLine($"Modification de {client}\n");
+            
+            Console.Write($"Nom [{client.Nom}]: ");
+            string nom = Console.ReadLine();
+            if (!string.IsNullOrEmpty(nom)) client.Nom = nom;
+            
+            Console.Write($"Prénom [{client.Prenom}]: ");
+            string prenom = Console.ReadLine();
+            if (!string.IsNullOrEmpty(prenom)) client.Prenom = prenom;
+            
+            Console.Write($"Adresse [{client.Adresse}]: ");
+            string adresse = Console.ReadLine();
+            if (!string.IsNullOrEmpty(adresse)) client.Adresse = adresse;
+            
+            Console.Write($"Email [{client.Email}]: ");
+            string email = Console.ReadLine();
+            if (!string.IsNullOrEmpty(email)) client.Email = email;
+            
+            Console.Write($"Téléphone [{client.Telephone}]: ");
+            string telephone = Console.ReadLine();
+            if (!string.IsNullOrEmpty(telephone)) client.Telephone = telephone;
+            
+            if (_db.UpdateClient(client))
+                Console.WriteLine("\nClient modifié avec succès!");
+            else
+                Console.WriteLine("\nErreur lors de la modification du client.");
+                
+            WaitForKey();
+        }
+        
+        private void DeleteClient()
+        {
+            Console.Clear();
+            Console.WriteLine("=== SUPPRIMER UN CLIENT ===\n");
+            
+            Console.Write("ID du client à supprimer: ");
+            if (!int.TryParse(Console.ReadLine(), out int id))
+            {
+                Console.WriteLine("ID invalide.");
+                WaitForKey();
+                return;
+            }
+            
+            Client client = _db.GetClientById(id);
+            
+            if (client == null)
+            {
+                Console.WriteLine($"Aucun client trouvé avec l'ID {id}.");
+                WaitForKey();
+                return;
+            }
+            
+            Console.WriteLine($"Êtes-vous sûr de vouloir supprimer {client} ? (O/N)");
+            if (Console.ReadLine().ToUpper() != "O")
+            {
+                Console.WriteLine("Suppression annulée.");
+                WaitForKey();
+                return;
+            }
+            
+            if (_db.DeleteClient(id))
+                Console.WriteLine("\nClient supprimé avec succès!");
+            else
+                Console.WriteLine("\nErreur lors de la suppression du client.");
+                
+            WaitForKey();
+        }
+        
+        private void DisplayAllClients()
+        {
+            Console.Clear();
+            Console.WriteLine("=== LISTE DES CLIENTS ===\n");
+            
+            List<Client> clients = _db.GetAllClients();
+            
+            if (clients.Count == 0)
+            {
+                Console.WriteLine("Aucun client trouvé.");
+            }
+            else
+            {
+                foreach (Client client in clients)
+                {
+                    Console.WriteLine($"{client} - {client.Adresse} - {client.Email} - {client.Telephone}");
+                }
+                Console.WriteLine($"\nTotal: {clients.Count} client(s)");
+            }
+            
+            WaitForKey();
+        }
+        
+        // ===== MODULE CUISINIER =====
+        
+        private void CuisinierModule()
+        {
+            bool exit = false;
+            
+            while (!exit)
+            {
+                Console.Clear();
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine("=== MODULE CUISINIER ===");
+                Console.ResetColor();
+                Console.WriteLine("1. Ajouter un cuisinier");
+                Console.WriteLine("2. Afficher tous les cuisiniers");
+                Console.WriteLine("0. Retour au menu principal");
+                Console.Write("\nVotre choix: ");
+                
+                string choice = Console.ReadLine();
+                
+                switch (choice)
+                {
+                    case "1": AddCuisinier(); break;
+                    case "2": DisplayAllCuisiniers(); break;
+                    case "0": exit = true; break;
+                    default: 
+                        Console.WriteLine("Option invalide.");
+                        WaitForKey();
+                        break;
+                }
+            }
+        }
+        
+        private void AddCuisinier()
+        {
+            Console.Clear();
+            Console.WriteLine("=== AJOUTER UN CUISINIER ===\n");
+            
+            Cuisinier cuisinier = new Cuisinier
+            {
+                IdCuisinier = _db.GetNextCuisinierId()
+            };
+            
+            Console.Write("Nom: ");
+            cuisinier.Nom = Console.ReadLine();
+            
+            Console.Write("Prénom: ");
+            cuisinier.Prenom = Console.ReadLine();
+            
+            Console.Write("Adresse: ");
+            cuisinier.Adresse = Console.ReadLine();
+            
+            Console.Write("Email (optionnel): ");
+            cuisinier.Email = Console.ReadLine();
+            
+            Console.Write("Téléphone (optionnel): ");
+            cuisinier.Telephone = Console.ReadLine();
+            
+            if (_db.AddCuisinier(cuisinier))
+                Console.WriteLine("\nCuisinier ajouté avec succès!");
+            else
+                Console.WriteLine("\nErreur lors de l'ajout du cuisinier.");
+                
+            WaitForKey();
+        }
+        
+        private void DisplayAllCuisiniers()
+        {
+            Console.Clear();
+            Console.WriteLine("=== LISTE DES CUISINIERS ===\n");
+            
+            List<Cuisinier> cuisiniers = _db.GetAllCuisiniers();
+            
+            if (cuisiniers.Count == 0)
+            {
+                Console.WriteLine("Aucun cuisinier trouvé.");
+            }
+            else
+            {
+                foreach (Cuisinier cuisinier in cuisiniers)
+                {
+                    Console.WriteLine($"{cuisinier} - {cuisinier.Adresse} - {cuisinier.Email} - {cuisinier.Telephone}");
+                }
+                Console.WriteLine($"\nTotal: {cuisiniers.Count} cuisinier(s)");
+            }
+            
+            WaitForKey();
+        }
+        
+        // ===== MODULE COMMANDE =====
+        
+        private void CommandeModule()
+        {
+            bool exit = false;
+            
+            while (!exit)
+            {
+                Console.Clear();
+                Console.ForegroundColor = ConsoleColor.Magenta;
+                Console.WriteLine("=== MODULE COMMANDE ===");
+                Console.ResetColor();
+                Console.WriteLine("1. Créer une commande");
+                Console.WriteLine("2. Afficher les détails d'une commande");
+                Console.WriteLine("3. Afficher toutes les commandes");
+                Console.WriteLine("0. Retour au menu principal");
+                Console.Write("\nVotre choix: ");
+                
+                string choice = Console.ReadLine();
+                
+                switch (choice)
+                {
+                    case "1": CreateCommande(); break;
+                    case "2": DisplayCommandeDetails(); break;
+                    case "3": DisplayAllCommandes(); break;
+                    case "0": exit = true; break;
+                    default: 
+                        Console.WriteLine("Option invalide.");
+                        WaitForKey();
+                        break;
+                }
+            }
+        }
+        
+        private void CreateCommande()
+        {
+            Console.Clear();
+            Console.WriteLine("=== CRÉER UNE COMMANDE ===\n");
+            
+            // Sélection du client
+            Console.Write("ID du client: ");
+            if (!int.TryParse(Console.ReadLine(), out int clientId))
+            {
+                Console.WriteLine("ID client invalide.");
+                WaitForKey();
+                return;
+            }
+            
+            Client client = _db.GetClientById(clientId);
+            
+            if (client == null)
+            {
+                Console.WriteLine($"Aucun client trouvé avec l'ID {clientId}.");
+                WaitForKey();
+                return;
+            }
+            
+            // Création de la commande
+            Commande commande = new Commande
+            {
+                IdClient = clientId,
+                DateCommande = DateTime.Now,
+                StatuCommande = "En cours",
+                Lignes = new List<Ligne>()
+            };
+            
+            // Ajout de ligne(s)
+            bool addingLines = true;
+            decimal totalAmount = 0;
+            
+            while (addingLines)
+            {
+                Console.WriteLine("\n=== AJOUTER UNE LIGNE ===");
+                
+                Ligne ligne = new Ligne
+                {
+                    Plats = new List<Plat>()
+                };
+                
+                // Sélection du plat
+                Console.Write("ID du plat: ");
+                if (!int.TryParse(Console.ReadLine(), out int platId))
+                {
+                    Console.WriteLine("ID plat invalide.");
+                    continue;
+                }
+                
+                Plat plat = _db.GetPlatById(platId);
+                
+                if (plat == null)
+                {
+                    Console.WriteLine($"Aucun plat trouvé avec l'ID {platId}.");
+                    continue;
+                }
+                
+                // Quantité
+                Console.Write("Quantité: ");
+                if (!int.TryParse(Console.ReadLine(), out int quantite) || quantite <= 0)
+                {
+                    Console.WriteLine("Quantité invalide.");
+                    continue;
+                }
+                
+                ligne.Quantite = quantite;
+                ligne.Plats.Add(plat);
+                ligne.PrixTotal = plat.PrixParPersonne * quantite;
+                totalAmount += ligne.PrixTotal;
+                
+                // Date de livraison (optionnelle)
+                Console.Write("Date de livraison (JJ/MM/AAAA): ");
+                string dateLivraisonStr = Console.ReadLine();
+                if (DateTime.TryParse(dateLivraisonStr, out DateTime dateLivraison))
+                {
+                    ligne.DateLivraison = dateLivraison;
+                }
+                
+                // Lieu de livraison
+                Console.Write("Lieu de livraison: ");
+                ligne.Lieu = Console.ReadLine();
+                
+                commande.Lignes.Add(ligne);
+                
+                Console.Write("\nAjouter une autre ligne? (O/N): ");
+                addingLines = Console.ReadLine().ToUpper() == "O";
+            }
+            
+            commande.Montant = totalAmount;
+            
+            // Mode de paiement
+            Console.Write("\nMode de paiement: ");
+            commande.Paiement = Console.ReadLine();
+            
+            // Confirmation
+            Console.WriteLine($"\nTotal de la commande: {commande.Montant}€");
+            Console.Write("Confirmer la commande? (O/N): ");
+            
+            if (Console.ReadLine().ToUpper() != "O")
+            {
+                Console.WriteLine("Création de commande annulée.");
+                WaitForKey();
+                return;
+            }
+            
+            int commandeId = _db.AddCommande(commande);
+            
+            if (commandeId > 0)
+                Console.WriteLine($"\nCommande #{commandeId} créée avec succès!");
+            else
+                Console.WriteLine("\nErreur lors de la création de la commande.");
+                
+            WaitForKey();
+        }
+        
+        private void DisplayCommandeDetails()
+        {
+            Console.Clear();
+            Console.WriteLine("=== DÉTAILS D'UNE COMMANDE ===\n");
+            
+            Console.Write("ID de la commande: ");
+            if (!int.TryParse(Console.ReadLine(), out int commandeId))
+            {
+                Console.WriteLine("ID commande invalide.");
+                WaitForKey();
+                return;
+            }
+            
+            Commande commande = _db.GetCommandeById(commandeId);
+            
+            if (commande == null)
+            {
+                Console.WriteLine($"Aucune commande trouvée avec l'ID {commandeId}.");
+                WaitForKey();
+                return;
+            }
+            
+            Client client = _db.GetClientById(commande.IdClient);
+            
+            Console.WriteLine($"\nCommande #{commande.IdCommande}");
+            Console.WriteLine($"Date: {commande.DateCommande}");
+            Console.WriteLine($"Client: {client?.ToString() ?? "Inconnu"}");
+            Console.WriteLine($"Statut: {commande.StatuCommande}");
+            Console.WriteLine($"Montant: {commande.Montant}€");
+            Console.WriteLine($"Paiement: {commande.Paiement ?? "Non défini"}");
+            
+            Console.WriteLine("\nLignes de commande:");
+            foreach (var ligne in commande.Lignes)
+            {
+                Console.WriteLine($"- Ligne #{ligne.IdLigne}: {ligne.Quantite}x {ligne.Plats[0].NomPlat} = {ligne.PrixTotal}€");
+                Console.WriteLine($"  Livraison: {ligne.DateLivraison?.ToString("dd/MM/yyyy") ?? "Non définie"} - {ligne.Lieu ?? "Non défini"}");
+            }
+            
+            WaitForKey();
+        }
+        
+        private void DisplayAllCommandes()
+        {
+            Console.Clear();
+            Console.WriteLine("=== LISTE DES COMMANDES ===\n");
+            
+            List<Commande> commandes = _db.GetAllCommandes();
+            
+            if (commandes.Count == 0)
+            {
+                Console.WriteLine("Aucune commande trouvée.");
+            }
+            else
+            {
+                foreach (Commande commande in commandes)
+                {
+                    Client client = _db.GetClientById(commande.IdClient);
+                    Console.WriteLine($"{commande} - Client: {client?.ToString() ?? "Inconnu"} - {commande.StatuCommande}");
+                }
+                Console.WriteLine($"\nTotal: {commandes.Count} commande(s)");
+            }
+            
+            WaitForKey();
+        }
+        
+        // ===== MODULE STATISTIQUES =====
+        
+        private void StatistiquesModule()
+        {
+            Console.Clear();
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.WriteLine("=== MODULE STATISTIQUES ===");
+            Console.ResetColor();
+            Console.WriteLine("Ce module sera implémenté dans une version future.");
+            
+            WaitForKey();
+        }
+        
+        // Utilitaire pour attendre la saisie de l'utilisateur
+        private void WaitForKey()
+        {
+            Console.WriteLine("\nAppuyez sur une touche pour continuer...");
+            Console.ReadKey();
+        }
+    }
+}
