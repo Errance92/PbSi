@@ -12,12 +12,14 @@ namespace Karaté
         /// </summary>
         private int identifiant;
         private string station;
+        private double latitude;
+        private double longitude;
 
         /// <summary>
         /// Constructeur du noeud 
         /// </summary>
         /// <param name="identifiant">Identifiant du noeud</param>
-        public Noeud(int identifiant, string station)
+        public Noeud(int identifiant, string station, double latitude, double longitude)
         {
             if (identifiant <= 0)
             {
@@ -28,6 +30,8 @@ namespace Karaté
                 this.identifiant = identifiant;
             }
             this.station = station;
+            this.latitude = latitude;
+            this.longitude = longitude;
         }
 
         /// <summary>
@@ -41,6 +45,16 @@ namespace Karaté
         public string Station
         {
             get { return station; }
+        }
+
+        public double Latitude
+        {
+            get { return latitude; }
+        }
+
+        public double Longitude
+        {
+            get { return longitude; }
         }
     }
 }

@@ -159,70 +159,151 @@ namespace Karaté
                 }
             }
 
-
-            bool continu = true;
-            while (continu)
+            static void TesterBellman(Graphe graphe)
             {
-                Console.Clear();
-                Console.WriteLine("Veuillez choisir une option :");
-                Console.WriteLine("1: Dessiner le graphe");
-                Console.WriteLine("2: Afficher les propriétés du graphe");
-                Console.WriteLine("3: Afficher la matrice d'adjacence");
-                Console.WriteLine("4: Afficher la liste d'adjacence");
-                Console.WriteLine("5: Effectuer un parcours BFS");
-                Console.WriteLine("6: Effectuer un parcours DFS");
-                Console.WriteLine("7: Vérifier la connexité du graphe");
-                Console.WriteLine("8: Afficher les cycles du graphe");
-                Console.WriteLine("9: Tester Dijkstra (chemin le plus court entre deux stations)");
-                Console.WriteLine("0: Quitter");
-                Console.Write("Votre choix : ");
-
-                string choix = Console.ReadLine();
-                Console.Clear();
-
-                switch (choix)
+                Console.Write("Entrez la station de départ : ");
+                string depart = Console.ReadLine();
+                Console.Write("Entrez la station d'arrivée : ");
+                string arrivee = Console.ReadLine();
+                try
                 {
-                    case "1":
-                        graphe.DessinerGraphe();
-                        break;
-                    case "2":
-                        graphe.Propriété();
-                        break;
-                    case "3":
-                        AfficherMatriceAdj(graphe.MatriceAdjacence);
-                        break;
-                    case "4":
-                        AfficherListeAdjNom(graphe.ListeAdjacenceNom);
-                        break;
-                    case "5":
-                        AfficherBFS(graphe);
-                        break;
-                    case "6":
-                        AfficherDFS(graphe);
-                        break;
-                    case "7":
-                        Connexite(graphe);
-                        break;
-                    case "8":
-                        AfficherCycles(graphe);
-                        break;
-                    case "9":
-                        TesterDijkstra(graphe);
-                        break;
-                    case "0":
-                        continu = false;
-                        break;
-                    default:
-                        Console.WriteLine("Choix non reconnu, veuillez réessayer.");
-                        break;
+                    List<string> chemin = graphe.BellmanFordChemin(depart, arrivee);
+                    int cout = graphe.BellmanFordCout(depart, arrivee);
+                    if (chemin.Count == 0)
+                    {
+                        Console.WriteLine("Aucun chemin trouvé entre " + depart + " et " + arrivee);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Chemin le plus court entre " + depart + " et " + arrivee + " :");
+                        foreach (string segment in chemin)
+                        {
+                            Console.WriteLine(segment);
+                        }
+                        Console.WriteLine("Coût total : " + cout);
+                    }
                 }
-
-                Console.WriteLine("\nTapez 'q' pour revenir au menu principal...");
-                while (Console.ReadLine().ToLower() != "q")
+                catch (Exception ex)
                 {
-                    Console.WriteLine("Tapez 'q' pour revenir au menu principal...");
+                    Console.WriteLine("Erreur : " + ex.Message);
                 }
             }
+
+            static void TesterFloyd(Graphe graphe)
+            {
+                Console.Write("Entrez la station de départ : ");
+                string depart = Console.ReadLine();
+                Console.Write("Entrez la station d'arrivée : ");
+                string arrivee = Console.ReadLine();
+                try
+                {
+                    List<string> chemin = graphe.FloydChemin(depart, arrivee);
+                    int cout = graphe.FloydCout(depart, arrivee);
+                    if (chemin.Count == 0)
+                    {
+                        Console.WriteLine("Aucun chemin trouvé entre " + depart + " et " + arrivee);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Chemin le plus court entre " + depart + " et " + arrivee + " :");
+                        foreach (string segment in chemin)
+                        {
+                            Console.WriteLine(segment);
+                        }
+                        Console.WriteLine("Coût total : " + cout);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Erreur : " + ex.Message);
+                }
+            }
+
+            Console.WriteLine("Voulez vous entrez dans la partie chemin le plus court (CLPC) ou dans la partie base de donnes (BDD)");
+            string res = Console.ReadLine();
+
+            while(res.ToLower() != "clpc" && res.ToLower() != "bdd")
+            {
+                Console.WriteLine("Erreur, veuillez rentrer CLPC ou BDD");
+                res = Console.ReadLine();
+            }
+
+            if (res.ToLower() == "clpc")
+            {
+                bool continu = true;
+                while (continu)
+                {
+                    Console.Clear();
+                    Console.WriteLine("Veuillez choisir une option :");
+                    Console.WriteLine("1: Dessiner le graphe");
+                    Console.WriteLine("2: Afficher les propriétés du graphe");
+                    Console.WriteLine("3: Afficher la matrice d'adjacence");
+                    Console.WriteLine("4: Afficher la liste d'adjacence");
+                    Console.WriteLine("5: Effectuer un parcours BFS");
+                    Console.WriteLine("6: Effectuer un parcours DFS");
+                    Console.WriteLine("7: Vérifier la connexité du graphe");
+                    Console.WriteLine("8: Afficher les cycles du graphe");
+                    Console.WriteLine("9: Tester Dijkstra (chemin le plus court entre deux stations)");
+                    Console.WriteLine("0: Quitter");
+                    Console.Write("Votre choix : ");
+
+                    string choix = Console.ReadLine();
+                    Console.Clear();
+
+                    switch (choix)
+                    {
+                        case "1":
+                            graphe.DessinerGraphe();
+                            break;
+                        case "2":
+                            graphe.Propriété();
+                            break;
+                        case "3":
+                            AfficherMatriceAdj(graphe.MatriceAdjacence);
+                            break;
+                        case "4":
+                            AfficherListeAdjNom(graphe.ListeAdjacenceNom);
+                            break;
+                        case "5":
+                            AfficherBFS(graphe);
+                            break;
+                        case "6":
+                            AfficherDFS(graphe);
+                            break;
+                        case "7":
+                            Connexite(graphe);
+                            break;
+                        case "8":
+                            AfficherCycles(graphe);
+                            break;
+                        case "9":
+                            TesterDijkstra(graphe);
+                            TesterBellman(graphe);
+                            TesterFloyd(graphe);
+                            break;
+                        case "10":
+                            TesterBellman(graphe);
+                            break;
+                        case "0":
+                            continu = false;
+                            break;
+                        default:
+                            Console.WriteLine("Choix non reconnu, veuillez réessayer.");
+                            break;
+                    }
+
+                    Console.WriteLine("\nTapez 'q' pour revenir au menu principal...");
+                    while (Console.ReadLine().ToLower() != "q")
+                    {
+                        Console.WriteLine("Tapez 'q' pour revenir au menu principal...");
+                    }
+                }
+            }
+            else if (res.ToLower() == "bdd")
+            {
+                //Tallal rentre ton code de main ici
+            }
+            
         }
     }
 }

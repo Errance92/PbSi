@@ -77,9 +77,11 @@ namespace Karaté
                         string libelleLigne = partie[1].Trim();
                         string nomStation = partie[2].Trim();
                         string cle = nomStation + "_" + libelleLigne;
+                        double latitude = Convert.ToDouble(partie[4].Trim());
+                        double longitude = Convert.ToDouble(partie[3].Trim());
                         if (station.ContainsKey(nomStation) == false)
                         {
-                            Noeud n = new Noeud(station.Count + 1, nomStation);
+                            Noeud n = new Noeud(station.Count + 1, nomStation, latitude, longitude);
                             station.Add(nomStation, n);
                             noeuds.Add(n);
                         }
@@ -462,65 +464,211 @@ namespace Karaté
         /// </summary>
         public void DessinerGraphe()
         {
-            int largeur = 3300;
-            int hauteur = 3300;
+            int largeur = 4900;
+            int hauteur = 4900;
             using (var surface = SKSurface.Create(new SKImageInfo(largeur, hauteur)))
             {
                 var toile = surface.Canvas;
-                toile.Clear(SKColors.White);
+                // Fond beige clair
+                toile.Clear(SKColors.Beige);
 
-                float centreX = largeur / 2;
-                float centreY = hauteur / 2;
-                float rayon = 1500;
-                int nombreDeNoeuds = noeuds.Count;
-                float anglePas = 360f / nombreDeNoeuds;
+                // Calcul des positions en fonction des vraies coordonnées géographiques
+                // (Supposant que vos nœuds disposent de Latitude et Longitude)
+                double minLat = double.MaxValue, maxLat = double.MinValue;
+                double minLon = double.MaxValue, maxLon = double.MinValue;
+                foreach (Noeud n in noeuds)
+                {
+                    if (n.Latitude < minLat) minLat = n.Latitude;
+                    if (n.Latitude > maxLat) maxLat = n.Latitude;
+                    if (n.Longitude < minLon) minLon = n.Longitude;
+                    if (n.Longitude > maxLon) maxLon = n.Longitude;
+                }
+                double marge = 0.008;  // Marge plus importante
+                minLat -= marge; maxLat += marge;
+                minLon -= marge; maxLon += marge;
 
                 var positions = new Dictionary<int, SKPoint>();
-
-                for (int i = 0; i < nombreDeNoeuds; i++)
+                foreach (Noeud n in noeuds)
                 {
-                    float angle = anglePas * i;
-                    float x = centreX + rayon * (float)Math.Cos(angle * Math.PI / 180);
-                    float y = centreY + rayon * (float)Math.Sin(angle * Math.PI / 180);
-                    positions[noeuds[i].Identifiant] = new SKPoint(x, y);
+                    float x = (float)((n.Longitude - minLon) / (maxLon - minLon) * largeur);
+                    // Inverser l'axe y pour que la latitude élevée soit en haut
+                    float y = (float)(hauteur - ((n.Latitude - minLat) / (maxLat - minLat) * hauteur));
+                    positions[n.Identifiant] = new SKPoint(x, y);
                 }
 
+                // Préparation pour le décalage des liens superposés :
+                // Clé : "minID_maxID" (pour une paire de nœuds) ; valeur : nombre total de liens pour cette paire.
+                Dictionary<string, int> compteLiens = new Dictionary<string, int>();
+                // Clé : même clé, valeur : compteur pour le décalage lors du dessin.
+                Dictionary<string, int> indiceActuel = new Dictionary<string, int>();
+
+                // Calcul du nombre de liens par paire
                 foreach (var lien in liens)
                 {
-                    var point1 = positions[lien.NoeudUn.Identifiant];
-                    var point2 = positions[lien.NoeudDeux.Identifiant];
-
-                    toile.DrawLine(point1, point2, new SKPaint
+                    int id1 = lien.NoeudUn.Identifiant;
+                    int id2 = lien.NoeudDeux.Identifiant;
+                    int mini = Math.Min(id1, id2);
+                    int maxi = Math.Max(id1, id2);
+                    string cle = mini + "_" + maxi;
+                    if (!compteLiens.ContainsKey(cle))
                     {
-                        Color = SKColors.Gray,
-                        StrokeWidth = 2
+                        compteLiens[cle] = 0;
+                    }
+                    compteLiens[cle]++;
+                }
+                // Initialisation du compteur pour chaque clé
+                foreach (var kvp in compteLiens)
+                {
+                    indiceActuel[kvp.Key] = 0;
+                }
+
+                // Dessin des liens avec décalage si nécessaire
+                foreach (var lien in liens)
+                {
+                    int id1 = lien.NoeudUn.Identifiant;
+                    int id2 = lien.NoeudDeux.Identifiant;
+                    int mini = Math.Min(id1, id2);
+                    int maxi = Math.Max(id1, id2);
+                    string cle = mini + "_" + maxi;
+
+                    // Récupération des positions initiales
+                    SKPoint p1 = positions[id1];
+                    SKPoint p2 = positions[id2];
+
+                    // Calcul de l'offset s'il y a plusieurs liens pour cette paire
+                    int total = compteLiens[cle];
+                    int index = indiceActuel[cle];
+                    indiceActuel[cle] = index + 1;
+                    float decalageBase = 5f; // espacement de base
+                                             // Calcul de la position d'offset (centrer les offsets)
+                    float decalageMultiplier = (float)(index - (total - 1) / 2.0);
+                    // Calcul d'un vecteur perpendiculaire à la ligne reliant p1 à p2
+                    SKPoint diff = new SKPoint(p2.X - p1.X, p2.Y - p1.Y);
+                    float longueur = (float)Math.Sqrt(diff.X * diff.X + diff.Y * diff.Y);
+                    SKPoint perp = new SKPoint(0, 0);
+                    if (longueur != 0)
+                    {
+                        perp = new SKPoint(-diff.Y / longueur, diff.X / longueur);
+                    }
+                    SKPoint offset = new SKPoint(perp.X * decalageBase * decalageMultiplier, perp.Y * decalageBase * decalageMultiplier);
+
+                    SKPoint nouveauP1 = new SKPoint(p1.X + offset.X, p1.Y + offset.Y);
+                    SKPoint nouveauP2 = new SKPoint(p2.X + offset.X, p2.Y + offset.Y);
+
+                    SKColor couleurLigne = CouleurLigne(lien.Ligne);
+                    toile.DrawLine(nouveauP1, nouveauP2, new SKPaint
+                    {
+                        Color = couleurLigne,
+                        StrokeWidth = 7
                     });
                 }
 
+                // Utilisez un dictionnaire insensible à la casse et normalisez les clés en supprimant les espaces superflus.
+                Dictionary<string, int> lignesParStation = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+                foreach (var noeud in noeuds)
+                {
+                    // On récupère les lignes distinctes pour lesquelles ce nœud est impliqué
+                    HashSet<string> lignesDistinctes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                    foreach (var lien in liens)
+                    {
+                        // Si ce nœud est le noeud de départ ou d'arrivée du lien, on ajoute la ligne
+                        if (lien.NoeudUn.Identifiant == noeud.Identifiant || lien.NoeudDeux.Identifiant == noeud.Identifiant)
+                        {
+                            lignesDistinctes.Add(lien.Ligne);
+                        }
+                    }
+                    // On enregistre le nombre de lignes distinctes pour ce noeud (station)
+                    lignesParStation[noeud.Station.Trim()] = lignesDistinctes.Count;
+                }
+
+
+                // Dessin des nœuds
                 foreach (var noeud in noeuds)
                 {
                     var point = positions[noeud.Identifiant];
-                    toile.DrawCircle(point, 10, new SKPaint
+                    int rayon;
+                    string nomNormalise = noeud.Station.Trim();
+                    int nbLignes = 0;
+                    if (lignesParStation.ContainsKey(nomNormalise))
                     {
-                        Color = SKColors.Blue,
+                        nbLignes = lignesParStation[nomNormalise];
+                    }
+                    switch (nbLignes)
+                    {
+                        case 1:
+                            rayon = 11;
+                            break;
+                        case 2:
+                            rayon = 14;
+                            break;
+                        case 3:
+                            rayon = 17;
+                            break;
+                        case 4:
+                            rayon = 20;
+                            break;
+                        case 5:
+                            rayon = 23;
+                            break;
+                        default:
+                            rayon = 110;
+                            break;
+                    }
+                    toile.DrawCircle(point, rayon, new SKPaint
+                    {
+                        Color = SKColors.White,
                         Style = SKPaintStyle.Fill
                     });
 
-                    toile.DrawText(noeud.Identifiant.ToString(), point.X - 2, point.Y + 3
-                        , new SKPaint
-                        {
-                            Color = SKColors.White,
-                            TextSize = 10,
-                            TextAlign = SKTextAlign.Center
-                        });
+                    toile.DrawCircle(point, rayon, new SKPaint
+                    {
+                        Color = SKColors.Black,
+                        Style = SKPaintStyle.Stroke,
+                        StrokeWidth = 1
+                    });
+
+                    toile.DrawText(noeud.Station, point.X, point.Y + 3, new SKPaint
+                    {
+                        Color = SKColors.Black,
+                        TextSize = 17,
+                        TextAlign = SKTextAlign.Center
+                    });
                 }
 
-                using (var flux = File.OpenWrite("graphe.png"))
+                using (var flux = System.IO.File.OpenWrite("graphe.png"))
                 {
                     surface.Snapshot().Encode().SaveTo(flux);
                 }
-
                 Console.WriteLine("Le graphe a été dessiné et sauvegardé sous 'graphe.png'.");
+            }
+        }
+
+
+
+        /// <summary>
+        /// Retourne la couleur associée à une ligne de métro
+        /// </summary>
+        private SKColor CouleurLigne(string ligne)
+        {
+            switch (ligne)
+            {
+                case "1": return SKColors.Yellow;
+                case "2": return SKColors.DarkBlue;
+                case "3": return SKColors.Brown;
+                case "3bis": return SKColors.Blue;
+                case "4": return SKColors.Fuchsia;
+                case "5": return SKColors.Orange;
+                case "6": return SKColors.LightGreen;
+                case "7": return SKColors.Pink;
+                case "7bis": return SKColors.Cyan;
+                case "8": return SKColors.MediumOrchid;
+                case "9": return SKColors.OliveDrab;
+                case "10": return SKColors.Goldenrod;
+                case "11": return SKColors.SaddleBrown;
+                case "12": return SKColors.ForestGreen;
+                case "13": return SKColors.SkyBlue;
+                case "14": return SKColors.Violet;
+                default: return SKColors.Gray;
             }
         }
 
@@ -689,5 +837,324 @@ namespace Karaté
             }
             return distances[id];
         }
+
+        private Tuple<int[], int[], string[]> CalculerBellmanFord(string stationDepart)
+        {
+            int[] distances = new int[noeuds.Count];
+            int[] predecesseurs = new int[noeuds.Count];
+            string[] lignesUtilisees = new string[noeuds.Count];
+
+            for (int i = 0; i < noeuds.Count; i++)
+            {
+                distances[i] = int.MaxValue;
+                predecesseurs[i] = -1;
+                lignesUtilisees[i] = "";
+            }
+
+            int source = -1;
+            for (int i = 0; i < noeuds.Count; i++)
+            {
+                if (noeuds[i].Station.Equals(stationDepart, StringComparison.OrdinalIgnoreCase))
+                {
+                    source = i;
+                }
+            }
+            if (source == -1)
+            {
+                throw new Exception("Station de départ introuvable : " + stationDepart);
+            }
+            distances[source] = 0;
+            lignesUtilisees[source] = "";
+
+            for (int i = 0; i < noeuds.Count - 1; i++)
+            {
+                for (int k = 0; k < liens.Count; k++)
+                {
+                    Lien lienCourant = liens[k];
+                    int idxA = lienCourant.NoeudUn.Identifiant - 1;
+                    int idxB = lienCourant.NoeudDeux.Identifiant - 1;
+
+                    if (distances[idxA] != int.MaxValue)
+                    {
+                        int coutChangement = 0;
+                        if (idxA != source)
+                        {
+                            if (lignesUtilisees[idxA] != "" && !lignesUtilisees[idxA].Equals(lienCourant.Ligne, StringComparison.OrdinalIgnoreCase))
+                            {
+                                coutChangement = 8;
+                            }
+                        }
+                        int nouvelleDistance = distances[idxA] + lienCourant.Ponderation + coutChangement;
+                        if (nouvelleDistance < distances[idxB])
+                        {
+                            distances[idxB] = nouvelleDistance;
+                            predecesseurs[idxB] = idxA;
+                            lignesUtilisees[idxB] = lienCourant.Ligne;
+                        }
+                    }
+
+                    if (distances[idxB] != int.MaxValue)
+                    {
+                        int coutChangement = 0;
+                        if (idxB != source)
+                        {
+                            if (lignesUtilisees[idxB] != "" && !lignesUtilisees[idxB].Equals(lienCourant.Ligne, StringComparison.OrdinalIgnoreCase))
+                            {
+                                coutChangement = 8;
+                            }
+                        }
+                        int nouvelleDistance = distances[idxB] + lienCourant.Ponderation + coutChangement;
+                        if (nouvelleDistance < distances[idxA])
+                        {
+                            distances[idxA] = nouvelleDistance;
+                            predecesseurs[idxA] = idxB;
+                            lignesUtilisees[idxA] = lienCourant.Ligne;
+                        }
+                    }
+                }
+            }
+            return Tuple.Create(distances, predecesseurs, lignesUtilisees);
+        }
+
+        public List<string> BellmanFordChemin(string stationDepart, string stationArrivee)
+        {
+            Tuple<int[], int[], string[]> resultat = CalculerBellmanFord(stationDepart);
+            int[] distances = resultat.Item1;
+            int[] predecesseurs = resultat.Item2;
+            string[] lignesUtilisees = resultat.Item3;
+
+            int indiceArrivee = -1;
+            for (int i = 0; i < noeuds.Count; i++)
+            {
+                if (noeuds[i].Station.Equals(stationArrivee, StringComparison.OrdinalIgnoreCase))
+                {
+                    indiceArrivee = i;
+                }
+            }
+            if (indiceArrivee == -1)
+            {
+                throw new Exception("Station d'arrivée introuvable : " + stationArrivee);
+            }
+            if (distances[indiceArrivee] == int.MaxValue)
+            {
+                return new List<string>(); 
+            }
+
+            List<int> indicesChemin = new List<int>();
+            int courant = indiceArrivee;
+            for (int i = 0; i < noeuds.Count; i++)
+            {
+                indicesChemin.Add(courant);
+                if (predecesseurs[courant] == -1)
+                {
+                    break;
+                }
+                else
+                {
+                    courant = predecesseurs[courant];
+                }
+            }
+            int compteur = indicesChemin.Count;
+            for (int i = 0; i < compteur / 2; i++)
+            {
+                int temp = indicesChemin[i];
+                indicesChemin[i] = indicesChemin[compteur - i - 1];
+                indicesChemin[compteur - i - 1] = temp;
+            }
+
+            List<string> chemin = new List<string>();
+            chemin.Add(noeuds[indicesChemin[0]].Station);
+            for (int i = 0; i < indicesChemin.Count - 1; i++)
+            {
+                int indiceDep = indicesChemin[i];
+                int indiceArr = indicesChemin[i + 1];
+                string segment = "-> (Ligne : " + lignesUtilisees[indiceArr] + ") " + noeuds[indiceArr].Station;
+                chemin.Add(segment);
+            }
+            return chemin;
+        }
+
+        public int BellmanFordCout(string stationDepart, string stationArrivee)
+        {
+            Tuple<int[], int[], string[]> resultat = CalculerBellmanFord(stationDepart);
+            int[] distances = resultat.Item1;
+            int indiceArrivee = -1;
+            for (int i = 0; i < noeuds.Count; i++)
+            {
+                if (noeuds[i].Station.Equals(stationArrivee, StringComparison.OrdinalIgnoreCase))
+                {
+                    indiceArrivee = i;
+                }
+            }
+            if (indiceArrivee == -1)
+            {
+                throw new Exception("Station d'arrivée introuvable : " + stationArrivee);
+            }
+            return distances[indiceArrivee];
+        }
+
+        private Tuple<int[,], int[,]> CalculerFloydWarshall()
+        {
+            int min = 10000;
+            int[,] distance = new int[noeuds.Count, noeuds.Count];
+            int[,] precedent = new int[noeuds.Count, noeuds.Count];
+
+            for (int i = 0; i < noeuds.Count; i++)
+            {
+                for (int j = 0; j < noeuds.Count; j++)
+                {
+                    if (i == j)
+                    {
+                        distance[i, j] = 0;
+                        precedent[i, j] = -1;
+                    }
+                    else if (matriceAdjacence[i, j] != 0)
+                    {
+                        distance[i, j] = matriceAdjacence[i, j];
+                        precedent[i, j] = i;
+                    }
+                    else
+                    {
+                        distance[i, j] = min;
+                        precedent[i, j] = -1;
+                    }
+                }
+            }
+
+            for (int k = 0; k < noeuds.Count; k++)
+            {
+                for (int i = 0; i < noeuds.Count; i++)
+                {
+                    for (int j = 0; j < noeuds.Count; j++)
+                    {
+                        if (distance[i, k] + distance[k, j] < distance[i, j])
+                        {
+                            distance[i, j] = distance[i, k] + distance[k, j];
+                            precedent[i, j] = precedent[k, j];
+                        }
+                    }
+                }
+            }
+            return Tuple.Create(distance, precedent);
+        }
+
+        public List<string> FloydChemin(string stationDepart, string stationArrivee)
+        {
+            Tuple<int[,], int[,]> res = CalculerFloydWarshall();
+            int[,] distance = res.Item1;
+            int[,] precedent = res.Item2;
+            int min = 10000;
+
+            int indiceDepart = -1;
+            for (int i = 0; i < noeuds.Count; i++)
+            {
+                if (noeuds[i].Station.Equals(stationDepart, StringComparison.OrdinalIgnoreCase))
+                {
+                    indiceDepart = i;
+                }
+            }
+            if (indiceDepart == -1)
+            {
+                throw new Exception("Station de départ introuvable : " + stationDepart);
+            }
+
+            int indiceArrivee = -1;
+            for (int i = 0; i < noeuds.Count; i++)
+            {
+                if (noeuds[i].Station.Equals(stationArrivee, StringComparison.OrdinalIgnoreCase))
+                {
+                    indiceArrivee = i;
+                }
+            }
+            if (indiceArrivee == -1)
+            {
+                throw new Exception("Station d'arrivée introuvable : " + stationArrivee);
+            }
+            if (distance[indiceDepart, indiceArrivee] >= min)
+            {
+                return new List<string>(); 
+            }
+
+            List<int> indicesChemin = new List<int>();
+            int actuel = indiceArrivee;
+            for (int i = 0; i < noeuds.Count; i++)
+            {
+                indicesChemin.Add(actuel);
+                if (precedent[indiceDepart, actuel] == -1)
+                {
+                    break;
+                }
+                else
+                {
+                    actuel = precedent[indiceDepart, actuel];
+                }
+            }
+
+            int compteur = indicesChemin.Count;
+            for (int i = 0; i < compteur / 2; i++)
+            {
+                int temp = indicesChemin[i];
+                indicesChemin[i] = indicesChemin[compteur - i - 1];
+                indicesChemin[compteur - i - 1] = temp;
+            }
+
+            List<string> chemin = new List<string>();
+            chemin.Add(noeuds[indicesChemin[0]].Station);
+            for (int i = 0; i < indicesChemin.Count - 1; i++)
+            {
+                int dep = indicesChemin[i];
+                int arr = indicesChemin[i + 1];
+                string ligneSegment = "";
+                for (int j = 0; j < liens.Count; j++)
+                {
+                    int idx1 = liens[j].NoeudUn.Identifiant - 1;
+                    int idx2 = liens[j].NoeudDeux.Identifiant - 1;
+                    if ((idx1 == dep && idx2 == arr) || (idx1 == arr && idx2 == dep))
+                    {
+                        ligneSegment = liens[j].Ligne;
+                        j = liens.Count;
+                    }
+                }
+                string seg = "-> (Ligne: " + ligneSegment + ") " + noeuds[arr].Station;
+                chemin.Add(seg);
+            }
+            return chemin;
+        }
+
+        public int FloydCout(string stationDepart, string stationArrivee)
+        {
+            Tuple<int[,], int[,]> res = CalculerFloydWarshall();
+            int[,] distance = res.Item1;
+            int min = 10000;
+
+            int indiceDepart = -1;
+            for (int i = 0; i < noeuds.Count; i++)
+            {
+                if (noeuds[i].Station.Equals(stationDepart, StringComparison.OrdinalIgnoreCase))
+                {
+                    indiceDepart = i;
+                }
+            }
+            if (indiceDepart == -1)
+            {
+                throw new Exception("Station de départ introuvable : " + stationDepart);
+            }
+
+            int indiceArrivee = -1;
+            for (int i = 0; i < noeuds.Count; i++)
+            {
+                if (noeuds[i].Station.Equals(stationArrivee, StringComparison.OrdinalIgnoreCase))
+                {
+                    indiceArrivee = i;
+                }
+            }
+            if (indiceArrivee == -1)
+            {
+                throw new Exception("Station d'arrivée introuvable : " + stationArrivee);
+            }
+            return distance[indiceDepart, indiceArrivee];
+        }
     }
+
+
 }
