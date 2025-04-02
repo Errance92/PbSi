@@ -219,75 +219,91 @@ namespace Karaté
                 }
             }
 
+            Console.WriteLine("Voulez vous entrez dans la partie chemin le plus court (CLPC) ou dans la partie base de donnes (BDD)");
+            string res = Console.ReadLine();
 
-            bool continu = true;
-            while (continu)
+            while(res.ToLower() != "clpc" && res.ToLower() != "bdd")
             {
-                Console.Clear();
-                Console.WriteLine("Veuillez choisir une option :");
-                Console.WriteLine("1: Dessiner le graphe");
-                Console.WriteLine("2: Afficher les propriétés du graphe");
-                Console.WriteLine("3: Afficher la matrice d'adjacence");
-                Console.WriteLine("4: Afficher la liste d'adjacence");
-                Console.WriteLine("5: Effectuer un parcours BFS");
-                Console.WriteLine("6: Effectuer un parcours DFS");
-                Console.WriteLine("7: Vérifier la connexité du graphe");
-                Console.WriteLine("8: Afficher les cycles du graphe");
-                Console.WriteLine("9: Tester Dijkstra (chemin le plus court entre deux stations)");
-                Console.WriteLine("0: Quitter");
-                Console.Write("Votre choix : ");
+                Console.WriteLine("Erreur, veuillez rentrer CLPC ou BDD");
+                res = Console.ReadLine();
+            }
 
-                string choix = Console.ReadLine();
-                Console.Clear();
-
-                switch (choix)
+            if (res.ToLower() == "clpc")
+            {
+                bool continu = true;
+                while (continu)
                 {
-                    case "1":
-                        graphe.DessinerGraphe();
-                        break;
-                    case "2":
-                        graphe.Propriété();
-                        break;
-                    case "3":
-                        AfficherMatriceAdj(graphe.MatriceAdjacence);
-                        break;
-                    case "4":
-                        AfficherListeAdjNom(graphe.ListeAdjacenceNom);
-                        break;
-                    case "5":
-                        AfficherBFS(graphe);
-                        break;
-                    case "6":
-                        AfficherDFS(graphe);
-                        break;
-                    case "7":
-                        Connexite(graphe);
-                        break;
-                    case "8":
-                        AfficherCycles(graphe);
-                        break;
-                    case "9":
-                        TesterDijkstra(graphe);
-                        TesterBellman(graphe);
-                        TesterFloyd(graphe);
-                        break;
-                    case "10":
-                        TesterBellman(graphe);
-                        break;
-                    case "0":
-                        continu = false;
-                        break;
-                    default:
-                        Console.WriteLine("Choix non reconnu, veuillez réessayer.");
-                        break;
-                }
+                    Console.Clear();
+                    Console.WriteLine("Veuillez choisir une option :");
+                    Console.WriteLine("1: Dessiner le graphe");
+                    Console.WriteLine("2: Afficher les propriétés du graphe");
+                    Console.WriteLine("3: Afficher la matrice d'adjacence");
+                    Console.WriteLine("4: Afficher la liste d'adjacence");
+                    Console.WriteLine("5: Effectuer un parcours BFS");
+                    Console.WriteLine("6: Effectuer un parcours DFS");
+                    Console.WriteLine("7: Vérifier la connexité du graphe");
+                    Console.WriteLine("8: Afficher les cycles du graphe");
+                    Console.WriteLine("9: Tester Dijkstra (chemin le plus court entre deux stations)");
+                    Console.WriteLine("0: Quitter");
+                    Console.Write("Votre choix : ");
 
-                Console.WriteLine("\nTapez 'q' pour revenir au menu principal...");
-                while (Console.ReadLine().ToLower() != "q")
-                {
-                    Console.WriteLine("Tapez 'q' pour revenir au menu principal...");
+                    string choix = Console.ReadLine();
+                    Console.Clear();
+
+                    switch (choix)
+                    {
+                        case "1":
+                            graphe.DessinerGraphe();
+                            break;
+                        case "2":
+                            graphe.Propriété();
+                            break;
+                        case "3":
+                            AfficherMatriceAdj(graphe.MatriceAdjacence);
+                            break;
+                        case "4":
+                            AfficherListeAdjNom(graphe.ListeAdjacenceNom);
+                            break;
+                        case "5":
+                            AfficherBFS(graphe);
+                            break;
+                        case "6":
+                            AfficherDFS(graphe);
+                            break;
+                        case "7":
+                            Connexite(graphe);
+                            break;
+                        case "8":
+                            AfficherCycles(graphe);
+                            break;
+                        case "9":
+                            TesterDijkstra(graphe);
+                            TesterBellman(graphe);
+                            TesterFloyd(graphe);
+                            break;
+                        case "10":
+                            TesterBellman(graphe);
+                            break;
+                        case "0":
+                            continu = false;
+                            break;
+                        default:
+                            Console.WriteLine("Choix non reconnu, veuillez réessayer.");
+                            break;
+                    }
+
+                    Console.WriteLine("\nTapez 'q' pour revenir au menu principal...");
+                    while (Console.ReadLine().ToLower() != "q")
+                    {
+                        Console.WriteLine("Tapez 'q' pour revenir au menu principal...");
+                    }
                 }
             }
+            else if (res.ToLower() == "bdd")
+            {
+                //Tallal rentre ton code de main ici
+            }
+            
         }
     }
 }

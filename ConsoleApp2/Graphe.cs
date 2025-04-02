@@ -840,12 +840,11 @@ namespace Karaté
 
         private Tuple<int[], int[], string[]> CalculerBellmanFord(string stationDepart)
         {
-            int nbNoeuds = noeuds.Count;
-            int[] distances = new int[nbNoeuds];
-            int[] predecesseurs = new int[nbNoeuds];
-            string[] lignesUtilisees = new string[nbNoeuds];
+            int[] distances = new int[noeuds.Count];
+            int[] predecesseurs = new int[noeuds.Count];
+            string[] lignesUtilisees = new string[noeuds.Count];
 
-            for (int i = 0; i < nbNoeuds; i++)
+            for (int i = 0; i < noeuds.Count; i++)
             {
                 distances[i] = int.MaxValue;
                 predecesseurs[i] = -1;
@@ -853,7 +852,7 @@ namespace Karaté
             }
 
             int source = -1;
-            for (int i = 0; i < nbNoeuds; i++)
+            for (int i = 0; i < noeuds.Count; i++)
             {
                 if (noeuds[i].Station.Equals(stationDepart, StringComparison.OrdinalIgnoreCase))
                 {
@@ -867,7 +866,7 @@ namespace Karaté
             distances[source] = 0;
             lignesUtilisees[source] = "";
 
-            for (int i = 0; i < nbNoeuds - 1; i++)
+            for (int i = 0; i < noeuds.Count - 1; i++)
             {
                 for (int k = 0; k < liens.Count; k++)
                 {
@@ -917,17 +916,15 @@ namespace Karaté
             return Tuple.Create(distances, predecesseurs, lignesUtilisees);
         }
 
-
         public List<string> BellmanFordChemin(string stationDepart, string stationArrivee)
         {
             Tuple<int[], int[], string[]> resultat = CalculerBellmanFord(stationDepart);
             int[] distances = resultat.Item1;
             int[] predecesseurs = resultat.Item2;
             string[] lignesUtilisees = resultat.Item3;
-            int nbNoeuds = noeuds.Count;
 
             int indiceArrivee = -1;
-            for (int i = 0; i < nbNoeuds; i++)
+            for (int i = 0; i < noeuds.Count; i++)
             {
                 if (noeuds[i].Station.Equals(stationArrivee, StringComparison.OrdinalIgnoreCase))
                 {
@@ -945,7 +942,7 @@ namespace Karaté
 
             List<int> indicesChemin = new List<int>();
             int courant = indiceArrivee;
-            for (int i = 0; i < nbNoeuds; i++)
+            for (int i = 0; i < noeuds.Count; i++)
             {
                 indicesChemin.Add(courant);
                 if (predecesseurs[courant] == -1)
@@ -981,9 +978,8 @@ namespace Karaté
         {
             Tuple<int[], int[], string[]> resultat = CalculerBellmanFord(stationDepart);
             int[] distances = resultat.Item1;
-            int nbNoeuds = noeuds.Count;
             int indiceArrivee = -1;
-            for (int i = 0; i < nbNoeuds; i++)
+            for (int i = 0; i < noeuds.Count; i++)
             {
                 if (noeuds[i].Station.Equals(stationArrivee, StringComparison.OrdinalIgnoreCase))
                 {
@@ -999,60 +995,58 @@ namespace Karaté
 
         private Tuple<int[,], int[,]> CalculerFloydWarshall()
         {
-            int nbNoeuds = noeuds.Count;
-            int INF = 10000;
-            int[,] dist = new int[nbNoeuds, nbNoeuds];
-            int[,] pred = new int[nbNoeuds, nbNoeuds];
+            int min = 10000;
+            int[,] distance = new int[noeuds.Count, noeuds.Count];
+            int[,] precedent = new int[noeuds.Count, noeuds.Count];
 
-            for (int i = 0; i < nbNoeuds; i++)
+            for (int i = 0; i < noeuds.Count; i++)
             {
-                for (int j = 0; j < nbNoeuds; j++)
+                for (int j = 0; j < noeuds.Count; j++)
                 {
                     if (i == j)
                     {
-                        dist[i, j] = 0;
-                        pred[i, j] = -1;
+                        distance[i, j] = 0;
+                        precedent[i, j] = -1;
                     }
                     else if (matriceAdjacence[i, j] != 0)
                     {
-                        dist[i, j] = matriceAdjacence[i, j];
-                        pred[i, j] = i;
+                        distance[i, j] = matriceAdjacence[i, j];
+                        precedent[i, j] = i;
                     }
                     else
                     {
-                        dist[i, j] = INF;
-                        pred[i, j] = -1;
+                        distance[i, j] = min;
+                        precedent[i, j] = -1;
                     }
                 }
             }
 
-            for (int k = 0; k < nbNoeuds; k++)
+            for (int k = 0; k < noeuds.Count; k++)
             {
-                for (int i = 0; i < nbNoeuds; i++)
+                for (int i = 0; i < noeuds.Count; i++)
                 {
-                    for (int j = 0; j < nbNoeuds; j++)
+                    for (int j = 0; j < noeuds.Count; j++)
                     {
-                        if (dist[i, k] + dist[k, j] < dist[i, j])
+                        if (distance[i, k] + distance[k, j] < distance[i, j])
                         {
-                            dist[i, j] = dist[i, k] + dist[k, j];
-                            pred[i, j] = pred[k, j];
+                            distance[i, j] = distance[i, k] + distance[k, j];
+                            precedent[i, j] = precedent[k, j];
                         }
                     }
                 }
             }
-            return Tuple.Create(dist, pred);
+            return Tuple.Create(distance, precedent);
         }
 
         public List<string> FloydChemin(string stationDepart, string stationArrivee)
         {
             Tuple<int[,], int[,]> res = CalculerFloydWarshall();
-            int[,] D = res.Item1;
-            int[,] pred = res.Item2;
-            int nbNoeuds = noeuds.Count;
-            int INF = 10000;
+            int[,] distance = res.Item1;
+            int[,] precedent = res.Item2;
+            int min = 10000;
 
             int indiceDepart = -1;
-            for (int i = 0; i < nbNoeuds; i++)
+            for (int i = 0; i < noeuds.Count; i++)
             {
                 if (noeuds[i].Station.Equals(stationDepart, StringComparison.OrdinalIgnoreCase))
                 {
@@ -1065,7 +1059,7 @@ namespace Karaté
             }
 
             int indiceArrivee = -1;
-            for (int i = 0; i < nbNoeuds; i++)
+            for (int i = 0; i < noeuds.Count; i++)
             {
                 if (noeuds[i].Station.Equals(stationArrivee, StringComparison.OrdinalIgnoreCase))
                 {
@@ -1076,23 +1070,23 @@ namespace Karaté
             {
                 throw new Exception("Station d'arrivée introuvable : " + stationArrivee);
             }
-            if (D[indiceDepart, indiceArrivee] >= INF)
+            if (distance[indiceDepart, indiceArrivee] >= min)
             {
                 return new List<string>(); 
             }
 
             List<int> indicesChemin = new List<int>();
-            int courant = indiceArrivee;
-            for (int i = 0; i < nbNoeuds; i++)
+            int actuel = indiceArrivee;
+            for (int i = 0; i < noeuds.Count; i++)
             {
-                indicesChemin.Add(courant);
-                if (pred[indiceDepart, courant] == -1)
+                indicesChemin.Add(actuel);
+                if (precedent[indiceDepart, actuel] == -1)
                 {
                     break;
                 }
                 else
                 {
-                    courant = pred[indiceDepart, courant];
+                    actuel = precedent[indiceDepart, actuel];
                 }
             }
 
@@ -1130,12 +1124,11 @@ namespace Karaté
         public int FloydCout(string stationDepart, string stationArrivee)
         {
             Tuple<int[,], int[,]> res = CalculerFloydWarshall();
-            int[,] D = res.Item1;
-            int nbNoeuds = noeuds.Count;
-            int INF = 10000;
+            int[,] distance = res.Item1;
+            int min = 10000;
 
             int indiceDepart = -1;
-            for (int i = 0; i < nbNoeuds; i++)
+            for (int i = 0; i < noeuds.Count; i++)
             {
                 if (noeuds[i].Station.Equals(stationDepart, StringComparison.OrdinalIgnoreCase))
                 {
@@ -1148,7 +1141,7 @@ namespace Karaté
             }
 
             int indiceArrivee = -1;
-            for (int i = 0; i < nbNoeuds; i++)
+            for (int i = 0; i < noeuds.Count; i++)
             {
                 if (noeuds[i].Station.Equals(stationArrivee, StringComparison.OrdinalIgnoreCase))
                 {
@@ -1159,7 +1152,7 @@ namespace Karaté
             {
                 throw new Exception("Station d'arrivée introuvable : " + stationArrivee);
             }
-            return D[indiceDepart, indiceArrivee];
+            return distance[indiceDepart, indiceArrivee];
         }
     }
 
