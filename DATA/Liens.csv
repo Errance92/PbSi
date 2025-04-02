@@ -1,0 +1,315 @@
+Libelle line,Station1,Station2,Temps
+1,Porte Maillot,Argentine,1
+1,Argentine,Charles de Gaulle - Etoile,1
+1,Charles de Gaulle - Etoile,George V,2
+1,George V,Franklin D. Roosevelt,1
+1,Franklin D. Roosevelt,Champs-Elysées - Clemenceau,1
+1,Champs-Elysées - Clemenceau,Concorde,2
+1,Concorde,Tuileries,1
+1,Tuileries,Palais Royal - Musée du Louvre,2
+1,Palais Royal - Musée du Louvre,Louvre - Rivoli,1
+1,Louvre - Rivoli,Châtelet,1
+1,Châtelet,Hôtel de Ville,1
+1,Hôtel de Ville,Saint-Paul (Le Marais),2
+1,Saint-Paul (Le Marais),Bastille,2
+1,Bastille,Gare de Lyon,2
+1,Gare de Lyon,Reuilly - Diderot,2
+1,Reuilly - Diderot,Nation,1
+1,Nation,Porte de Vincennes,2
+1,Porte de Vincennes,Château de Vincennes,4
+2,Porte Dauphine,Victor Hugo,2
+2,Victor Hugo,Charles de Gaulle - Etoile,1
+2,Charles de Gaulle - Etoile,Ternes,1
+2,Ternes,Courcelles,1
+2,Courcelles,Monceau,1
+2,Monceau,Villiers,1
+2,Villiers,Rome,2
+2,Rome,Place de Clichy,1
+2,Place de Clichy,Blanche,1
+2,Blanche,Pigalle,2
+2,Pigalle,Anvers,1
+2,Anvers,Barbès - Rochechouart,1
+2,Barbès - Rochechouart,La Chapelle,2
+2,La Chapelle,Stalingrad,1
+2,Stalingrad,Jaurès,2
+2,Jaurès,Colonel Fabien,1
+2,Colonel Fabien,Belleville,1
+2,Belleville,Couronnes,2
+2,Couronnes,Ménilmontant,1
+2,Ménilmontant,Père Lachaise,1
+2,Père Lachaise,Philippe Auguste,2
+2,Philippe Auguste,Alexandre Dumas,1
+2,Alexandre Dumas,Avron,2
+2,Avron,Nation,2
+3,Porte de Champerret,Pereire,2
+3,Pereire,Wagram,1
+3,Wagram,Malesherbes,1
+3,Malesherbes,Villiers,2
+3,Villiers,Europe,1
+3,Europe,Saint-Lazare,1
+3,Saint-Lazare,Havre-Caumartin,1
+3,Havre-Caumartin,Opéra,1
+3,Opéra,Quatre Septembre,1
+3,Quatre Septembre,Bourse,2
+3,Bourse,Sentier,1
+3,Sentier,Réaumur - Sébastopol,1
+3,Réaumur - Sébastopol,Arts et Métiers,1
+3,Arts et Métiers,Temple,1
+3,Temple,République,1
+3,République,Parmentier,2
+3,Parmentier,Rue Saint-Maur,1
+3,Rue Saint-Maur,Père Lachaise,1
+3,Père Lachaise,Gambetta,2
+3,Gambetta,Porte de Bagnolet,2
+3bis,Porte des Lilas,Saint-Fargeau,1
+3bis,Saint-Fargeau,Pelleport,1
+3bis,Pelleport,Gambetta,1
+4,Porte de Clignancourt,Simplon,4
+4,Simplon,Marcadet - Poissonniers,1
+4,Marcadet - Poissonniers,Château Rouge,1
+4,Château Rouge,Barbès - Rochechouart,1
+4,Barbès - Rochechouart,Gare du Nord,1
+4,Gare du Nord,Gare de l'Est,1
+4,Gare de l'Est,Château d'Eau,1
+4,Château d'Eau,Strasbourg - Saint-Denis,1
+4,Strasbourg - Saint-Denis,Réaumur - Sébastopol,1
+4,Réaumur - Sébastopol,Etienne Marcel,2
+4,Etienne Marcel,Les Halles,1
+4,Les Halles,Châtelet,1
+4,Châtelet,Cité,1
+4,Cité,Saint-Michel,1
+4,Saint-Michel,Odéon,2
+4,Odéon,Saint-Germain-des-Prés,1
+4,Saint-Germain-des-Prés,Saint-Sulpice,1
+4,Saint-Sulpice,Saint-Placide,1
+4,Saint-Placide,Montparnasse Bienvenue,1
+4,Montparnasse Bienvenue,Vavin,1
+4,Vavin,Raspail,2
+4,Raspail,Denfert-Rochereau,1
+4,Denfert-Rochereau,Mouton-Duvernet,1
+4,Mouton-Duvernet,Alésia,1
+4,Alésia,Porte d'Orléans,1
+5,Porte de Pantin,Ourcq,2
+5,Ourcq,Laumière,2
+5,Laumière,Jaurès,1
+5,Jaurès,Stalingrad,1
+5,Stalingrad,Gare du Nord,2
+5,Gare du Nord,Gare de l'Est,1
+5,Gare de l'Est,Jacques Bonsergent,2
+5,Jacques Bonsergent,République,1
+5,République,Oberkampf,2
+5,Oberkampf,Richard-Lenoir,1
+5,Richard-Lenoir,Bréguet-Sabin,2
+5,Bréguet-Sabin,Bastille,1
+5,Bastille,Quai de la Rapée,2
+5,Quai de la Rapée,Gare d'Austerlitz,1
+5,Gare d'Austerlitz,Saint-Marcel,2
+5,Saint-Marcel,Campo-Formio,1
+5,Campo-Formio,Place d'Italie,2
+6,Charles de Gaulle - Etoile,Kléber,1
+6,Kléber,Boissière,1
+6,Boissière,Trocadéro,1
+6,Trocadéro,Passy,1
+6,Passy,Bir-Hakeim,1
+6,Bir-Hakeim,Dupleix,1
+6,Dupleix,La Motte-Picquet - Grenelle,1
+6,La Motte-Picquet - Grenelle,Cambronne,1
+6,Cambronne,Sèvres-Lecourbe,1
+6,Sèvres-Lecourbe,Pasteur,1
+6,Pasteur,Montparnasse Bienvenue,2
+6,Montparnasse Bienvenue,Edgar Quinet,1
+6,Edgar Quinet,Raspail,1
+6,Raspail,Denfert-Rochereau,1
+6,Denfert-Rochereau,Saint-Jacques,2
+6,Saint-Jacques,Glacière,1
+6,Glacière,Corvisart,1
+6,Corvisart,Place d'Italie,1
+6,Place d'Italie,Nationale,2
+6,Nationale,Chevaleret,1
+6,Chevaleret,Quai de la Gare,1
+6,Quai de la Gare,Bercy,1
+6,Bercy,Dugommier,2
+6,Dugommier,Daumesnil,1
+6,Daumesnil,Bel-Air,1
+6,Bel-Air,Picpus,2
+6,Picpus,Nation,2
+7,Porte de la Villette,Corentin Cariou,1
+7,Corentin Cariou,Crimée,2
+7,Crimée,Riquet,1
+7,Riquet,Stalingrad,1
+7,Stalingrad,Louis Blanc,1
+7,Louis Blanc,Château Landon,2
+7,Château Landon,Gare de l'Est,1
+7,Gare de l'Est,Poissonnière,2
+7,Poissonnière,Cadet,1
+7,Cadet,Le Peletier,1
+7,Le Peletier,Chaussée d'Antin - La Fayette,1
+7,Chaussée d'Antin - La Fayette,Opéra,2
+7,Opéra,Pyramides,1
+7,Pyramides,Palais Royal - Musée du Louvre,1
+7,Palais Royal - Musée du Louvre,Pont Neuf,2
+7,Pont Neuf,Châtelet,2
+7,Châtelet,Pont Marie (Cité des Arts),1
+7,Pont Marie (Cité des Arts),Sully - Morland,1
+7,Sully - Morland,Jussieu,2
+7,Jussieu,Place Monge,2
+7,Place Monge,Censier - Daubenton,1
+7,Censier - Daubenton,Les Gobelins,1
+7,Les Gobelins,Place d'Italie,1
+7,Place d'Italie,Tolbiac,2
+7,Tolbiac,Maison Blanche,1
+7,Maison Blanche,Porte d'Italie,1
+7,Porte d'Italie,Porte de Choisy,1
+7,Porte de Choisy,Porte d'Ivry,2
+7bis,Louis Blanc,Jaurès,2
+7bis,Jaurès,Bolivar,1
+7bis,Bolivar,Buttes Chaumont,1
+7bis,Buttes Chaumont,Botzaris,2
+7bis,Botzaris,Place des Fetes,1
+7bis,Place des Fetes,Pré-Saint-Gervais,1
+7bis,Pré-Saint-Gervais,Danube,1
+7bis,Danube,Botzaris,2
+8,Balard,Lourmel,4
+8,Lourmel,Boucicaut,1
+8,Boucicaut,Félix Faure,1
+8,Félix Faure,Commerce,1
+8,Commerce,La Motte-Picquet - Grenelle,1
+8,La Motte-Picquet - Grenelle,Ecole Militaire,2
+8,Ecole Militaire,La Tour-Maubourg,1
+8,La Tour-Maubourg,Invalides,1
+8,Invalides,Concorde,2
+8,Concorde,Madeleine,1
+8,Madeleine,Opéra,1
+8,Opéra,Richelieu - Drouot,2
+8,Richelieu - Drouot,Grands Boulevards,1
+8,Grands Boulevards,Bonne Nouvelle,1
+8,Bonne Nouvelle,Strasbourg - Saint-Denis,1
+8,Strasbourg - Saint-Denis,République,1
+8,République,Filles du Calvaire,2
+8,Filles du Calvaire,Saint-Sébastien - Froissart,1
+8,Saint-Sébastien - Froissart,Chemin Vert,1
+8,Chemin Vert,Bastille,1
+8,Bastille,Ledru-Rollin,1
+8,Ledru-Rollin,Faidherbe - Chaligny,2
+8,Faidherbe - Chaligny,Reuilly - Diderot,1
+8,Reuilly - Diderot,Montgallet,1
+8,Montgallet,Daumesnil,1
+8,Daumesnil,Michel Bizot,2
+8,Michel Bizot,Porte Dorée,1
+8,Porte Dorée,Porte de Charenton,2
+9,Porte de Saint-Cloud,Exelmans,1
+9,Exelmans,Michel-Ange - Molitor,1
+9,Michel-Ange - Molitor,Michel-Ange - Auteuil,2
+9,Michel-Ange - Auteuil,Jasmin,1
+9,Jasmin,Ranelagh,2
+9,Ranelagh,La Muette,1
+9,La Muette,Rue de la Pompe,2
+9,Rue de la Pompe,Trocadéro,1
+9,Trocadéro,Iéna,1
+9,Iéna,Alma - Marceau,1
+9,Alma - Marceau,Franklin D. Roosevelt,1
+9,Franklin D. Roosevelt,Saint-Philippe du Roule,2
+9,Saint-Philippe du Roule,Miromesnil,1
+9,Miromesnil,Saint-Augustin,2
+9,Saint-Augustin,Havre-Caumartin,1
+9,Havre-Caumartin,Chaussée d'Antin - La Fayette,1
+9,Chaussée d'Antin - La Fayette,Richelieu - Drouot,1
+9,Richelieu - Drouot,Grands Boulevards,2
+9,Grands Boulevards,Bonne Nouvelle,1
+9,Bonne Nouvelle,Strasbourg - Saint-Denis,1
+9,Strasbourg - Saint-Denis,République,2
+9,République,Oberkampf,1
+9,Oberkampf,Saint-Ambroise,2
+9,Saint-Ambroise,Voltaire,1
+9,Voltaire,Charonne,1
+9,Charonne,Rue des Boulets,2
+9,Rue des Boulets,Nation,1
+9,Nation,Buzenval,2
+9,Buzenval,Maraîchers,2
+9,Maraîchers,Porte de Montreuil,3
+10,Gare d'Austerlitz,Jussieu,2
+10,Jussieu,Cardinal Lemoine,1
+10,Cardinal Lemoine,Maubert - Mutualité,1
+10,Maubert - Mutualité,Cluny - La Sorbonne,1
+10,Cluny - La Sorbonne,Odéon,1
+10,Odéon,Mabillon,2
+10,Mabillon,Sèvres - Babylone,1
+10,Sèvres - Babylone,Vaneau,1
+10,Vaneau,Duroc,1
+10,Duroc,Ségur,1
+10,Ségur,La Motte-Picquet - Grenelle,2
+10,La Motte-Picquet - Grenelle,Avenue Emile Zola,2
+10,Avenue Emile Zola,Charles Michels,1
+10,Charles Michels,Javel - André Citroën,1
+10,Javel - André Citroën,Eglise d'Auteuil,1
+10,Eglise d'Auteuil,Michel-Ange - Auteuil,2
+10,Michel-Ange - Auteuil,Porte d'Auteuil,2
+10,Porte d'Auteuil,Michel-Ange - Molitor,1
+10,Michel-Ange - Molitor,Chardon Lagache,1
+10,Chardon Lagache,Mirabeau,2
+11,Châtelet,Hôtel de Ville,2
+11,Hôtel de Ville,Rambuteau,1
+11,Rambuteau,Arts et Métiers,2
+11,Arts et Métiers,République,1
+11,République,Goncourt,1
+11,Goncourt,Belleville,1
+11,Belleville,Pyrénées,2
+11,Pyrénées,Jourdain,1
+11,Jourdain,Place des Fetes,1
+11,Place des Fetes,Télégraphe,1
+11,Télégraphe,Porte des Lilas,1
+12,Porte de la Chapelle,Marx Dormoy,1
+12,Marx Dormoy,Marcadet - Poissonniers,2
+12,Marcadet - Poissonniers,Jules Joffrin,1
+12,Jules Joffrin,Lamarck - Caulaincourt,1
+12,Lamarck - Caulaincourt,Abbesses,2
+12,Abbesses,Pigalle,1
+12,Pigalle,Saint-Georges,1
+12,Saint-Georges,Notre-Dame-de-Lorette,1
+12,Notre-Dame-de-Lorette,Trinité - d'Estienne d'Orves,1
+12,Trinité - d'Estienne d'Orves,Saint-Lazare,2
+12,Saint-Lazare,Madeleine,1
+12,Madeleine,Concorde,2
+12,Concorde,Assemblée Nationale,2
+12,Assemblée Nationale,Solférino,1
+12,Solférino,Rue du Bac,1
+12,Rue du Bac,Sèvres - Babylone,1
+12,Sèvres - Babylone,Rennes,1
+12,Rennes,Notre-Dame des Champs,1
+12,Notre-Dame des Champs,Montparnasse Bienvenue,1
+12,Montparnasse Bienvenue,Falguière,2
+12,Falguière,Pasteur,1
+12,Pasteur,Volontaires,1
+12,Volontaires,Vaugirard,1
+12,Vaugirard,Convention,1
+12,Convention,Porte de Versailles,2
+13,Porte de Vanves,Plaisance,2
+13,Plaisance,Pernety,1
+13,Pernety,Gaîté,1
+13,Gaîté,Montparnasse Bienvenue,1
+13,Montparnasse Bienvenue,Duroc,2
+13,Duroc,Saint-François-Xavier,1
+13,Saint-François-Xavier,Varenne,1
+13,Varenne,Invalides,4
+13,Invalides,Champs-Elysées - Clemenceau,2
+13,Champs-Elysées - Clemenceau,Miromesnil,2
+13,Miromesnil,Saint-Lazare,2
+13,Saint-Lazare,Liège,1
+13,Liège,Place de Clichy,2
+13,Place de Clichy,La Fourche,1
+13,La Fourche,Guy Môquet,2
+13,Guy Môquet,Porte de Saint-Ouen,1
+13,Porte de Saint-Ouen,La Fourche,3
+13,La Fourche,Brochant,2
+13,Brochant,Porte de Clichy,1
+14,Porte de Clichy,Pont Cardinet,2
+14,Pont Cardinet,Saint-Lazare,3
+14,Saint-Lazare,Madeleine,1
+14,Madeleine,Pyramides,2
+14,Pyramides,Châtelet,2
+14,Châtelet,Gare de Lyon,3
+14,Gare de Lyon,Bercy,2
+14,Bercy,Cour Saint-Emilion,1
+14,Cour Saint-Emilion,Bibliothèque François Mitterrand,2
+14,Bibliothèque François Mitterrand,Olympiades,1
+14,Olympiades,Maison Blanche,1
