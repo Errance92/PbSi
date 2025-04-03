@@ -344,6 +344,7 @@ using System.Collections.Generic;
                     case "1": CreateCommande(); break;
                     case "2": DisplayCommandeDetails(); break;
                     case "3": DisplayAllCommandes(); break;
+                    case "4": AddPlat(); break;
                     case "0": exit = true; break;
                     default: 
                         Console.WriteLine("Option invalide.");
@@ -352,8 +353,82 @@ using System.Collections.Generic;
                 }
             }
         }
-        
-        private void CreateCommande()
+
+    private void AddPlat()
+    {
+        Console.Clear();
+        Console.WriteLine("=== AJOUTER UN PLAT ===\n");
+
+        Plat plat = new Plat();
+
+        // On suppose que vous avez créé une méthode GetNextPlatId() dans DbAccess
+        plat.IdPlat = _db.GetNextPlatId();
+
+        Console.Write("Nom du plat: ");
+        plat.NomPlat = Console.ReadLine();
+
+        Console.Write("Type du plat: ");
+        plat.Type = Console.ReadLine();
+
+        Console.Write("Stock: ");
+        if (!int.TryParse(Console.ReadLine(), out int stock))
+        {
+            Console.WriteLine("Stock invalide.");
+            WaitForKey();
+            return;
+        }
+        plat.Stock = stock;
+
+        Console.Write("Origine (optionnel): ");
+        plat.Origine = Console.ReadLine();
+
+        Console.Write("Régime alimentaire (optionnel): ");
+        plat.RegimeAlimentaire = Console.ReadLine();
+
+        Console.Write("Ingrédients (optionnel): ");
+        plat.Ingredient = Console.ReadLine();
+
+        Console.Write("Lien photo (optionnel): ");
+        plat.LienPhoto = Console.ReadLine();
+
+        Console.Write("Date de fabrication (JJ/MM/AAAA): ");
+        if (!DateTime.TryParse(Console.ReadLine(), out DateTime dateFab))
+        {
+            dateFab = DateTime.MinValue;
+        }
+        plat.DateFabrication = dateFab;
+
+        Console.Write("Prix par personne: ");
+        if (!decimal.TryParse(Console.ReadLine(), out decimal prix))
+        {
+            Console.WriteLine("Prix invalide.");
+            WaitForKey();
+            return;
+        }
+        plat.PrixParPersonne = prix;
+
+        Console.Write("Date de péremption (JJ/MM/AAAA): ");
+        if (!DateTime.TryParse(Console.ReadLine(), out DateTime datePer))
+        {
+            datePer = DateTime.MinValue;
+        }
+        plat.DatePeremption = datePer;
+
+        // On ajoute le plat dans la base de données
+        bool success = _db.AddPlat(plat);
+        if (success)
+        {
+            Console.WriteLine("\nPlat ajouté avec succès !");
+        }
+        else
+        {
+            Console.WriteLine("\nErreur lors de l'ajout du plat.");
+        }
+
+        WaitForKey();
+    }
+
+    private void CreateCommande()
         {
             Console.Clear();
             Console.WriteLine("=== CRÉER UNE COMMANDE ===\n");

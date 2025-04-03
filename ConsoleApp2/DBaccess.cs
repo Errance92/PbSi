@@ -12,7 +12,7 @@ public class DbAccess
     public DbAccess()
     {
         // Chaîne de connexion codée directement dans la classe - REMPLACEZ PAR VOS VALEURS
-        _connectionString = "Server=localhost;Port=3306;Database=Liv'in Paris;Uid=root;Pwd=root;CharSet=utf8;";
+        _connectionString = "Server=localhost;Port=3306;Database=Liv'in Paris;Uid=root;Pwd=password;CharSet=utf8;";
 
         // Pour le débogage, affichez un message
         Console.WriteLine("Connexion à la base de données initialisée...");
@@ -292,10 +292,38 @@ public class DbAccess
                 DatePeremption = row["date_peremption"] == DBNull.Value ? DateTime.MinValue : Convert.ToDateTime(row["date_peremption"])
             };
         }
-        
-        // ===== MÉTHODES POUR COMMANDES =====
-        
-        public List<Commande> GetAllCommandes()
+
+    // ===== MÉTHODES POUR COMMANDES =====
+    public int GetNextPlatId()
+    {
+        object result = ExecuteScalar("SELECT MAX(id_plat) FROM Plat");
+        return (result == DBNull.Value) ? 1 : Convert.ToInt32(result) + 1;
+    }
+
+    public bool AddPlat(Plat plat)
+    {
+        string query = @"INSERT INTO Plat (id_plat, nom_plat, type, stock, origine, regime_alimentaire, ingredient, lien_photo, date_fabrication, prix_par_personne, date_peremption)
+                     VALUES (@id, @nom, @type, @stock, @origine, @regime, @ingredient, @lien, @dateFab, @prix, @datePer)";
+
+        var parameters = new MySqlParameter[]
+        {
+        new MySqlParameter("@id", plat.IdPlat),
+        new MySqlParameter("@nom", plat.NomPlat),
+        new MySqlParameter("@type", plat.Type),
+        new MySqlParameter("@stock", plat.Stock),
+        new MySqlParameter("@origine", plat.Origine ?? (object)DBNull.Value),
+        new MySqlParameter("@regime", plat.RegimeAlimentaire ?? (object)DBNull.Value),
+        new MySqlParameter("@ingredient", plat.Ingredient ?? (object)DBNull.Value),
+        new MySqlParameter("@lien", plat.LienPhoto ?? (object)DBNull.Value),
+        new MySqlParameter("@dateFab", plat.DateFabrication == DateTime.MinValue ? (object)DBNull.Value : plat.DateFabrication),
+        new MySqlParameter("@prix", plat.PrixParPersonne),
+        new MySqlParameter("@datePer", plat.DatePeremption == DateTime.MinValue ? (object)DBNull.Value : plat.DatePeremption)
+        };
+
+        return ExecuteNonQuery(query, parameters) > 0;
+    }
+
+    public List<Commande> GetAllCommandes()
         {
             var commandes = new List<Commande>();
             var table = ExecuteQuery("SELECT * FROM Commande ORDER BY date_commande DESC");
