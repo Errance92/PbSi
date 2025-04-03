@@ -285,7 +285,7 @@ public class DbAccess
 
     private static int ComparerParAdress(Client a, Client b)
     {
-        return a.Adresse.CompareTo(b.Nom);
+        return a.Adresse.CompareTo(b.Adresse);
     }
 
     // ===== MÉTHODES POUR CUISINIERS =====

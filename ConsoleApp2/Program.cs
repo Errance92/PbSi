@@ -219,16 +219,21 @@ namespace Karaté
                 }
             }
 
-            Console.WriteLine("Voulez vous entrez dans la partie chemin le plus court (CLPC) ou dans la partie base de donnes (BDD)");
+
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("=== LIV'IN PARIS ===");
+            Console.ResetColor();
+            Console.WriteLine("1. Partie PCC / graphe");
+            Console.WriteLine("2. Partie BDD");
             string res = Console.ReadLine();
 
-            while(res.ToLower() != "clpc" && res.ToLower() != "bdd")
+            while(res != "1" && res != "2")
             {
-                Console.WriteLine("Erreur, veuillez rentrer CLPC ou BDD");
+                Console.WriteLine("Saisie incorrect");
                 res = Console.ReadLine();
             }
 
-            if (res.ToLower() == "clpc")
+            if (res.ToLower() == "1")
             {
                 bool continu = true;
                 while (continu)
@@ -278,11 +283,6 @@ namespace Karaté
                             break;
                         case "9":
                             TesterDijkstra(graphe);
-                            TesterBellman(graphe);
-                            TesterFloyd(graphe);
-                            break;
-                        case "10":
-                            TesterBellman(graphe);
                             break;
                         case "0":
                             continu = false;
@@ -299,7 +299,7 @@ namespace Karaté
                     }
                 }
             }
-            else if (res.ToLower() == "bdd")
+            else if (res.ToLower() == "2")
             {
                 Console.Title = "Liv'in Paris - Application de partage de repas";
 
@@ -311,7 +311,7 @@ namespace Karaté
                 catch (Exception ex)
                 {
                     Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine($"Erreur fatale: {ex.Message}");
+                    Console.WriteLine("Erreur fatale: "+ ex.Message);
                     Console.WriteLine(ex.StackTrace);
                     Console.ResetColor();
                     Console.WriteLine("\nAppuyez sur une touche pour quitter...");
