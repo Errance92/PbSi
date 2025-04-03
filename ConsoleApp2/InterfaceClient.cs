@@ -222,6 +222,22 @@ using System.Collections.Generic;
             }
             else
             {
+                Console.WriteLine("Voulez vous trier les clients par nom, par adresse, par rien (N/A/R) :");
+                string rep = Console.ReadLine();
+
+                while (rep.ToUpper() != "R" && rep.ToUpper() != "N" && rep.ToUpper() != "A")
+                {
+                    Console.WriteLine("Saisie invalide. (N/A/R): ");
+                    rep = Console.ReadLine();
+                }
+                if (rep.ToUpper() == "N")
+                {
+                    DbAccess.TrierParNom(clients);
+                }
+                else if (rep.ToUpper() == "A")
+                {
+                    DbAccess.TrierParAdress(clients);
+                }
                 foreach (Client client in clients)
                 {
                     Console.WriteLine(client.ToString());

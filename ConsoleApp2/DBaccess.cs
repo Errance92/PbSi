@@ -266,6 +266,28 @@ public class DbAccess
         }
     }
 
+    public static List<Client> TrierParNom(List<Client> clients)
+    {
+        clients.Sort(ComparerParNom);
+        return clients;
+    }
+
+    private static int ComparerParNom(Client a, Client b)
+    {
+        return a.Nom.CompareTo(b.Nom);
+    }
+
+    public static List<Client> TrierParAdress(List<Client> clients)
+    {
+        clients.Sort(ComparerParAdress);
+        return clients;
+    }
+
+    private static int ComparerParAdress(Client a, Client b)
+    {
+        return a.Adresse.CompareTo(b.Nom);
+    }
+
     // ===== MÉTHODES POUR CUISINIERS =====
 
     public List<Cuisinier> RecupererCuisinier()
