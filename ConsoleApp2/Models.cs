@@ -39,45 +39,56 @@ using System.Collections.Generic;
         }
     }
 
-    public class Cuisinier
-    {
-        public int IdCuisinier;
-        public string Nom;
-        public string Prenom;
-        public string Adresse;
-        public int NumRue;
-        public string NomRue;
-        public string Ville;
-        public string Email;
-        public string Telephone;
-        public string Metro;
-        public Plat Plats;
+public class Cuisinier
+{
+    public int IdCuisinier;
+    public string Nom;
+    public string Prenom;
+    public int NumRue;
+    public string NomRue;
+    public string Ville;
+    public string Email;
+    public string Telephone;
+    public string Metro;
+    public int? IdPlat;
 
 
-    public  string ToString()
+    public override string ToString()
     {
         string res;
-        if (Email.Length == 0 && Telephone.Length == 0)
-        {
-            res = "[" + IdCuisinier + "] - " + Nom.ToUpper() + " - " + Prenom + " - " + NumRue + " rue " + NomRue + " " + Ville + " - " + Metro.ToLower() + " - " + Plats;
-        }
-        else if (Telephone.Length == 0)
-        {
-            res = "[" + IdCuisinier + "] - " + Nom.ToUpper() + " - " + Prenom + " - " + NumRue + " rue " + NomRue + " " + Ville + " - " + Email + " - " + Metro.ToLower() + " - " + Plats;
-        }
 
-        else if (Email.Length == 0)
+        bool emailVide = string.IsNullOrEmpty(Email);
+        bool telVide = string.IsNullOrEmpty(Telephone);
+        string infoPlat;
+        if (IdPlat == null)
         {
-            res = "[" + IdCuisinier + "] - " + Nom.ToUpper() + " - " + Prenom + " - " + NumRue + " rue " + NomRue + " " + Ville + " - " + Telephone + " - "  + Metro.ToLower() + " - " + Plats;
+            infoPlat = "Aucun plat associé";
         }
         else
         {
-            res = "[" + IdCuisinier + "] - " + Nom.ToUpper() + " - " + Prenom + " - " + NumRue + " rue " + NomRue + " " + Ville + " - " + Email + " - " + Telephone + " - " + Metro.ToLower() + " - " + Plats;
+            infoPlat = "Plat ID : " + IdPlat;
+        }
+
+        if (emailVide && telVide)
+        {
+            res = "[" + IdCuisinier + "] - " + Nom.ToUpper() + " - " + Prenom + " - " + NumRue + " rue " + NomRue + " " + Ville + " - " + Metro.ToLower() + " - " + infoPlat;
+        }
+        else if (telVide)
+        {
+            res = "[" + IdCuisinier + "] - " + Nom.ToUpper() + " - " + Prenom + " - " + NumRue + " rue " + NomRue + " " + Ville + " - " + Email + " - " + Metro.ToLower() + " - " + infoPlat;
+        }
+        else if (emailVide)
+        {
+            res = "[" + IdCuisinier + "] - " + Nom.ToUpper() + " - " + Prenom + " - " + NumRue + " rue " + NomRue + " " + Ville + " - " + Telephone + " - " + Metro.ToLower() + " - " + infoPlat;
+        }
+        else
+        {
+            res = "[" + IdCuisinier + "] - " + Nom.ToUpper() + " - " + Prenom + " - " + NumRue + " rue " + NomRue + " " + Ville + " - " + Email + " - " + Telephone + " - " + Metro.ToLower() + " - " + infoPlat;
         }
 
         return res;
-        }
     }
+}
 
     public class Plat
     {

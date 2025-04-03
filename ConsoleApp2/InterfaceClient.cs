@@ -49,7 +49,7 @@ public class UserInterface
             Console.WriteLine("1. Gestion des Clients");
             Console.WriteLine("2. Gestion des Cuisiniers");
             Console.WriteLine("3. Gestion des Plats");
-            Console.WriteLine("3. Gestion des Commandes");
+            Console.WriteLine("4. Gestion des Commandes");
             Console.WriteLine("0. Quitter");
             Console.Write("\nVotre choix: ");
         }
@@ -400,69 +400,344 @@ public class UserInterface
     #region Cuisinier
 
     private void CuisinierModule()
-        {
-            bool exit = false;
-            
-            while (!exit)
-            {
-                Console.Clear();
-                Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine("=== MODULE CUISINIER ===");
-                Console.ResetColor();
-                Console.WriteLine("1. Ajouter un cuisinier");
-                Console.WriteLine("2. Afficher tous les cuisiniers");
-                Console.WriteLine("0. Retour au menu principal");
-                Console.Write("\nVotre choix: ");
-                
-                string choice = Console.ReadLine();
-                
-                switch (choice)
-                {
-                    case "1": AjouterCuisinier(); break;
-                    case "2": AfficherToutCuisiniers(); break;
-                    case "0": exit = true; break;
-                    default: 
-                        Console.WriteLine("Option invalide.");
-                        WaitForKey();
-                        break;
-                }
-            }
-        }
-        
-        private void AjouterCuisinier()
+    {
+        bool exit = false;
+
+        while (!exit)
         {
             Console.Clear();
-            Console.WriteLine("=== AJOUTER UN CUISINIER ===\n");
-            
-            Cuisinier cuisinier = new Cuisinier
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.WriteLine("=== MODULE CUISINIER ===");
+            Console.ResetColor();
+            Console.WriteLine("1. Ajouter un cuisinier");
+            Console.WriteLine("2. Modifier un cuisinier");
+            Console.WriteLine("3. Supprimer un cuisinier");
+            Console.WriteLine("4. Afficher tous les cuisiniers");
+            Console.WriteLine("0. Retour au menu principal");
+            Console.Write("\nVotre choix: ");
+
+            string choix = Console.ReadLine();
+
+            switch (choix)
             {
-                IdCuisinier = db.ObtenirProchainCuisinier()
-            };
-            
-            Console.Write("Nom: ");
-            cuisinier.Nom = Console.ReadLine();
-            
-            Console.Write("Prénom: ");
-            cuisinier.Prenom = Console.ReadLine();
-            
-            Console.Write("Adresse: ");
-            cuisinier.Adresse = Console.ReadLine();
-            
-            Console.Write("Email (optionnel): ");
-            cuisinier.Email = Console.ReadLine();
-            
-            Console.Write("Téléphone (optionnel): ");
-            cuisinier.Telephone = Console.ReadLine();
-            
-            if (db.AjouterCuisinier(cuisinier))
-                Console.WriteLine("\nCuisinier ajouté avec succès!");
-            else
-                Console.WriteLine("\nErreur lors de l'ajout du cuisinier.");
-                
-            WaitForKey();
+                case "1": AjouterCuisinier(); break;
+                case "2": ModifierCuisinier(); break;
+                case "3": SupprimerCuisinier(); break;
+                case "4": AfficherToutCuisiniers(); break;
+                case "0": exit = true; break;
+                default:
+                    Console.WriteLine("Option invalide.");
+                    WaitForKey();
+                    break;
+            }
         }
-        
-        private void AfficherToutCuisiniers()
+    }
+
+    private void AjouterCuisinier()
+    {
+        Console.Clear();
+        Console.WriteLine("=== AJOUTER UN CUISINIER ===\n");
+
+        Cuisinier c = new Cuisinier();
+        c.IdCuisinier = db.ObtenirProchainCuisinier();
+
+        Console.Write("Nom : ");
+        c.Nom = Console.ReadLine();
+
+        Console.Write("Prénom : ");
+        c.Prenom = Console.ReadLine();
+
+        int numRue;
+        Console.Write("Numéro de rue : ");
+        string saisieNum = Console.ReadLine();
+        while (!int.TryParse(saisieNum, out numRue))
+        {
+            Console.WriteLine("Numéro invalide. Réessayez : ");
+            saisieNum = Console.ReadLine();
+        }
+        c.NumRue = numRue;
+
+        Console.Write("Rue : ");
+        c.NomRue = Console.ReadLine();
+
+        Console.Write("Ville : ");
+        c.Ville = Console.ReadLine();
+
+        Console.Write("Métro : ");
+        string metro = Console.ReadLine();
+        Graphe g = new Graphe();
+        while (!EstStationValide(metro, g.Noeuds))
+        {
+            Console.WriteLine("Métro inconnu. Réessayez : ");
+            metro = Console.ReadLine();
+        }
+        c.Metro = metro;
+
+        Console.Write("Email (optionnel) : ");
+        string email = Console.ReadLine();
+        if (string.IsNullOrWhiteSpace(email)) c.Email = null;
+        else c.Email = email;
+
+        Console.Write("Téléphone (optionnel) : ");
+        string tel = Console.ReadLine();
+        if (string.IsNullOrWhiteSpace(tel)) c.Telephone = null;
+        else c.Telephone = tel;
+
+        Console.WriteLine("\nSouhaitez-vous sélectionner un plat existant ou en créer un ?");
+        Console.WriteLine("1. Choisir un plat existant");
+        Console.WriteLine("2. Créer un nouveau plat");
+        Console.Write("Votre choix : ");
+        string choix = Console.ReadLine();
+
+        if (choix == "1")
+        {
+            List<Plat> plats = db.RecupererToutPlat();
+            foreach (Plat p in plats)
+            {
+                Console.WriteLine(p.ToString());
+            }
+
+            Console.Write("ID du plat à sélectionner : ");
+            string saisie = Console.ReadLine();
+            int idPlat;
+            while (!int.TryParse(saisie, out idPlat) || db.RecuperePlatID(idPlat) == null)
+            {
+                Console.WriteLine("ID de plat invalide. Réessayez : ");
+                saisie = Console.ReadLine();
+            }
+
+            c.IdPlat = idPlat;
+        }
+        else if (choix == "2")
+        {
+            Plat nouveau = AjouterPlatPourCuisinier();
+            if (db.AjouterPlat(nouveau))
+            {
+                Console.WriteLine("Nouveau plat ajouté.");
+                c.IdPlat = nouveau.IdPlat;
+            }
+            else
+            {
+                Console.WriteLine("Erreur lors de l’ajout du plat.");
+                c.IdPlat = null;
+            }
+        }
+
+        if (db.AjouterCuisinier(c))
+        {
+            Console.WriteLine("\nCuisinier ajouté avec succès !");
+        }
+        else
+        {
+            Console.WriteLine("\nErreur lors de l'ajout du cuisinier.");
+        }
+
+        WaitForKey();
+    }
+
+    private Plat AjouterPlatPourCuisinier()
+    {
+        Console.Clear();
+        Console.WriteLine("=== AJOUTER UN PLAT ===\n");
+
+        Plat plat = new Plat();
+        plat.IdPlat = db.RecupererPlatSuivant();
+
+        Console.Write("Nom du plat : ");
+        plat.NomPlat = Console.ReadLine();
+
+        Console.Write("Type (petit dej / dej / diner) : ");
+        string type = Console.ReadLine().ToLower();
+        while (type != "petit dej" && type != "dej" && type != "diner")
+        {
+            Console.Write("Type invalide. Re-saisir (petit dej / dej / diner) : ");
+            type = Console.ReadLine().ToLower();
+        }
+        plat.Type = type;
+
+        Console.Write("Stock : ");
+        string saisieStock = Console.ReadLine();
+        int stock;
+        while (!int.TryParse(saisieStock, out stock) || stock < 0)
+        {
+            Console.Write("Stock invalide. Veuillez entrer un nombre positif : ");
+            saisieStock = Console.ReadLine();
+        }
+        plat.Stock = stock;
+
+        Console.Write("Origine (optionnel) : ");
+        plat.Origine = Console.ReadLine();
+
+        Console.Write("Régime alimentaire (optionnel) : ");
+        plat.RegimeAlimentaire = Console.ReadLine();
+
+        Console.Write("Ingrédients (optionnel) : ");
+        plat.Ingredient = Console.ReadLine();
+
+        Console.Write("Lien photo (optionnel) : ");
+        plat.LienPhoto = Console.ReadLine();
+
+        Console.Write("Date de fabrication (jj/mm/aaaa) : ");
+        DateTime dateFab;
+        while (!DateTime.TryParse(Console.ReadLine(), out dateFab))
+        {
+            Console.Write("Date invalide. Réessayer (jj/mm/aaaa) : ");
+        }
+        plat.DateFabrication = dateFab;
+
+        Console.Write("Date de péremption (jj/mm/aaaa) : ");
+        DateTime datePer;
+        while (!DateTime.TryParse(Console.ReadLine(), out datePer) || datePer < plat.DateFabrication)
+        {
+            Console.Write("Date invalide (ou antérieure à la fabrication). Réessayer (jj/mm/aaaa) : ");
+        }
+        plat.DatePeremption = datePer;
+
+        Console.Write("Prix par personne : ");
+        string saisiePrix = Console.ReadLine();
+        decimal prix;
+        while (!decimal.TryParse(saisiePrix, out prix) || prix < 0)
+        {
+            Console.Write("Prix invalide. Veuillez entrer un nombre positif : ");
+            saisiePrix = Console.ReadLine();
+        }
+        plat.PrixParPersonne = prix;
+
+        bool succes = db.AjouterPlat(plat);
+        if (succes)
+        {
+            Console.WriteLine("\nPlat ajouté avec succès !");
+            return plat;
+        }
+        else
+        {
+            Console.WriteLine("\nErreur lors de l'ajout du plat.");
+            return null;
+        }
+    }
+
+    private void ModifierCuisinier()
+    {
+        Console.Clear();
+        Console.WriteLine("=== MODIFIER UN CUISINIER ===\n");
+
+        Console.Write("ID du cuisinier à modifier: ");
+        string saisieId = Console.ReadLine();
+        int id;
+        while (!int.TryParse(saisieId, out id))
+        {
+            Console.WriteLine("ID invalide. Veuillez réessayer:");
+            saisieId = Console.ReadLine();
+        }
+
+        Cuisinier cuisinier = db.ObtenirCuisinierID(id);
+
+        if (cuisinier == null)
+        {
+            Console.WriteLine("Aucun cuisinier trouvé avec l'ID " + id);
+            WaitForKey();
+            return;
+        }
+
+        Console.WriteLine("Modification de " + cuisinier.Nom + " " + cuisinier.Prenom + "\n");
+
+        Console.Write("Nom [" + cuisinier.Nom + "]: ");
+        string nom = Console.ReadLine();
+        if (!string.IsNullOrEmpty(nom)) cuisinier.Nom = nom;
+
+        Console.Write("Prénom [" + cuisinier.Prenom + "]: ");
+        string prenom = Console.ReadLine();
+        if (!string.IsNullOrEmpty(prenom)) cuisinier.Prenom = prenom;
+
+        Console.Write("Numéro de rue [" + cuisinier.NumRue + "]: ");
+        string saisieNum = Console.ReadLine();
+        if (!string.IsNullOrEmpty(saisieNum))
+        {
+            int numRue;
+            while (!int.TryParse(saisieNum, out numRue))
+            {
+                Console.WriteLine("Numéro invalide. Veuillez réessayer:");
+                saisieNum = Console.ReadLine();
+            }
+            cuisinier.NumRue = numRue;
+        }
+
+        Console.Write("Rue [" + cuisinier.NomRue + "]: ");
+        string rue = Console.ReadLine();
+        if (!string.IsNullOrEmpty(rue)) cuisinier.NomRue = rue;
+
+        Console.Write("Ville [" + cuisinier.Ville + "]: ");
+        string ville = Console.ReadLine();
+        if (!string.IsNullOrEmpty(ville)) cuisinier.Ville = ville;
+
+        Console.Write("Métro le plus proche [" + cuisinier.Metro + "]: ");
+        string saisieMetro = Console.ReadLine();
+        if (!string.IsNullOrEmpty(saisieMetro))
+        {
+            Graphe g = new Graphe();
+            while (!EstStationValide(saisieMetro, g.Noeuds))
+            {
+                Console.WriteLine("Ce métro n'existe pas.");
+                Console.Write("Métro le plus proche [" + cuisinier.Metro + "]: ");
+                saisieMetro = Console.ReadLine();
+            }
+            cuisinier.Metro = saisieMetro;
+        }
+
+        Console.Write("Email [" + cuisinier.Email + "]: ");
+        string email = Console.ReadLine();
+        if (!string.IsNullOrEmpty(email)) cuisinier.Email = email;
+
+        Console.Write("Téléphone [" + cuisinier.Telephone + "]: ");
+        string tel = Console.ReadLine();
+        if (!string.IsNullOrEmpty(tel)) cuisinier.Telephone = tel;
+
+        Console.WriteLine("Souhaitez-vous modifier le plat associé ? (O/N)");
+        string choix = Console.ReadLine().ToUpper();
+        if (choix == "O")
+        {
+            Console.WriteLine("1 : Choisir un plat existant");
+            Console.WriteLine("2 : Créer un nouveau plat");
+            string rep = Console.ReadLine();
+
+            if (rep == "1")
+            {
+                List<Plat> plats = db.RecupererToutPlat();
+                foreach (Plat p in plats)
+                {
+                    Console.WriteLine(p.ToString());
+                }
+
+                Console.Write("ID du plat choisi: ");
+                string saisiePlat = Console.ReadLine();
+                int idPlat;
+                while (!int.TryParse(saisiePlat, out idPlat) || db.RecuperePlatID(idPlat) == null)
+                {
+                    Console.WriteLine("ID plat invalide. Réessayez:");
+                    saisiePlat = Console.ReadLine();
+                }
+                cuisinier.IdPlat = idPlat;
+            }
+            else if (rep == "2")
+            {
+                Plat nouveauPlat = AjouterPlatPourCuisinier();
+                cuisinier.IdPlat = nouveauPlat.IdPlat;
+            }
+        }
+
+        if (db.MAJCuisinier(cuisinier))
+        {
+            Console.WriteLine("\nCuisinier modifié avec succès!");
+        }
+        else
+        {
+            Console.WriteLine("\nErreur lors de la modification.");
+        }
+
+        WaitForKey();
+    }
+
+    private void AfficherToutCuisiniers()
         {
             Console.Clear();
             Console.WriteLine("=== LISTE DES CUISINIERS ===\n");
@@ -479,11 +754,53 @@ public class UserInterface
                 {
                     Console.WriteLine(cuisinier.ToString());
                 }
-                Console.WriteLine($"\nTotal: {cuisiniers.Count} cuisinier(s)");
+                Console.WriteLine("\nTotal: " + cuisiniers.Count +  " cuisinier(s)");
             }
             
             WaitForKey();
         }
+
+    private void SupprimerCuisinier()
+    {
+        Console.Clear();
+        Console.WriteLine("=== SUPPRIMER UN CUISINIER ===\n");
+
+        Console.Write("ID du cuisinier à supprimer : ");
+        int id;
+        while (!int.TryParse(Console.ReadLine(), out id))
+        {
+            Console.WriteLine("ID invalide. Réessayez : ");
+        }
+
+        Cuisinier cuisinier = db.ObtenirCuisinierID(id);
+        if (cuisinier == null)
+        {
+            Console.WriteLine("Aucun cuisinier trouvé avec l'ID " + id);
+            WaitForKey();
+            return;
+        }
+
+        Console.WriteLine("Êtes-vous sûr de vouloir supprimer : " + cuisinier.Nom + " " + cuisinier.Prenom + " ? (O/N)");
+        string rep = Console.ReadLine();
+        if (rep.ToUpper() != "O")
+        {
+            Console.WriteLine("Suppression annulée.");
+            WaitForKey();
+            return;
+        }
+
+        if (db.SupprimerCuisinier(id))
+        {
+            Console.WriteLine("Cuisinier supprimé avec succès !");
+        }
+        else
+        {
+            Console.WriteLine("Erreur lors de la suppression du cuisinier.");
+        }
+
+        WaitForKey();
+    }
+
 
     #endregion
 
@@ -503,7 +820,7 @@ public class UserInterface
             Console.WriteLine("2. Modifier un plat");
             Console.WriteLine("3. Supprimer un plat");
             Console.WriteLine("4. Afficher les details d'un plat");
-            Console.WriteLine("5. Afficher tous les plat");
+            Console.WriteLine("5. Afficher tous les plats");
             Console.WriteLine("0. Retour au menu principal");
             Console.Write("\nVotre choix: ");
 
@@ -827,19 +1144,6 @@ public class UserInterface
             plat.DateFabrication = dateFab;
         }
 
-        Console.Write("Prix par personne [" + plat.PrixParPersonne + " €] : ");
-        string saisiePrix = Console.ReadLine();
-        if (!string.IsNullOrWhiteSpace(saisiePrix))
-        {
-            decimal prix;
-            while (!decimal.TryParse(saisiePrix, out prix) || prix < 0)
-            {
-                Console.WriteLine("Prix invalide. Veuillez entrer un prix positif : ");
-                saisiePrix = Console.ReadLine();
-            }
-            plat.PrixParPersonne = prix;
-        }
-
         Console.Write("Date de péremption [" + plat.DatePeremption.ToShortDateString() + "] (format JJ/MM/AAAA) : ");
         string saisieDatePer = Console.ReadLine();
         if (!string.IsNullOrWhiteSpace(saisieDatePer))
@@ -851,6 +1155,19 @@ public class UserInterface
                 saisieDatePer = Console.ReadLine();
             }
             plat.DatePeremption = datePer;
+        }
+
+        Console.Write("Prix par personne [" + plat.PrixParPersonne + " €] : ");
+        string saisiePrix = Console.ReadLine();
+        if (!string.IsNullOrWhiteSpace(saisiePrix))
+        {
+            decimal prix;
+            while (!decimal.TryParse(saisiePrix, out prix) || prix < 0)
+            {
+                Console.WriteLine("Prix invalide. Veuillez entrer un prix positif : ");
+                saisiePrix = Console.ReadLine();
+            }
+            plat.PrixParPersonne = prix;
         }
 
         if (db.MAJPlat(plat))

@@ -386,7 +386,10 @@ public class DbAccess
             c.IdCuisinier = Convert.ToInt32(row["id_cuisinier"]);
             c.Nom = row["nom"].ToString();
             c.Prenom = row["prenom"].ToString();
-            c.Adresse = row["addresse"].ToString();
+            c.NumRue = Convert.ToInt32(row["numero_rue"]);
+            c.NomRue = row["rue"].ToString();
+            c.Ville = row["ville"].ToString();
+            c.Metro = row["metro"].ToString();
 
             if (row["email"] == DBNull.Value)
             {
@@ -404,6 +407,15 @@ public class DbAccess
             else
             {
                 c.Telephone = row["telephone"].ToString();
+            }
+
+            if (row["id_plat"] == DBNull.Value)
+            {
+                c.IdPlat = null;
+            }
+            else
+            {
+                c.IdPlat = Convert.ToInt32(row["id_plat"]);
             }
 
             cuisiniers.Add(c);
@@ -425,7 +437,11 @@ public class DbAccess
         c.IdCuisinier = Convert.ToInt32(row["id_cuisinier"]);
         c.Nom = row["nom"].ToString();
         c.Prenom = row["prenom"].ToString();
-        c.Adresse = row["addresse"].ToString();
+        c.NumRue = Convert.ToInt32(row["numero_rue"]);
+        c.NomRue = row["rue"].ToString();
+        c.Ville = row["ville"].ToString();
+        c.Metro = row["metro"].ToString();
+
 
         if (row["email"] == DBNull.Value)
         {
@@ -444,19 +460,30 @@ public class DbAccess
         {
             c.Telephone = row["telephone"].ToString();
         }
+        if (row["id_plat"] == DBNull.Value)
+        {
+            c.IdPlat = null;
+        }
+        else
+        {
+            c.IdPlat = Convert.ToInt32(row["id_plat"]);
+        }
 
         return c;
     }
 
     public bool AjouterCuisinier(Cuisinier cuisinier)
     {
-        string requete = @"INSERT INTO Cuisinier (id_cuisinier, nom, prenom, addresse, email, telephone)
-                     VALUES (@id, @nom, @prenom, @adresse, @email, @telephone)";
+        string requete = @"INSERT INTO Cuisinier (id_cuisinier, nom, prenom, numero_rue, rue, ville, email, telephone, metro, id_plat)
+                       VALUES (@id, @nom, @prenom, @numRue, @rue, @ville, @email, @telephone, @metro, @idPlat)";
 
         MySqlParameter paramId = new MySqlParameter("@id", cuisinier.IdCuisinier);
         MySqlParameter paramNom = new MySqlParameter("@nom", cuisinier.Nom);
         MySqlParameter paramPrenom = new MySqlParameter("@prenom", cuisinier.Prenom);
-        MySqlParameter paramAdresse = new MySqlParameter("@adresse", cuisinier.Adresse);
+        MySqlParameter paramNumRue = new MySqlParameter("@numRue", cuisinier.NumRue);
+        MySqlParameter paramRue = new MySqlParameter("@rue", cuisinier.NomRue);
+        MySqlParameter paramVille = new MySqlParameter("@ville", cuisinier.Ville);
+        MySqlParameter paramMetro = new MySqlParameter("@metro", cuisinier.Metro);
 
         MySqlParameter paramEmail;
         if (cuisinier.Email == null)
@@ -478,9 +505,28 @@ public class DbAccess
             paramTelephone = new MySqlParameter("@telephone", cuisinier.Telephone);
         }
 
+        MySqlParameter paramIdPlat;
+        if (cuisinier.IdPlat == null)
+        {
+            paramIdPlat = new MySqlParameter("@idPlat", DBNull.Value);
+        }
+        else
+        {
+            paramIdPlat = new MySqlParameter("@idPlat", cuisinier.IdPlat);
+        }
+
         var parametres = new MySqlParameter[]
         {
-        paramId, paramNom, paramPrenom, paramAdresse, paramEmail, paramTelephone
+        paramId,
+        paramNom,
+        paramPrenom,
+        paramNumRue,
+        paramRue,
+        paramVille,
+        paramEmail,
+        paramTelephone,
+        paramMetro,
+        paramIdPlat
         };
 
         return ExecuterRequeteMAJ(requete, parametres) > 0;
@@ -498,6 +544,82 @@ public class DbAccess
             return Convert.ToInt32(result) + 1;
         }
     }
+
+    public bool MAJCuisinier(Cuisinier cuisinier)
+    {
+        string requete = @"UPDATE Cuisinier
+                   SET nom = @nom,
+                       prenom = @prenom,
+                       numero_rue = @numRue,
+                       rue = @rue,
+                       ville = @ville,
+                       email = @email,
+                       telephone = @telephone,
+                       metro = @metro,
+                       id_plat = @idPlat
+                   WHERE id_cuisinier = @id";
+
+        MySqlParameter paramId = new MySqlParameter("@id", cuisinier.IdCuisinier);
+        MySqlParameter paramNom = new MySqlParameter("@nom", cuisinier.Nom);
+        MySqlParameter paramPrenom = new MySqlParameter("@prenom", cuisinier.Prenom);
+        MySqlParameter paramNumRue = new MySqlParameter("@numRue", cuisinier.NumRue);
+        MySqlParameter paramRue = new MySqlParameter("@rue", cuisinier.NomRue);
+        MySqlParameter paramVille = new MySqlParameter("@ville", cuisinier.Ville);
+        MySqlParameter paramMetro = new MySqlParameter("@metro", cuisinier.Metro);
+
+        MySqlParameter paramEmail;
+        if (cuisinier.Email == null)
+        {
+            paramEmail = new MySqlParameter("@email", DBNull.Value);
+        }
+        else
+        {
+            paramEmail = new MySqlParameter("@email", cuisinier.Email);
+        }
+
+        MySqlParameter paramTelephone;
+        if (cuisinier.Telephone == null)
+        {
+            paramTelephone = new MySqlParameter("@telephone", DBNull.Value);
+        }
+        else
+        {
+            paramTelephone = new MySqlParameter("@telephone", cuisinier.Telephone);
+        }
+
+        MySqlParameter paramIdPlat;
+        if (cuisinier.IdPlat == null)
+        {
+            paramIdPlat = new MySqlParameter("@idPlat", DBNull.Value);
+        }
+        else
+        {
+            paramIdPlat = new MySqlParameter("@idPlat", cuisinier.IdPlat);
+        }
+
+        MySqlParameter[] parametres = new MySqlParameter[]
+        {
+        paramId,
+        paramNom,
+        paramPrenom,
+        paramNumRue,
+        paramRue,
+        paramVille,
+        paramEmail,
+        paramTelephone,
+        paramMetro,
+        paramIdPlat
+        };
+
+        return ExecuterRequeteMAJ(requete, parametres) > 0;
+    }
+
+    public bool SupprimerCuisinier(int id)
+    {
+        return ExecuterRequeteMAJ("DELETE FROM Cuisinier WHERE id_cuisinier = @id",
+            new MySqlParameter("@id", id)) > 0;
+    }
+
     #endregion
 
     #region Plat
@@ -511,7 +633,7 @@ public class DbAccess
             Plat plat = new Plat();
             plat.IdPlat = Convert.ToInt32(row["id_plat"]);
             plat.NomPlat = row["nom_plat"].ToString();
-            plat.Type = row["type"].ToString();
+            plat.Type = row["_type"].ToString();
             plat.Stock = Convert.ToInt32(row["stock"]);
             plat.PrixParPersonne = Convert.ToDecimal(row["prix_par_personne"]);
 
@@ -587,7 +709,7 @@ public class DbAccess
         Plat plat = new Plat();
         plat.IdPlat = Convert.ToInt32(row["id_plat"]);
         plat.NomPlat = row["nom_plat"].ToString();
-        plat.Type = row["type"].ToString();
+        plat.Type = row["_type"].ToString();
         plat.Stock = Convert.ToInt32(row["stock"]);
         plat.PrixParPersonne = Convert.ToDecimal(row["prix_par_personne"]);
 
@@ -663,7 +785,7 @@ public class DbAccess
 
     public bool AjouterPlat(Plat plat)
     {
-        string requete = @"INSERT INTO Plat (id_plat, nom_plat, type, stock, origine, regime_alimentaire, ingredient, lien_photo, date_fabrication, prix_par_personne, date_peremption)
+        string requete = @"INSERT INTO Plat (id_plat, nom_plat, _type, stock, origine, regime_alimentaire, ingredient, lien_photo, date_fabrication, prix_par_personne, date_peremption)
                      VALUES (@id, @nom, @type, @stock, @origine, @regime, @ingredient, @lien, @dateFab, @prix, @datePer)";
 
         MySqlParameter paramId = new MySqlParameter("@id", plat.IdPlat);
@@ -745,7 +867,7 @@ public class DbAccess
     {
         string requete = @"UPDATE Plat
                        SET nom_plat = @nom,
-                           type = @type,
+                           _type = @type,
                            stock = @stock,
                            origine = @origine,
                            regime_alimentaire = @regime,
