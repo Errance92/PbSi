@@ -547,74 +547,131 @@ using System.Collections.Generic;
                 
             WaitForKey();
         }
-        
-        private void DisplayCommandeDetails()
+
+    private void DisplayCommandeDetails()
+    {
+        Console.Clear();
+        Console.WriteLine("=== DÉTAILS D'UNE COMMANDE ===\n");
+
+        Console.Write("ID de la commande: ");
+        int commandeId;
+        if (!int.TryParse(Console.ReadLine(), out commandeId))
         {
-            Console.Clear();
-            Console.WriteLine("=== DÉTAILS D'UNE COMMANDE ===\n");
-            
-            Console.Write("ID de la commande: ");
-            if (!int.TryParse(Console.ReadLine(), out int commandeId))
-            {
-                Console.WriteLine("ID commande invalide.");
-                WaitForKey();
-                return;
-            }
-            
-            Commande commande = db.GetCommandeById(commandeId);
-            
-            if (commande == null)
-            {
-                Console.WriteLine($"Aucune commande trouvée avec l'ID {commandeId}.");
-                WaitForKey();
-                return;
-            }
-            
-            Client client = db.ObtenirClientID(commande.IdClient);
-            
-            Console.WriteLine($"\nCommande #{commande.IdCommande}");
-            Console.WriteLine($"Date: {commande.DateCommande}");
-            Console.WriteLine($"Client: {client?.ToString() ?? "Inconnu"}");
-            Console.WriteLine($"Statut: {commande.StatuCommande}");
-            Console.WriteLine($"Montant: {commande.Montant}€");
-            Console.WriteLine($"Paiement: {commande.Paiement ?? "Non défini"}");
-            
-            Console.WriteLine("\nLignes de commande:");
-            foreach (var ligne in commande.Lignes)
-            {
-                Console.WriteLine($"- Ligne #{ligne.IdLigne}: {ligne.Quantite}x {ligne.Plats[0].NomPlat} = {ligne.PrixTotal}€");
-                Console.WriteLine($"  Livraison: {ligne.DateLivraison?.ToString("dd/MM/yyyy") ?? "Non définie"} - {ligne.Lieu ?? "Non défini"}");
-            }
-            
+            Console.WriteLine("ID commande invalide.");
             WaitForKey();
+            return;
         }
-        
-        private void DisplayAllCommandes()
+
+        Commande commande = db.GetCommandeById(commandeId);
+
+        if (commande == null)
         {
-            Console.Clear();
-            Console.WriteLine("=== LISTE DES COMMANDES ===\n");
-            
-            List<Commande> commandes = db.GetAllCommandes();
-            
-            if (commandes.Count == 0)
+            Console.WriteLine("Aucune commande trouvée avec l'ID " + commandeId + ".");
+            WaitForKey();
+            return;
+        }
+
+        Client client = db.ObtenirClientID(commande.IdClient);
+
+        Console.WriteLine("\nCommande #" + commande.IdCommande);
+        Console.WriteLine("Date: " + commande.DateCommande);
+
+        string clientString;
+        if (client == null)
+        {
+            clientString = "Inconnu";
+        }
+        else
+        {
+            clientString = client.ToString();
+        }
+        Console.WriteLine("Client: " + clientString);
+
+        Console.WriteLine("Statut: " + commande.StatuCommande);
+        Console.WriteLine("Montant: " + commande.Montant + "€");
+
+        string paiementStr;
+        if (commande.Paiement == null)
+        {
+            paiementStr = "Non défini";
+        }
+        else
+        {
+            paiementStr = commande.Paiement;
+        }
+        Console.WriteLine("Paiement: " + paiementStr);
+
+        Console.WriteLine("\nLignes de commande:");
+        foreach (var ligne in commande.Lignes)
+        {
+            // Ici, on suppose que chaque ligne comporte au moins un plat dans la liste.
+            string platNom = "";
+            if (ligne.Plats != null && ligne.Plats.Count > 0)
             {
-                Console.WriteLine("Aucune commande trouvée.");
+                platNom = ligne.Plats[0].NomPlat;
+            }
+            Console.WriteLine("- Ligne #" + ligne.IdLigne + ": " + ligne.Quantite + "x " + platNom + " = " + ligne.PrixTotal + "€");
+
+            string livraisonStr;
+            if (!ligne.DateLivraison.HasValue)
+            {
+                livraisonStr = "Non définie";
             }
             else
             {
-                foreach (Commande commande in commandes)
-                {
-                    Client client = db.ObtenirClientID(commande.IdClient);
-                    Console.WriteLine($"{commande} - Client: {client?.ToString() ?? "Inconnu"} - {commande.StatuCommande}");
-                }
-                Console.WriteLine($"\nTotal: {commandes.Count} commande(s)");
+                livraisonStr = ligne.DateLivraison.Value.ToString("dd/MM/yyyy");
             }
-            
-            WaitForKey();
+
+            string lieuStr;
+            if (ligne.Lieu == null)
+            {
+                lieuStr = "Non défini";
+            }
+            else
+            {
+                lieuStr = ligne.Lieu;
+            }
+            Console.WriteLine("  Livraison: " + livraisonStr + " - " + lieuStr);
         }
-        
-        // Utilitaire pour attendre la saisie de l'utilisateur
-        private void WaitForKey()
+
+        WaitForKey();
+    }
+
+    private void DisplayAllCommandes()
+    {
+        Console.Clear();
+        Console.WriteLine("=== LISTE DES COMMANDES ===\n");
+
+        List<Commande> commandes = db.GetAllCommandes();
+
+        if (commandes.Count == 0)
+        {
+            Console.WriteLine("Aucune commande trouvée.");
+        }
+        else
+        {
+            foreach (Commande commande in commandes)
+            {
+                Client client = db.ObtenirClientID(commande.IdClient);
+                string clientString;
+                if (client == null)
+                {
+                    clientString = "Inconnu";
+                }
+                else
+                {
+                    clientString = client.ToString();
+                }
+                Console.WriteLine(commande.ToString() + " - Client: " + clientString + " - " + commande.StatuCommande);
+            }
+            Console.WriteLine("\nTotal: " + commandes.Count + " commande(s)");
+        }
+
+        WaitForKey();
+    }
+
+    // Utilitaire pour attendre la saisie de l'utilisateur
+    private void WaitForKey()
         {
             Console.WriteLine("\nAppuyez sur une touche pour continuer...");
             Console.ReadKey();

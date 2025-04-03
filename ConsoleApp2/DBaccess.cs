@@ -398,163 +398,319 @@ public class DbAccess
     // ===== MÉTHODES POUR PLATS =====
 
     public List<Plat> GetAllPlats()
+    {
+        var plats = new List<Plat>();
+        var table = ExecuterRequete("SELECT * FROM Plat");
+
+        foreach (DataRow row in table.Rows)
         {
-            var plats = new List<Plat>();
-            var table = ExecuterRequete("SELECT * FROM Plat");
-            
-            foreach (DataRow row in table.Rows)
-            {
-                plats.Add(MapRowToPlat(row));
-            }
-            
-            return plats;
+            plats.Add(MapRowToPlat(row));
         }
-        
-        public Plat GetPlatById(int id)
+
+        return plats;
+    }
+
+    public Plat GetPlatById(int id)
+    {
+        var table = ExecuterRequete("SELECT * FROM Plat WHERE id_plat = @id",
+            new MySqlParameter("@id", id));
+
+        if (table.Rows.Count == 0)
+            return null;
+
+        return MapRowToPlat(table.Rows[0]);
+    }
+
+    private Plat MapRowToPlat(DataRow row)
+    {
+        Plat plat = new Plat();
+        plat.IdPlat = Convert.ToInt32(row["id_plat"]);
+        plat.NomPlat = row["nom_plat"].ToString();
+        plat.Type = row["type"].ToString();
+        plat.Stock = Convert.ToInt32(row["stock"]);
+
+        if (row["origine"] == DBNull.Value)
         {
-            var table = ExecuterRequete("SELECT * FROM Plat WHERE id_plat = @id", 
-                new MySqlParameter("@id", id));
-                
-            if (table.Rows.Count == 0)
-                return null;
-                
-            return MapRowToPlat(table.Rows[0]);
+            plat.Origine = null;
         }
-        
-        private Plat MapRowToPlat(DataRow row)
+        else
         {
-            return new Plat
-            {
-                IdPlat = Convert.ToInt32(row["id_plat"]),
-                NomPlat = row["nom_plat"].ToString(),
-                Type = row["type"].ToString(),
-                Stock = Convert.ToInt32(row["stock"]),
-                Origine = row["origine"] == DBNull.Value ? null : row["origine"].ToString(),
-                RegimeAlimentaire = row["regime_alimentaire"] == DBNull.Value ? null : row["regime_alimentaire"].ToString(),
-                Ingredient = row["ingredient"] == DBNull.Value ? null : row["ingredient"].ToString(),
-                LienPhoto = row["lien_photo"] == DBNull.Value ? null : row["lien_photo"].ToString(),
-                DateFabrication = row["date_fabrication"] == DBNull.Value ? DateTime.MinValue : Convert.ToDateTime(row["date_fabrication"]),
-                PrixParPersonne = Convert.ToDecimal(row["prix_par_personne"]),
-                DatePeremption = row["date_peremption"] == DBNull.Value ? DateTime.MinValue : Convert.ToDateTime(row["date_peremption"])
-            };
+            plat.Origine = row["origine"].ToString();
         }
+
+        if (row["regime_alimentaire"] == DBNull.Value)
+        {
+            plat.RegimeAlimentaire = null;
+        }
+        else
+        {
+            plat.RegimeAlimentaire = row["regime_alimentaire"].ToString();
+        }
+
+        if (row["ingredient"] == DBNull.Value)
+        {
+            plat.Ingredient = null;
+        }
+        else
+        {
+            plat.Ingredient = row["ingredient"].ToString();
+        }
+
+        if (row["lien_photo"] == DBNull.Value)
+        {
+            plat.LienPhoto = null;
+        }
+        else
+        {
+            plat.LienPhoto = row["lien_photo"].ToString();
+        }
+
+        if (row["date_fabrication"] == DBNull.Value)
+        {
+            plat.DateFabrication = DateTime.MinValue;
+        }
+        else
+        {
+            plat.DateFabrication = Convert.ToDateTime(row["date_fabrication"]);
+        }
+
+        plat.PrixParPersonne = Convert.ToDecimal(row["prix_par_personne"]);
+
+        if (row["date_peremption"] == DBNull.Value)
+        {
+            plat.DatePeremption = DateTime.MinValue;
+        }
+        else
+        {
+            plat.DatePeremption = Convert.ToDateTime(row["date_peremption"]);
+        }
+
+        return plat;
+    }
 
     public int GetNextPlatId()
     {
         object result = ExecuterRequeteScalaire("SELECT MAX(id_plat) FROM Plat");
-        return (result == DBNull.Value) ? 1 : Convert.ToInt32(result) + 1;
+        if (result == DBNull.Value)
+        {
+            return 1;
+        }
+        else
+        {
+            return Convert.ToInt32(result) + 1;
+        }
     }
 
     public bool AddPlat(Plat plat)
     {
-        string query = @"INSERT INTO Plat (id_plat, nom_plat, type, stock, origine, regime_alimentaire, ingredient, lien_photo, date_fabrication, prix_par_personne, date_peremption)
+        string requete = @"INSERT INTO Plat (id_plat, nom_plat, type, stock, origine, regime_alimentaire, ingredient, lien_photo, date_fabrication, prix_par_personne, date_peremption)
                      VALUES (@id, @nom, @type, @stock, @origine, @regime, @ingredient, @lien, @dateFab, @prix, @datePer)";
 
-        var parameters = new MySqlParameter[]
+        MySqlParameter paramId = new MySqlParameter("@id", plat.IdPlat);
+        MySqlParameter paramNom = new MySqlParameter("@nom", plat.NomPlat);
+        MySqlParameter paramType = new MySqlParameter("@type", plat.Type);
+        MySqlParameter paramStock = new MySqlParameter("@stock", plat.Stock);
+
+        MySqlParameter paramOrigine;
+        if (plat.Origine == null)
         {
-        new MySqlParameter("@id", plat.IdPlat),
-        new MySqlParameter("@nom", plat.NomPlat),
-        new MySqlParameter("@type", plat.Type),
-        new MySqlParameter("@stock", plat.Stock),
-        new MySqlParameter("@origine", plat.Origine ?? (object)DBNull.Value),
-        new MySqlParameter("@regime", plat.RegimeAlimentaire ?? (object)DBNull.Value),
-        new MySqlParameter("@ingredient", plat.Ingredient ?? (object)DBNull.Value),
-        new MySqlParameter("@lien", plat.LienPhoto ?? (object)DBNull.Value),
-        new MySqlParameter("@dateFab", plat.DateFabrication == DateTime.MinValue ? (object)DBNull.Value : plat.DateFabrication),
-        new MySqlParameter("@prix", plat.PrixParPersonne),
-        new MySqlParameter("@datePer", plat.DatePeremption == DateTime.MinValue ? (object)DBNull.Value : plat.DatePeremption)
+            paramOrigine = new MySqlParameter("@origine", DBNull.Value);
+        }
+        else
+        {
+            paramOrigine = new MySqlParameter("@origine", plat.Origine);
+        }
+
+        MySqlParameter paramRegime;
+        if (plat.RegimeAlimentaire == null)
+        {
+            paramRegime = new MySqlParameter("@regime", DBNull.Value);
+        }
+        else
+        {
+            paramRegime = new MySqlParameter("@regime", plat.RegimeAlimentaire);
+        }
+
+        MySqlParameter paramIngredient;
+        if (plat.Ingredient == null)
+        {
+            paramIngredient = new MySqlParameter("@ingredient", DBNull.Value);
+        }
+        else
+        {
+            paramIngredient = new MySqlParameter("@ingredient", plat.Ingredient);
+        }
+
+        MySqlParameter paramLien;
+        if (plat.LienPhoto == null)
+        {
+            paramLien = new MySqlParameter("@lien", DBNull.Value);
+        }
+        else
+        {
+            paramLien = new MySqlParameter("@lien", plat.LienPhoto);
+        }
+
+        MySqlParameter paramDateFab;
+        if (plat.DateFabrication == DateTime.MinValue)
+        {
+            paramDateFab = new MySqlParameter("@dateFab", DBNull.Value);
+        }
+        else
+        {
+            paramDateFab = new MySqlParameter("@dateFab", plat.DateFabrication);
+        }
+
+        MySqlParameter paramPrix = new MySqlParameter("@prix", plat.PrixParPersonne);
+
+        MySqlParameter paramDatePer;
+        if (plat.DatePeremption == DateTime.MinValue)
+        {
+            paramDatePer = new MySqlParameter("@datePer", DBNull.Value);
+        }
+        else
+        {
+            paramDatePer = new MySqlParameter("@datePer", plat.DatePeremption);
+        }
+
+        MySqlParameter[] parametres = new MySqlParameter[]
+        {
+        paramId, paramNom, paramType, paramStock, paramOrigine, paramRegime, paramIngredient, paramLien, paramDateFab, paramPrix, paramDatePer
         };
 
-        return ExecuterRequeteMAJ(query, parameters) > 0;
+        return ExecuterRequeteMAJ(requete, parametres) > 0;
     }
 
     // ===== MÉTHODES POUR COMMANDES =====
 
 
     public List<Commande> GetAllCommandes()
+    {
+        var commandes = new List<Commande>();
+        DataTable table = ExecuterRequete("SELECT * FROM Commande ORDER BY date_commande DESC");
+
+        foreach (DataRow row in table.Rows)
         {
-            var commandes = new List<Commande>();
-            var table = ExecuterRequete("SELECT * FROM Commande ORDER BY date_commande DESC");
-            
-            foreach (DataRow row in table.Rows)
+            int idCommande = Convert.ToInt32(row["id_commande"]);
+
+            string paiement;
+            if (row["paiement"] == DBNull.Value)
             {
-                int idCommande = Convert.ToInt32(row["id_commande"]);
-                commandes.Add(new Commande
-                {
-                    IdCommande = idCommande,
-                    StatuCommande = row["statu_commande"].ToString(),
-                    DateCommande = Convert.ToDateTime(row["date_commande"]),
-                    Montant = Convert.ToDecimal(row["montant"]),
-                    Paiement = row["paiement"] == DBNull.Value ? null : row["paiement"].ToString(),
-                    IdClient = Convert.ToInt32(row["id_client"]),
-                    Lignes = GetLignesForCommande(idCommande)
-                });
+                paiement = null;
             }
-            
-            return commandes;
-        }
-        
-        public Commande GetCommandeById(int id)
-        {
-            var table = ExecuterRequete("SELECT * FROM Commande WHERE id_commande = @id", 
-                new MySqlParameter("@id", id));
-                
-            if (table.Rows.Count == 0)
-                return null;
-                
-            var row = table.Rows[0];
-            return new Commande
+            else
             {
-                IdCommande = id,
-                StatuCommande = row["statu_commande"].ToString(),
-                DateCommande = Convert.ToDateTime(row["date_commande"]),
-                Montant = Convert.ToDecimal(row["montant"]),
-                Paiement = row["paiement"] == DBNull.Value ? null : row["paiement"].ToString(),
-                IdClient = Convert.ToInt32(row["id_client"]),
-                Lignes = GetLignesForCommande(id)
-            };
-        }
-        
-        public List<Ligne> GetLignesForCommande(int commandeId)
-        {
-            var lignes = new List<Ligne>();
-            var table = ExecuterRequete("SELECT * FROM Ligne WHERE id_commande = @id", 
-                new MySqlParameter("@id", commandeId));
-                
-            foreach (DataRow row in table.Rows)
-            {
-                int idLigne = Convert.ToInt32(row["id_ligne"]);
-                lignes.Add(new Ligne
-                {
-                    IdLigne = idLigne,
-                    Quantite = Convert.ToInt32(row["quantite"]),
-                    PrixTotal = Convert.ToDecimal(row["prix_total"]),
-                    DateLivraison = row["date_livraison"] == DBNull.Value ? null : (DateTime?)Convert.ToDateTime(row["date_livraison"]),
-                    Lieu = row["lieu"] == DBNull.Value ? null : row["lieu"].ToString(),
-                    IdCommande = commandeId,
-                    Plats = GetPlatsForLigne(idLigne)
-                });
+                paiement = row["paiement"].ToString();
             }
-            
-            return lignes;
+
+            Commande commande = new Commande();
+            commande.IdCommande = idCommande;
+            commande.StatuCommande = row["statu_commande"].ToString();
+            commande.DateCommande = Convert.ToDateTime(row["date_commande"]);
+            commande.Montant = Convert.ToDecimal(row["montant"]);
+            commande.Paiement = paiement;
+            commande.IdClient = Convert.ToInt32(row["id_client"]);
+            commande.Lignes = GetLignesForCommande(idCommande);
+
+            commandes.Add(commande);
         }
-        
-        public List<Plat> GetPlatsForLigne(int ligneId)
+
+        return commandes;
+    }
+
+    public Commande GetCommandeById(int id)
+    {
+        DataTable table = ExecuterRequete("SELECT * FROM Commande WHERE id_commande = @id",
+                                           new MySqlParameter("@id", id));
+
+        if (table.Rows.Count == 0)
+            return null;
+
+        DataRow row = table.Rows[0];
+        Commande commande = new Commande();
+        commande.IdCommande = id;
+        commande.StatuCommande = row["statu_commande"].ToString();
+        commande.DateCommande = Convert.ToDateTime(row["date_commande"]);
+        commande.Montant = Convert.ToDecimal(row["montant"]);
+
+        if (row["paiement"] == DBNull.Value)
         {
-            var plats = new List<Plat>();
-            var query = @"SELECT p.* FROM Plat p 
+            commande.Paiement = null;
+        }
+        else
+        {
+            commande.Paiement = row["paiement"].ToString();
+        }
+
+        commande.IdClient = Convert.ToInt32(row["id_client"]);
+        commande.Lignes = GetLignesForCommande(id);
+
+        return commande;
+    }
+
+    public List<Ligne> GetLignesForCommande(int commandeId)
+    {
+        var lignes = new List<Ligne>();
+        DataTable table = ExecuterRequete("SELECT * FROM Ligne WHERE id_commande = @id",
+            new MySqlParameter("@id", commandeId));
+
+        foreach (DataRow row in table.Rows)
+        {
+            int idLigne = Convert.ToInt32(row["id_ligne"]);
+            int quantite = Convert.ToInt32(row["quantite"]);
+            decimal prixTotal = Convert.ToDecimal(row["prix_total"]);
+
+            DateTime? dateLivraison;
+            if (row["date_livraison"] == DBNull.Value)
+            {
+                dateLivraison = null;
+            }
+            else
+            {
+                dateLivraison = Convert.ToDateTime(row["date_livraison"]);
+            }
+
+            string lieu;
+            if (row["lieu"] == DBNull.Value)
+            {
+                lieu = null;
+            }
+            else
+            {
+                lieu = row["lieu"].ToString();
+            }
+
+            Ligne ligne = new Ligne();
+            ligne.IdLigne = idLigne;
+            ligne.Quantite = quantite;
+            ligne.PrixTotal = prixTotal;
+            ligne.DateLivraison = dateLivraison;
+            ligne.Lieu = lieu;
+            ligne.IdCommande = commandeId;
+            ligne.Plats = GetPlatsForLigne(idLigne);
+
+            lignes.Add(ligne);
+        }
+
+        return lignes;
+    }
+
+    public List<Plat> GetPlatsForLigne(int ligneId)
+    {
+        var plats = new List<Plat>();
+        var query = @"SELECT p.* FROM Plat p 
                         JOIN Ligne_Plat lp ON p.id_plat = lp.id_plat 
                         WHERE lp.id_ligne = @id";
-                        
-            var table = ExecuterRequete(query, new MySqlParameter("@id", ligneId));
-            
-            foreach (DataRow row in table.Rows)
-            {
-                plats.Add(MapRowToPlat(row));
-            }
-            
-            return plats;
+
+        var table = ExecuterRequete(query, new MySqlParameter("@id", ligneId));
+
+        foreach (DataRow row in table.Rows)
+        {
+            plats.Add(MapRowToPlat(row));
         }
+
+        return plats;
+    }
 
     public int AddCommande(Commande commande)
     {
@@ -662,14 +818,28 @@ public class DbAccess
     }
 
     public int GetNextCommandeId()
+    {
+        object result = ExecuterRequeteScalaire("SELECT MAX(id_commande) FROM Commande");
+        if (result == DBNull.Value)
         {
-            object result = ExecuterRequeteScalaire("SELECT MAX(id_commande) FROM Commande");
-            return (result == DBNull.Value) ? 1 : Convert.ToInt32(result) + 1;
+            return 1;
         }
-        
-        public int GetNextLigneId()
+        else
         {
-            object result = ExecuterRequeteScalaire("SELECT MAX(id_ligne) FROM Ligne");
-            return (result == DBNull.Value) ? 1 : Convert.ToInt32(result) + 1;
+            return Convert.ToInt32(result) + 1;
         }
     }
+
+    public int GetNextLigneId()
+    {
+        object result = ExecuterRequeteScalaire("SELECT MAX(id_ligne) FROM Ligne");
+        if (result == DBNull.Value)
+        {
+            return 1;
+        }
+        else
+        {
+            return Convert.ToInt32(result) + 1;
+        }
+    }
+}
