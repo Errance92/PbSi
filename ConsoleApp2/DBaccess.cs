@@ -4,98 +4,117 @@ using System.Configuration;
 using System.Data;
 using MySql.Data.MySqlClient;
 
-namespace LivinParis
+public class DbAccess
 {
-    public class DbAccess
+    // Chaîne de connexion codée en dur dans la classe
+    private readonly string _connectionString;
+    private MySqlConnection _connection;
+    public DbAccess()
     {
-        private readonly string _connectionString;
-        private MySqlConnection _connection;
-        
-        public DbAccess()
-        {
-            _connectionString = ConfigurationManager.ConnectionStrings["LivinParisConnection"].ConnectionString;
-        }
-        
-        private MySqlConnection GetConnection()
+        // Chaîne de connexion codée directement dans la classe - REMPLACEZ PAR VOS VALEURS
+        _connectionString = "Server=localhost;Port=3306;Database=Liv'in Paris;Uid=root;Pwd=root;CharSet=utf8;";
+
+        // Pour le débogage, affichez un message
+        Console.WriteLine("Connexion à la base de données initialisée...");
+    }
+
+    private MySqlConnection GetConnection()
+    {
+        try
         {
             if (_connection == null)
+            {
                 _connection = new MySqlConnection(_connectionString);
-                
+                Console.WriteLine("Connexion créée.");
+            }
+
             if (_connection.State != ConnectionState.Open)
+            {
                 _connection.Open();
-                
+                Console.WriteLine("Connexion ouverte.");
+            }
+
             return _connection;
         }
-        
-        public void CloseConnection()
+        catch (MySqlException ex)
         {
-            if (_connection != null && _connection.State == ConnectionState.Open)
-                _connection.Close();
+            Console.WriteLine($"Erreur lors de la connexion à la base de données: {ex.Message}");
+            throw;
         }
-        
-        // Méthodes génériques d'accès aux données
-        public DataTable ExecuteQuery(string query, params MySqlParameter[] parameters)
+    }
+
+    public void CloseConnection()
+    {
+        if (_connection != null && _connection.State == ConnectionState.Open)
         {
-            using (var command = new MySqlCommand(query, GetConnection()))
+            _connection.Close();
+            Console.WriteLine("Connexion fermée.");
+        }
+    }
+
+    // Méthodes génériques d'accès aux données
+    public DataTable ExecuteQuery(string query, params MySqlParameter[] parameters)
+    {
+        using (var command = new MySqlCommand(query, GetConnection()))
+        {
+            if (parameters != null)
+                command.Parameters.AddRange(parameters);
+
+            var dataTable = new DataTable();
+            using (var adapter = new MySqlDataAdapter(command))
             {
-                if (parameters != null)
-                    command.Parameters.AddRange(parameters);
-                    
-                var dataTable = new DataTable();
-                using (var adapter = new MySqlDataAdapter(command))
-                {
-                    adapter.Fill(dataTable);
-                }
-                return dataTable;
+                adapter.Fill(dataTable);
             }
+            return dataTable;
         }
-        
-        public int ExecuteNonQuery(string query, params MySqlParameter[] parameters)
+    }
+
+    public int ExecuteNonQuery(string query, params MySqlParameter[] parameters)
+    {
+        using (var command = new MySqlCommand(query, GetConnection()))
         {
-            using (var command = new MySqlCommand(query, GetConnection()))
-            {
-                if (parameters != null)
-                    command.Parameters.AddRange(parameters);
-                    
-                return command.ExecuteNonQuery();
-            }
+            if (parameters != null)
+                command.Parameters.AddRange(parameters);
+
+            return command.ExecuteNonQuery();
         }
-        
-        public object ExecuteScalar(string query, params MySqlParameter[] parameters)
+    }
+
+    public object ExecuteScalar(string query, params MySqlParameter[] parameters)
+    {
+        using (var command = new MySqlCommand(query, GetConnection()))
         {
-            using (var command = new MySqlCommand(query, GetConnection()))
-            {
-                if (parameters != null)
-                    command.Parameters.AddRange(parameters);
-                    
-                return command.ExecuteScalar();
-            }
+            if (parameters != null)
+                command.Parameters.AddRange(parameters);
+
+            return command.ExecuteScalar();
         }
-        
-        // ===== MÉTHODES POUR CLIENTS =====
-        
-        public List<Client> GetAllClients()
+    }
+
+    // ===== MÉTHODES POUR CLIENTS =====
+
+    public List<Client> GetAllClients()
+    {
+        var clients = new List<Client>();
+        var table = ExecuteQuery("SELECT * FROM Client");
+
+        foreach (DataRow row in table.Rows)
         {
-            var clients = new List<Client>();
-            var table = ExecuteQuery("SELECT * FROM Client");
-            
-            foreach (DataRow row in table.Rows)
+            clients.Add(new Client
             {
-                clients.Add(new Client
-                {
-                    IdClient = Convert.ToInt32(row["id_client"]),
-                    Nom = row["nom"].ToString(),
-                    Prenom = row["prenom"].ToString(),
-                    Adresse = row["addresse"].ToString(),
-                    Email = row["email"] == DBNull.Value ? null : row["email"].ToString(),
-                    Telephone = row["telephone"] == DBNull.Value ? null : row["telephone"].ToString()
-                });
-            }
-            
-            return clients;
+                IdClient = Convert.ToInt32(row["id_client"]),
+                Nom = row["nom"].ToString(),
+                Prenom = row["prenom"].ToString(),
+                Adresse = row["addresse"].ToString(),
+                Email = row["email"] == DBNull.Value ? null : row["email"].ToString(),
+                Telephone = row["telephone"] == DBNull.Value ? null : row["telephone"].ToString()
+            });
         }
-        
-        public Client GetClientById(int id)
+
+        return clients;
+    }
+
+    public Client GetClientById(int id)
         {
             var table = ExecuteQuery("SELECT * FROM Client WHERE id_client = @id", 
                 new MySqlParameter("@id", id));
@@ -445,4 +464,3 @@ namespace LivinParis
             return (result == DBNull.Value) ? 1 : Convert.ToInt32(result) + 1;
         }
     }
-}

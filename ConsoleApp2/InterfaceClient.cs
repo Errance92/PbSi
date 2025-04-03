@@ -1,8 +1,5 @@
 using System;
 using System.Collections.Generic;
-
-namespace LivinParis
-{
     public class UserInterface
     {
         private readonly DbAccess _db;
@@ -28,7 +25,6 @@ namespace LivinParis
                     case "1": ClientModule(); break;
                     case "2": CuisinierModule(); break;
                     case "3": CommandeModule(); break;
-                    case "4": StatistiquesModule(); break;
                     case "0": exit = true; break;
                     default: 
                         Console.WriteLine("Option invalide.");
@@ -48,7 +44,6 @@ namespace LivinParis
             Console.WriteLine("1. Gestion des Clients");
             Console.WriteLine("2. Gestion des Cuisiniers");
             Console.WriteLine("3. Gestion des Commandes");
-            Console.WriteLine("4. Statistiques");
             Console.WriteLine("0. Quitter");
             Console.Write("\nVotre choix: ");
         }
@@ -227,9 +222,10 @@ namespace LivinParis
             {
                 foreach (Client client in clients)
                 {
-                    Console.WriteLine($"{client} - {client.Adresse} - {client.Email} - {client.Telephone}");
+                    Console.WriteLine(client.ToString());
                 }
-                Console.WriteLine($"\nTotal: {clients.Count} client(s)");
+
+            Console.WriteLine($"\nTotal: {clients.Count} client(s)");
             }
             
             WaitForKey();
@@ -315,7 +311,7 @@ namespace LivinParis
             {
                 foreach (Cuisinier cuisinier in cuisiniers)
                 {
-                    Console.WriteLine($"{cuisinier} - {cuisinier.Adresse} - {cuisinier.Email} - {cuisinier.Telephone}");
+                    Console.WriteLine(cuisinier.ToString());
                 }
                 Console.WriteLine($"\nTotal: {cuisiniers.Count} cuisinier(s)");
             }
@@ -541,19 +537,6 @@ namespace LivinParis
             WaitForKey();
         }
         
-        // ===== MODULE STATISTIQUES =====
-        
-        private void StatistiquesModule()
-        {
-            Console.Clear();
-            Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.WriteLine("=== MODULE STATISTIQUES ===");
-            Console.ResetColor();
-            Console.WriteLine("Ce module sera implémenté dans une version future.");
-            
-            WaitForKey();
-        }
-        
         // Utilitaire pour attendre la saisie de l'utilisateur
         private void WaitForKey()
         {
@@ -561,4 +544,3 @@ namespace LivinParis
             Console.ReadKey();
         }
     }
-}

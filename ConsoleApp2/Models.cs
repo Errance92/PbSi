@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 
-namespace LivinParis
-{
     public class Client
     {
         public int IdClient;
@@ -12,9 +10,9 @@ namespace LivinParis
         public string Email;
         public string Telephone;
         
-        public string ToString()
+        public  string ToString()
         {
-            return "[" + IdClient + "] " + Prenom + " " + Nom;
+            return "[" + IdClient + "] - " + Nom + " - " + Prenom+" - "+ Adresse+ " - "+ Email+" - " +Telephone;
         }
     }
 
@@ -27,9 +25,9 @@ namespace LivinParis
         public string Email;
         public string Telephone;
         
-        public string ToString()
+        public  string ToString()
         {
-            return "[" + IdCuisinier + "] " + Prenom + " " + Nom;
+            return "[" + IdCuisinier + "] - " + Nom + " - " + Prenom + " - "+Adresse + " - " + Email + " - " + Telephone;
         }
     }
 
@@ -87,4 +85,3 @@ namespace LivinParis
         public int DureeMin;
         public string Chemin;
     }
-}
