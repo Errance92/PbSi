@@ -73,8 +73,8 @@ using System.Collections.Generic;
                 {
                     case "1": AjouterClient(); break;
                     case "2": ModifierClient(); break;
-                    case "3": DeleteClient(); break;
-                    case "4": DisplayAllClients(); break;
+                    case "3": SupprimerClient(); break;
+                    case "4": AfficherToutClients(); break;
                     case "0": exit = true; break;
                     default: 
                         Console.WriteLine("Option invalide.");
@@ -207,7 +207,7 @@ using System.Collections.Generic;
             WaitForKey();
         }
         
-        private void DisplayAllClients()
+        private void AfficherToutClients()
         {
             Console.Clear();
             Console.WriteLine("=== LISTE DES CLIENTS ===\n");
@@ -252,8 +252,8 @@ using System.Collections.Generic;
                 
                 switch (choice)
                 {
-                    case "1": AddCuisinier(); break;
-                    case "2": DisplayAllCuisiniers(); break;
+                    case "1": AjouterCuisinier(); break;
+                    case "2": AfficherToutCuisiniers(); break;
                     case "0": exit = true; break;
                     default: 
                         Console.WriteLine("Option invalide.");
@@ -263,7 +263,7 @@ using System.Collections.Generic;
             }
         }
         
-        private void AddCuisinier()
+        private void AjouterCuisinier()
         {
             Console.Clear();
             Console.WriteLine("=== AJOUTER UN CUISINIER ===\n");
@@ -296,7 +296,7 @@ using System.Collections.Generic;
             WaitForKey();
         }
         
-        private void DisplayAllCuisiniers()
+        private void AfficherToutCuisiniers()
         {
             Console.Clear();
             Console.WriteLine("=== LISTE DES CUISINIERS ===\n");
@@ -342,10 +342,10 @@ using System.Collections.Generic;
                 
                 switch (choice)
                 {
-                    case "1": CreateCommande(); break;
-                    case "2": DisplayCommandeDetails(); break;
-                    case "3": DisplayAllCommandes(); break;
-                    case "4": AddPlat(); break;
+                    case "1": CreeCommande(); break;
+                    case "2": AfficherCommande(); break;
+                    case "3": AfficherToutCommande(); break;
+                    case "4": AjouterPlat(); break;
                     case "0": exit = true; break;
                     default: 
                         Console.WriteLine("Option invalide.");
@@ -355,7 +355,7 @@ using System.Collections.Generic;
             }
         }
 
-    private void AddPlat()
+    private void AjouterPlat()
     {
         Console.Clear();
         Console.WriteLine("=== AJOUTER UN PLAT ===\n");
@@ -429,7 +429,7 @@ using System.Collections.Generic;
         WaitForKey();
     }
 
-    private void CreateCommande()
+    private void CreeCommande()
         {
             Console.Clear();
             Console.WriteLine("=== CRÉER UNE COMMANDE ===\n");
@@ -548,7 +548,7 @@ using System.Collections.Generic;
             WaitForKey();
         }
 
-    private void DisplayCommandeDetails()
+    private void AfficherCommande()
     {
         Console.Clear();
         Console.WriteLine("=== DÉTAILS D'UNE COMMANDE ===\n");
@@ -637,7 +637,7 @@ using System.Collections.Generic;
         WaitForKey();
     }
 
-    private void DisplayAllCommandes()
+    private void AfficherToutCommande()
     {
         Console.Clear();
         Console.WriteLine("=== LISTE DES COMMANDES ===\n");
