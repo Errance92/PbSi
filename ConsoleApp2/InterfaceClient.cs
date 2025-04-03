@@ -26,7 +26,8 @@ public class UserInterface
                 {
                     case "1": ClientModule(); break;
                     case "2": CuisinierModule(); break;
-                    case "3": CommandeModule(); break;
+                    case "3": PlatModule(); break;
+                    case "4": CommandeModule(); break;
                     case "0": exit = true; break;
                     default: 
                         Console.WriteLine("Option invalide.");
@@ -47,6 +48,7 @@ public class UserInterface
             Console.ResetColor();
             Console.WriteLine("1. Gestion des Clients");
             Console.WriteLine("2. Gestion des Cuisiniers");
+            Console.WriteLine("3. Gestion des Plats");
             Console.WriteLine("3. Gestion des Commandes");
             Console.WriteLine("0. Quitter");
             Console.Write("\nVotre choix: ");
@@ -485,43 +487,43 @@ public class UserInterface
 
     #endregion
 
-    #region Commande
+    #region Plat
 
-    private void CommandeModule()
+    private void PlatModule()
+    {
+        bool exit = false;
+
+        while (!exit)
         {
-            bool exit = false;
-            
-            while (!exit)
+            Console.Clear();
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("=== MODULE PLAT ===");
+            Console.ResetColor();
+            Console.WriteLine("1. Ajouter un plat");
+            Console.WriteLine("2. Modifier un plat");
+            Console.WriteLine("3. Supprimer un plat");
+            Console.WriteLine("4. Afficher les details d'un plat");
+            Console.WriteLine("5. Afficher tous les plat");
+            Console.WriteLine("0. Retour au menu principal");
+            Console.Write("\nVotre choix: ");
+
+            string choix = Console.ReadLine();
+
+            switch (choix)
             {
-                Console.Clear();
-                Console.ForegroundColor = ConsoleColor.Magenta;
-                Console.WriteLine("=== MODULE COMMANDE ===");
-                Console.ResetColor();
-                Console.WriteLine("1. Créer une commande");
-                Console.WriteLine("2. Afficher les détails d'une commande");
-                Console.WriteLine("3. Afficher toutes les commandes");
-                Console.WriteLine("4. Ajouter un plat");
-                Console.WriteLine("5. Afficher les plats disponibles");
-                Console.WriteLine("0. Retour au menu principal");
-                Console.Write("\nVotre choix: ");
-                
-                string choice = Console.ReadLine();
-                
-                switch (choice)
-                {
-                    case "1": CreeCommande(); break;
-                    case "2": AfficherCommande(); break;
-                    case "3": AfficherToutCommande(); break;
-                    case "4": AjouterPlat(); break;
-                    case "5": AfficherPlat(); break;
-                    case "0": exit = true; break;
-                    default: 
-                        Console.WriteLine("Option invalide.");
-                        WaitForKey();
-                        break;
-                }
+                case "1": AjouterPlat(); break;
+                case "2": ModifierPlat(); break;
+                case "3": SupprimerPlat(); break;
+                case "4": AfficherPlat(); break;
+                case "5": AfficherToutPlat(); break;
+                case "0": exit = true; break;
+                default:
+                    Console.WriteLine("Option invalide.");
+                    WaitForKey();
+                    break;
             }
-        }
+        } 
+    }
 
     private void AjouterPlat()
     {
@@ -530,21 +532,29 @@ public class UserInterface
 
         Plat plat = new Plat();
 
-        // On suppose que vous avez créé une méthode GetNextPlatId() dans DbAccess
         plat.IdPlat = db.RecupererPlatSuivant();
 
         Console.Write("Nom du plat: ");
         plat.NomPlat = Console.ReadLine();
 
-        Console.Write("Type du plat: ");
-        plat.Type = Console.ReadLine();
+        Console.Write("Type (petit dej / dej / diner) : ");
+        string type = Console.ReadLine().ToLower();
 
-        Console.Write("Stock: ");
-        if (!int.TryParse(Console.ReadLine(), out int stock))
+        while (type != "petit dej" && type != "dej" && type != "diner")
         {
-            Console.WriteLine("Stock invalide.");
-            WaitForKey();
-            return;
+            Console.WriteLine("Type invalide. Veuillez saisir : petit dej, dej ou diner.");
+            Console.Write("Type : ");
+            type = Console.ReadLine().ToLower();
+        }
+
+        plat.Type = type;
+
+        int stock;
+        Console.Write("Stock (quantité) : ");
+        while (!int.TryParse(Console.ReadLine(), out stock) || stock < 0)
+        {
+            Console.WriteLine("Entrée invalide. Veuillez entrer un entier positif.");
+            Console.Write("Stock : ");
         }
         plat.Stock = stock;
 
@@ -560,30 +570,60 @@ public class UserInterface
         Console.Write("Lien photo (optionnel): ");
         plat.LienPhoto = Console.ReadLine();
 
-        Console.Write("Date de fabrication (JJ/MM/AAAA): ");
-        if (!DateTime.TryParse(Console.ReadLine(), out DateTime dateFab))
+        DateTime dateFab;
+        while (true)
         {
-            dateFab = DateTime.MinValue;
+            Console.Write("Date de fabrication (jj/mm/aaaa) : ");
+            string saisie = Console.ReadLine();
+            if (string.IsNullOrWhiteSpace(saisie))
+            {
+                dateFab = DateTime.MinValue;
+                break;
+            }
+            if (DateTime.TryParse(saisie, out dateFab)) break;
+
+            Console.WriteLine("Format de date invalide. Réessayez.");
         }
         plat.DateFabrication = dateFab;
 
-        Console.Write("Prix par personne: ");
-        if (!decimal.TryParse(Console.ReadLine(), out decimal prix))
+        DateTime datePer;
+        while (true)
         {
-            Console.WriteLine("Prix invalide.");
-            WaitForKey();
-            return;
-        }
-        plat.PrixParPersonne = prix;
-
-        Console.Write("Date de péremption (JJ/MM/AAAA): ");
-        if (!DateTime.TryParse(Console.ReadLine(), out DateTime datePer))
-        {
-            datePer = DateTime.MinValue;
+            Console.Write("Date de péremption (jj/mm/aaaa) : ");
+            string saisie = Console.ReadLine();
+            if (string.IsNullOrWhiteSpace(saisie))
+            {
+                datePer = DateTime.MinValue;
+                break;
+            }
+            if (DateTime.TryParse(saisie, out datePer))
+            {
+                if (dateFab != DateTime.MinValue && datePer < dateFab)
+                {
+                    Console.WriteLine("Erreur : la date de péremption ne peut pas être avant la fabrication.");
+                }
+                else
+                {
+                    break;
+                }
+            }
+            else
+            {
+                Console.WriteLine("Date invalide. Réessayez.");
+            }
         }
         plat.DatePeremption = datePer;
 
-        // On ajoute le plat dans la base de données
+        decimal prix;
+        Console.Write("Prix par personne (€) : ");
+        while (!decimal.TryParse(Console.ReadLine(), out prix) || prix < 0)
+        {
+            Console.WriteLine("Prix invalide, il doit être un nombre positif.");
+            Console.Write("Prix par personne (€) : ");
+        }
+
+        plat.PrixParPersonne = prix;
+
         bool success = db.AjouterPlat(plat);
         if (success)
         {
@@ -596,6 +636,308 @@ public class UserInterface
 
         WaitForKey();
     }
+
+    private void AfficherToutPlat()
+    {
+        Console.Clear();
+        Console.WriteLine("=== LISTE DES PLATS ===\n");
+        List<Plat> plats = db.RecupererToutPlat();
+
+        if (plats.Count == 0)
+        {
+            Console.WriteLine("Aucun plat trouvé.");
+        }
+        else
+        {
+            foreach (Plat plat in plats)
+            {
+                Console.WriteLine(plat.ToString());
+            }
+            Console.WriteLine("\nTotal: " + plats.Count + " commande(s)");
+        }
+
+        WaitForKey();
+    }
+
+    private void AfficherPlat()
+    {
+        Console.Clear();
+        Console.WriteLine("=== AFFICHER UN PLAT ===\n");
+
+        Console.Write("ID du plat : ");
+        int id;
+        while (!int.TryParse(Console.ReadLine(), out id))
+        {
+            Console.WriteLine("ID invalide. Veuillez réessayer : ");
+        }
+
+        Plat plat = db.RecuperePlatID(id);
+        if (plat == null)
+        {
+            Console.WriteLine("Aucun plat trouvé avec l'ID " + id);
+            WaitForKey();
+            return;
+        }
+
+        Console.WriteLine("\n--- Détails du plat ---");
+        Console.WriteLine("ID : " + plat.IdPlat);
+        Console.WriteLine("Nom : " + plat.NomPlat);
+        Console.WriteLine("Type : " + plat.Type);
+        Console.WriteLine("Stock : " + plat.Stock);
+
+        if (plat.Origine == null)
+        {
+            Console.WriteLine("Origine : Non défini");
+        }
+        else
+        {
+            Console.WriteLine("Origine : " + plat.Origine);
+        }
+
+        if (plat.RegimeAlimentaire == null)
+        {
+            Console.WriteLine("Régime alimentaire : Non défini");
+        }
+        else
+        {
+            Console.WriteLine("Régime alimentaire : " + plat.RegimeAlimentaire);
+        }
+
+        if (plat.Ingredient == null)
+        {
+            Console.WriteLine("Ingrédients : Non défini");
+        }
+        else
+        {
+            Console.WriteLine("Ingrédients : " + plat.Ingredient);
+        }
+
+        if (plat.LienPhoto == null)
+        {
+            Console.WriteLine("Lien photo : Non défini");
+        }
+        else
+        {
+            Console.WriteLine("Lien photo : " + plat.LienPhoto);
+        }
+
+        if (plat.DateFabrication == DateTime.MinValue)
+        {
+            Console.WriteLine("Date de fabrication : Non définie");
+        }
+        else
+        {
+            Console.WriteLine("Date de fabrication : " + plat.DateFabrication.ToShortDateString());
+        }
+
+        Console.WriteLine("Prix par personne : " + plat.PrixParPersonne + " €");
+
+        if (plat.DatePeremption == DateTime.MinValue)
+        {
+            Console.WriteLine("Date de péremption : Non définie");
+        }
+        else
+        {
+            Console.WriteLine("Date de péremption : " + plat.DatePeremption.ToShortDateString());
+        }
+
+        WaitForKey();
+    }
+
+    private void ModifierPlat()
+    {
+        Console.Clear();
+        Console.WriteLine("=== MODIFIER UN PLAT ===\n");
+
+        Console.Write("ID du plat à modifier : ");
+        int id;
+        while (!int.TryParse(Console.ReadLine(), out id))
+        {
+            Console.WriteLine("ID invalide. Réessayez : ");
+        }
+
+        Plat plat = db.RecuperePlatID(id);
+        if (plat == null)
+        {
+            Console.WriteLine("Aucun plat trouvé avec l'ID " + id);
+            WaitForKey();
+            return;
+        }
+
+        Console.WriteLine("Modification de : " + plat.ToString() + "\n");
+
+        Console.Write("Nom [" + plat.NomPlat + "] : ");
+        string nom = Console.ReadLine();
+        if (!string.IsNullOrWhiteSpace(nom))
+            plat.NomPlat = nom;
+
+        Console.Write("Type [" + plat.Type + "] (petit dej / dej / diner) : ");
+        string type = Console.ReadLine().ToLower();
+        while (type != "petit dej" && type != "dej" && type != "diner" && type != "")
+        {
+            Console.WriteLine("Type invalide. Entrez 'petit dej', 'dej' ou 'diner' : ");
+            type = Console.ReadLine().ToLower();
+        }
+        if (!string.IsNullOrWhiteSpace(type))
+            plat.Type = type;
+
+        Console.Write("Stock [" + plat.Stock + "] : ");
+        string saisieStock = Console.ReadLine();
+        if (!string.IsNullOrWhiteSpace(saisieStock))
+        {
+            int stock;
+            while (!int.TryParse(saisieStock, out stock) || stock < 0)
+            {
+                Console.WriteLine("Stock invalide. Veuillez entrer un entier positif : ");
+                saisieStock = Console.ReadLine();
+            }
+            plat.Stock = stock;
+        }
+
+        Console.Write("Origine [" + (plat.Origine ?? "non définie") + "] : ");
+        string origine = Console.ReadLine();
+        if (!string.IsNullOrWhiteSpace(origine))
+            plat.Origine = origine;
+
+        Console.Write("Régime alimentaire [" + (plat.RegimeAlimentaire ?? "non défini") + "] : ");
+        string regime = Console.ReadLine();
+        if (!string.IsNullOrWhiteSpace(regime))
+            plat.RegimeAlimentaire = regime;
+
+        Console.Write("Ingrédients [" + (plat.Ingredient ?? "non défini") + "] : ");
+        string ingredient = Console.ReadLine();
+        if (!string.IsNullOrWhiteSpace(ingredient))
+            plat.Ingredient = ingredient;
+
+        Console.Write("Lien photo [" + (plat.LienPhoto ?? "non défini") + "] : ");
+        string lien = Console.ReadLine();
+        if (!string.IsNullOrWhiteSpace(lien))
+            plat.LienPhoto = lien;
+
+        Console.Write("Date de fabrication [" + plat.DateFabrication.ToShortDateString() + "] (format JJ/MM/AAAA) : ");
+        string saisieDateFab = Console.ReadLine();
+        if (!string.IsNullOrWhiteSpace(saisieDateFab))
+        {
+            DateTime dateFab;
+            while (!DateTime.TryParse(saisieDateFab, out dateFab))
+            {
+                Console.WriteLine("Date invalide. Réessayez (JJ/MM/AAAA) : ");
+                saisieDateFab = Console.ReadLine();
+            }
+            plat.DateFabrication = dateFab;
+        }
+
+        Console.Write("Prix par personne [" + plat.PrixParPersonne + " €] : ");
+        string saisiePrix = Console.ReadLine();
+        if (!string.IsNullOrWhiteSpace(saisiePrix))
+        {
+            decimal prix;
+            while (!decimal.TryParse(saisiePrix, out prix) || prix < 0)
+            {
+                Console.WriteLine("Prix invalide. Veuillez entrer un prix positif : ");
+                saisiePrix = Console.ReadLine();
+            }
+            plat.PrixParPersonne = prix;
+        }
+
+        Console.Write("Date de péremption [" + plat.DatePeremption.ToShortDateString() + "] (format JJ/MM/AAAA) : ");
+        string saisieDatePer = Console.ReadLine();
+        if (!string.IsNullOrWhiteSpace(saisieDatePer))
+        {
+            DateTime datePer;
+            while (!DateTime.TryParse(saisieDatePer, out datePer) || datePer < plat.DateFabrication)
+            {
+                Console.WriteLine("Date invalide ou antérieure à la date de fabrication. Réessayez : ");
+                saisieDatePer = Console.ReadLine();
+            }
+            plat.DatePeremption = datePer;
+        }
+
+        if (db.MAJPlat(plat))
+            Console.WriteLine("\nPlat modifié avec succès !");
+        else
+            Console.WriteLine("\nErreur lors de la modification du plat.");
+
+        WaitForKey();
+    }
+
+    private void SupprimerPlat()
+    {
+        Console.Clear();
+        Console.WriteLine("=== SUPPRIMER UN PLAT ===\n");
+
+        Console.Write("ID du plat à supprimer : ");
+        int id;
+        while (!int.TryParse(Console.ReadLine(), out id))
+        {
+            Console.WriteLine("ID invalide. Réessayez : ");
+        }
+
+        Plat plat = db.RecuperePlatID(id);
+        if (plat == null)
+        {
+            Console.WriteLine("Aucun plat trouvé avec l'ID " + id);
+            WaitForKey();
+            return;
+        }
+
+        Console.WriteLine("Êtes-vous sûr de vouloir supprimer : " + plat.ToString() + " ? (O/N)");
+        string rep = Console.ReadLine();
+        if (rep.ToUpper() != "O")
+        {
+            Console.WriteLine("Suppression annulée.");
+            WaitForKey();
+            return;
+        }
+
+        if (db.SupprimerPlat(id))
+        {
+            Console.WriteLine("Plat supprimé avec succès !");
+        }
+        else
+        {
+            Console.WriteLine("Erreur lors de la suppression du plat.");
+        }
+
+        WaitForKey();
+    }
+
+    #endregion
+
+    #region Commande
+
+    private void CommandeModule()
+        {
+            bool exit = false;
+            
+            while (!exit)
+            {
+                Console.Clear();
+                Console.ForegroundColor = ConsoleColor.Magenta;
+                Console.WriteLine("=== MODULE COMMANDE ===");
+                Console.ResetColor();
+                Console.WriteLine("1. Créer une commande");
+                Console.WriteLine("2. Afficher les détails d'une commande");
+                Console.WriteLine("3. Afficher toutes les commandes");
+                Console.WriteLine("0. Retour au menu principal");
+                Console.Write("\nVotre choix: ");
+                
+                string choice = Console.ReadLine();
+                
+                switch (choice)
+                {
+                    case "1": CreeCommande(); break;
+                    case "2": AfficherCommande(); break;
+                    case "3": AfficherToutCommande(); break;
+                    case "0": exit = true; break;
+                    default: 
+                        Console.WriteLine("Option invalide.");
+                        WaitForKey();
+                        break;
+                }
+            }
+        }
+
 
     private void CreeCommande()
         {
@@ -840,27 +1182,6 @@ public class UserInterface
         WaitForKey();
     }
 
-    private void AfficherPlat()
-    {
-        Console.Clear();
-        Console.WriteLine("=== LISTE DES PLATS ===\n");
-        List<Plat> plats = db.RecupererToutPlat();
-
-        if (plats.Count == 0)
-        {
-            Console.WriteLine("Aucun plat trouvé.");
-        }
-        else
-        {
-            foreach (Plat plat in plats)
-            {
-                Console.WriteLine(plat.ToString());
-            }
-            Console.WriteLine("\nTotal: " + plats.Count + " commande(s)");
-        }
-
-        WaitForKey();
-    }
 
     #endregion 
     private void WaitForKey()

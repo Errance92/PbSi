@@ -32,7 +32,7 @@ using System.Collections.Generic;
             }
             else
             {
-                res = res = "[" + IdClient + "] - " + Nom.ToUpper() + " - " + Prenom + " - " + NumRue + " rue " + NomRue + " " + Ville + " - " + Email + " - " + Telephone + " - " + MontantAchat + "€ - " + Metro.ToLower();
+                res = "[" + IdClient + "] - " + Nom.ToUpper() + " - " + Prenom + " - " + NumRue + " rue " + NomRue + " " + Ville + " - " + Email + " - " + Telephone + " - " + MontantAchat + "€ - " + Metro.ToLower();
             }
         
         return res; 
@@ -45,12 +45,37 @@ using System.Collections.Generic;
         public string Nom;
         public string Prenom;
         public string Adresse;
+        public int NumRue;
+        public string NomRue;
+        public string Ville;
         public string Email;
         public string Telephone;
-        
-        public  string ToString()
+        public string Metro;
+        public Plat Plats;
+
+
+    public  string ToString()
+    {
+        string res;
+        if (Email.Length == 0 && Telephone.Length == 0)
         {
-            return "[" + IdCuisinier + "] - " + Nom + " - " + Prenom + " - "+Adresse + " - " + Email + " - " + Telephone;
+            res = "[" + IdCuisinier + "] - " + Nom.ToUpper() + " - " + Prenom + " - " + NumRue + " rue " + NomRue + " " + Ville + " - " + Metro.ToLower() + " - " + Plats;
+        }
+        else if (Telephone.Length == 0)
+        {
+            res = "[" + IdCuisinier + "] - " + Nom.ToUpper() + " - " + Prenom + " - " + NumRue + " rue " + NomRue + " " + Ville + " - " + Email + " - " + Metro.ToLower() + " - " + Plats;
+        }
+
+        else if (Email.Length == 0)
+        {
+            res = "[" + IdCuisinier + "] - " + Nom.ToUpper() + " - " + Prenom + " - " + NumRue + " rue " + NomRue + " " + Ville + " - " + Telephone + " - "  + Metro.ToLower() + " - " + Plats;
+        }
+        else
+        {
+            res = "[" + IdCuisinier + "] - " + Nom.ToUpper() + " - " + Prenom + " - " + NumRue + " rue " + NomRue + " " + Ville + " - " + Email + " - " + Telephone + " - " + Metro.ToLower() + " - " + Plats;
+        }
+
+        return res;
         }
     }
 

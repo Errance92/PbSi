@@ -513,6 +513,7 @@ public class DbAccess
             plat.NomPlat = row["nom_plat"].ToString();
             plat.Type = row["type"].ToString();
             plat.Stock = Convert.ToInt32(row["stock"]);
+            plat.PrixParPersonne = Convert.ToDecimal(row["prix_par_personne"]);
 
             if (row["origine"] == DBNull.Value)
             {
@@ -559,8 +560,6 @@ public class DbAccess
                 plat.DateFabrication = Convert.ToDateTime(row["date_fabrication"]);
             }
 
-            plat.PrixParPersonne = Convert.ToDecimal(row["prix_par_personne"]);
-
             if (row["date_peremption"] == DBNull.Value)
             {
                 plat.DatePeremption = DateTime.MinValue;
@@ -590,6 +589,7 @@ public class DbAccess
         plat.NomPlat = row["nom_plat"].ToString();
         plat.Type = row["type"].ToString();
         plat.Stock = Convert.ToInt32(row["stock"]);
+        plat.PrixParPersonne = Convert.ToDecimal(row["prix_par_personne"]);
 
         if (row["origine"] == DBNull.Value)
         {
@@ -636,8 +636,6 @@ public class DbAccess
             plat.DateFabrication = Convert.ToDateTime(row["date_fabrication"]);
         }
 
-        plat.PrixParPersonne = Convert.ToDecimal(row["prix_par_personne"]);
-
         if (row["date_peremption"] == DBNull.Value)
         {
             plat.DatePeremption = DateTime.MinValue;
@@ -672,6 +670,8 @@ public class DbAccess
         MySqlParameter paramNom = new MySqlParameter("@nom", plat.NomPlat);
         MySqlParameter paramType = new MySqlParameter("@type", plat.Type);
         MySqlParameter paramStock = new MySqlParameter("@stock", plat.Stock);
+        MySqlParameter paramPrix = new MySqlParameter("@prix", plat.PrixParPersonne);
+
 
         MySqlParameter paramOrigine;
         if (plat.Origine == null)
@@ -723,8 +723,6 @@ public class DbAccess
             paramDateFab = new MySqlParameter("@dateFab", plat.DateFabrication);
         }
 
-        MySqlParameter paramPrix = new MySqlParameter("@prix", plat.PrixParPersonne);
-
         MySqlParameter paramDatePer;
         if (plat.DatePeremption == DateTime.MinValue)
         {
@@ -742,6 +740,112 @@ public class DbAccess
 
         return ExecuterRequeteMAJ(requete, parametres) > 0;
     }
+
+    public bool MAJPlat(Plat plat)
+    {
+        string requete = @"UPDATE Plat
+                       SET nom_plat = @nom,
+                           type = @type,
+                           stock = @stock,
+                           origine = @origine,
+                           regime_alimentaire = @regime,
+                           ingredient = @ingredient,
+                           lien_photo = @lien,
+                           date_fabrication = @dateFab,
+                           prix_par_personne = @prix,
+                           date_peremption = @datePer
+                       WHERE id_plat = @id";
+
+        MySqlParameter paramId = new MySqlParameter("@id", plat.IdPlat);
+        MySqlParameter paramNom = new MySqlParameter("@nom", plat.NomPlat);
+        MySqlParameter paramType = new MySqlParameter("@type", plat.Type);
+        MySqlParameter paramStock = new MySqlParameter("@stock", plat.Stock);
+        MySqlParameter paramPrix = new MySqlParameter("@prix", plat.PrixParPersonne);
+
+        MySqlParameter paramOrigine;
+        if (plat.Origine == null)
+        {
+            paramOrigine = new MySqlParameter("@origine", DBNull.Value);
+        }
+        else
+        {
+            paramOrigine = new MySqlParameter("@origine", plat.Origine);
+        }
+
+        MySqlParameter paramRegime;
+        if (plat.RegimeAlimentaire == null)
+        {
+            paramRegime = new MySqlParameter("@regime", DBNull.Value);
+        }
+        else
+        {
+            paramRegime = new MySqlParameter("@regime", plat.RegimeAlimentaire);
+        }
+
+        MySqlParameter paramIngredient;
+        if (plat.Ingredient == null)
+        {
+            paramIngredient = new MySqlParameter("@ingredient", DBNull.Value);
+        }
+        else
+        {
+            paramIngredient = new MySqlParameter("@ingredient", plat.Ingredient);
+        }
+
+        MySqlParameter paramLien;
+        if (plat.LienPhoto == null)
+        {
+            paramLien = new MySqlParameter("@lien", DBNull.Value);
+        }
+        else
+        {
+            paramLien = new MySqlParameter("@lien", plat.LienPhoto);
+        }
+
+        MySqlParameter paramDateFab;
+        if (plat.DateFabrication == DateTime.MinValue)
+        {
+            paramDateFab = new MySqlParameter("@dateFab", DBNull.Value);
+        }
+        else
+        {
+            paramDateFab = new MySqlParameter("@dateFab", plat.DateFabrication);
+        }
+
+        MySqlParameter paramDatePer;
+        if (plat.DatePeremption == DateTime.MinValue)
+        {
+            paramDatePer = new MySqlParameter("@datePer", DBNull.Value);
+        }
+        else
+        {
+            paramDatePer = new MySqlParameter("@datePer", plat.DatePeremption);
+        }
+
+        MySqlParameter[] parametres = new MySqlParameter[]
+        {
+        paramId,
+        paramNom,
+        paramType,
+        paramStock,
+        paramOrigine,
+        paramRegime,
+        paramIngredient,
+        paramLien,
+        paramDateFab,
+        paramPrix,
+        paramDatePer
+        };
+
+        return ExecuterRequeteMAJ(requete, parametres) > 0;
+    }
+
+    public bool SupprimerPlat(int id)
+    {
+        return ExecuterRequeteMAJ("DELETE FROM Plat WHERE id_plat = @id",
+                                  new MySqlParameter("@id", id)) > 0;
+    }
+
     #endregion
 
     #region Commandes
