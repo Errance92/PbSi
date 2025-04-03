@@ -169,7 +169,7 @@ using System.Collections.Generic;
             WaitForKey();
         }
         
-        private void DeleteClient()
+        private void SupprimerClient()
         {
             Console.Clear();
             Console.WriteLine("=== SUPPRIMER UN CLIENT ===\n");
