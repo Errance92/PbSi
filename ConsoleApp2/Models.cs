@@ -6,13 +6,36 @@ using System.Collections.Generic;
         public int IdClient;
         public string Nom;
         public string Prenom;
-        public string Adresse;
+        public int NumRue;
+        public string NomRue;
+        public string Ville;
         public string Email;
         public string Telephone;
+        public double MontantAchat;
+        public string Metro;
         
         public  string ToString()
         {
-            return "[" + IdClient + "] - " + Nom + " - " + Prenom+" - "+ Adresse+ " - "+ Email+" - " +Telephone;
+            string res;
+            if (Email.Length == 0 && Telephone.Length == 0)
+            {
+                res = "[" + IdClient + "] - " + Nom.ToUpper() + " - " + Prenom + " - " + NumRue + " rue " + NomRue + " " + Ville + " - " + MontantAchat + "€ - " + Metro.ToLower();
+            }
+            else if (Telephone.Length == 0)
+            {
+                res = "[" + IdClient + "] - " + Nom.ToUpper() + " - " + Prenom + " - " + NumRue + " rue " + NomRue + " " + Ville + " - " + Email + " - " + MontantAchat + "€ - " + Metro.ToLower();
+            }
+
+            else if (Email.Length == 0)
+            {   
+                res = "[" + IdClient + "] - " + Nom.ToUpper() + " - " + Prenom + " - " + NumRue + " rue " + NomRue + " " + Ville + " - " + Telephone + " - " + MontantAchat + "€ - " + Metro.ToLower();
+            }
+            else
+            {
+                res = res = "[" + IdClient + "] - " + Nom.ToUpper() + " - " + Prenom + " - " + NumRue + " rue " + NomRue + " " + Ville + " - " + Email + " - " + Telephone + " - " + MontantAchat + "€ - " + Metro.ToLower();
+            }
+        
+        return res; 
         }
     }
 

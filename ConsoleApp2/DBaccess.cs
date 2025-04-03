@@ -14,6 +14,7 @@ public class DbAccess
         Console.WriteLine("Connexion à la base de données initialisée");
     }
 
+    #region Connexion
     private MySqlConnection Connection()
     {
         try
@@ -48,6 +49,9 @@ public class DbAccess
         }
     }
 
+    #endregion
+
+    #region Requete
     public DataTable ExecuterRequete(string requete, params MySqlParameter[] parametres)
     {
         using (var commande = new MySqlCommand(requete, Connection()))
@@ -85,9 +89,9 @@ public class DbAccess
             return commande.ExecuteScalar();
         }
     }
+    #endregion
 
-    // ===== MÉTHODES POUR CLIENTS =====
-
+    #region Clients
     public List<Client> RecupererClients()
     {
         var clients = new List<Client>();
@@ -99,8 +103,11 @@ public class DbAccess
             client.IdClient = Convert.ToInt32(row["id_client"]);
             client.Nom = row["nom"].ToString();
             client.Prenom = row["prenom"].ToString();
-            client.Adresse = row["addresse"].ToString();
-
+            client.NumRue = Convert.ToInt32(row["numero_rue"]);
+            client.NomRue = row["rue"].ToString();
+            client.Ville = row["ville"].ToString();
+            client.Metro = row["metro"].ToString();
+           
             if (row["email"] == DBNull.Value)
             {
                 client.Email = null;
@@ -119,6 +126,14 @@ public class DbAccess
                 client.Telephone = row["telephone"].ToString();
             }
 
+            if (row["montant_achat"] == DBNull.Value)
+            {
+                client.MontantAchat = 0;
+            }
+            else
+            {
+                client.MontantAchat = Convert.ToDouble(row["montant_achat"]);
+            }
             clients.Add(client);
         }
 
@@ -131,14 +146,19 @@ public class DbAccess
             new MySqlParameter("@id", id));
 
         if (table.Rows.Count == 0)
+        {
             return null;
+        }
 
         var row = table.Rows[0];
         Client client = new Client();
         client.IdClient = Convert.ToInt32(row["id_client"]);
         client.Nom = row["nom"].ToString();
         client.Prenom = row["prenom"].ToString();
-        client.Adresse = row["addresse"].ToString();
+        client.NumRue = Convert.ToInt32(row["numero_rue"]);
+        client.NomRue = row["rue"].ToString();
+        client.Ville = row["ville"].ToString();
+        client.Metro = row["metro"].ToString();
 
         if (row["email"] == DBNull.Value)
         {
@@ -158,18 +178,30 @@ public class DbAccess
             client.Telephone = row["telephone"].ToString();
         }
 
+        if (row["montant_achat"] == DBNull.Value)
+        {
+            client.MontantAchat = 0;
+        }
+        else
+        {
+            client.MontantAchat = Convert.ToDouble(row["montant_achat"]);
+        }
+
         return client;
     }
 
     public bool AjouterClients(Client client)
     {
-        string requete = @"INSERT INTO Client (id_client, nom, prenom, addresse, email, telephone)
-                     VALUES (@id, @nom, @prenom, @adresse, @email, @telephone)";
+        string requete = @"INSERT INTO Client (id_client, nom, prenom, numero_rue, rue, ville, metro, email, telephone, montant_achat)
+                     VALUES (@id, @nom, @prenom, @numRue, @rue, @ville, @metro, @email, @telephone, @montantAchat)";
 
         MySqlParameter paramId = new MySqlParameter("@id", client.IdClient);
         MySqlParameter paramNom = new MySqlParameter("@nom", client.Nom);
         MySqlParameter paramPrenom = new MySqlParameter("@prenom", client.Prenom);
-        MySqlParameter paramAdresse = new MySqlParameter("@adresse", client.Adresse);
+        MySqlParameter paramNumRue = new MySqlParameter("@numRue", client.NumRue);
+        MySqlParameter paramRue = new MySqlParameter("@rue", client.NomRue);
+        MySqlParameter paramVille = new MySqlParameter("@ville", client.Ville);
+        MySqlParameter paramMetro = new MySqlParameter("@metro", client.Metro);
 
         MySqlParameter paramEmail;
         if (client.Email == null)
@@ -191,14 +223,28 @@ public class DbAccess
             paramTelephone = new MySqlParameter("@telephone", client.Telephone);
         }
 
+        MySqlParameter paramMontantAchat = new MySqlParameter("@montantAchat", client.MontantAchat);
+        if (client.MontantAchat == null)
+        {
+            paramMontantAchat = new MySqlParameter("@montantAchat", 0);
+        }
+        else
+        {
+            paramMontantAchat = new MySqlParameter("@montantAchat", client.MontantAchat);
+        }
+
         var parametres = new MySqlParameter[]
         {
         paramId,
         paramNom,
         paramPrenom,
-        paramAdresse,
+        paramNumRue,
+        paramRue,
+        paramVille,
+        paramMetro,
         paramEmail,
-        paramTelephone
+        paramTelephone,
+        paramMontantAchat
         };
 
         return ExecuterRequeteMAJ(requete, parametres) > 0;
@@ -206,13 +252,27 @@ public class DbAccess
 
     public bool MAJClient(Client client)
     {
-        string requete = @"UPDATE Client SET nom = @nom, prenom = @prenom, addresse = @adresse, 
-                     email = @email, telephone = @telephone WHERE id_client = @id";
+        string requete = @"UPDATE Client 
+                       SET nom = @nom, 
+                           prenom = @prenom,
+                           numero_rue = @numRue,
+                           ville = @ville,
+                           rue = @rue,
+                           email = @email,
+                           telephone = @telephone,
+                           montant_achat = @montant,
+                           metro = @metro
+                       WHERE id_client = @id";
+
 
         MySqlParameter paramId = new MySqlParameter("@id", client.IdClient);
         MySqlParameter paramNom = new MySqlParameter("@nom", client.Nom);
         MySqlParameter paramPrenom = new MySqlParameter("@prenom", client.Prenom);
-        MySqlParameter paramAdresse = new MySqlParameter("@adresse", client.Adresse);
+        MySqlParameter paramNumRue = new MySqlParameter("@numRue", client.NumRue);
+        MySqlParameter paramVille = new MySqlParameter("@ville", client.Ville);
+        MySqlParameter paramRue = new MySqlParameter("@rue", client.NomRue);
+        MySqlParameter paramMetro = new MySqlParameter("@metro", client.Metro);
+
 
         MySqlParameter paramEmail;
         if (client.Email == null)
@@ -234,14 +294,28 @@ public class DbAccess
             paramTelephone = new MySqlParameter("@telephone", client.Telephone);
         }
 
-        var parametres = new MySqlParameter[]
+        MySqlParameter paramMontant;
+        if (client.MontantAchat == null)
+        {
+            paramMontant = new MySqlParameter("@montant", 0);
+        }
+        else
+        {
+            paramMontant = new MySqlParameter("@montant", client.MontantAchat);
+        }
+
+        MySqlParameter[] parametres = new MySqlParameter[]
         {
         paramId,
         paramNom,
         paramPrenom,
-        paramAdresse,
+        paramNumRue,
+        paramVille,
+        paramRue,
         paramEmail,
-        paramTelephone
+        paramTelephone,
+        paramMontant,
+        paramMetro
         };
 
         return ExecuterRequeteMAJ(requete, parametres) > 0;
@@ -253,7 +327,7 @@ public class DbAccess
                                  new MySqlParameter("@id", id)) > 0;
     }
 
-    public int ObtenirProchainClient()
+    public int ObtenirProchainIDClient()
     {
         object resultat = ExecuterRequeteScalaire("SELECT MAX(id_client) FROM Client");
         if (resultat == DBNull.Value)
@@ -277,19 +351,30 @@ public class DbAccess
         return a.Nom.CompareTo(b.Nom);
     }
 
-    public static List<Client> TrierParAdress(List<Client> clients)
+    public static List<Client> TrierParRue(List<Client> clients)
     {
-        clients.Sort(ComparerParAdress);
+        clients.Sort(ComparerParRue);
         return clients;
     }
 
-    private static int ComparerParAdress(Client a, Client b)
+    private static int ComparerParRue(Client a, Client b)
     {
-        return a.Adresse.CompareTo(b.Adresse);
+        return a.NomRue.CompareTo(b.NomRue);
     }
 
-    // ===== MÉTHODES POUR CUISINIERS =====
+    public static List<Client> TrierParMontant(List<Client> clients)
+    {
+        clients.Sort(ComparerParMontant);
+        return clients;
+    }
 
+    private static int ComparerParMontant(Client a, Client b)
+    {
+        return a.MontantAchat.CompareTo(b.MontantAchat);
+    }
+    #endregion
+
+    #region Cuisinier
     public List<Cuisinier> RecupererCuisinier()
     {
         var cuisiniers = new List<Cuisinier>();
@@ -413,9 +498,9 @@ public class DbAccess
             return Convert.ToInt32(result) + 1;
         }
     }
+    #endregion
 
-    // ===== MÉTHODES POUR PLATS =====
-
+    #region Plat
     public List<Plat> RecupererToutPlat()
     {
         var plats = new List<Plat>();
@@ -657,9 +742,9 @@ public class DbAccess
 
         return ExecuterRequeteMAJ(requete, parametres) > 0;
     }
+    #endregion
 
-    // ===== MÉTHODES POUR COMMANDES =====
-
+    #region Commandes
 
     public List<Commande> RecupererToutCommandes()
     {
@@ -980,4 +1065,5 @@ public class DbAccess
             return Convert.ToInt32(result) + 1;
         }
     }
+    #endregion
 }

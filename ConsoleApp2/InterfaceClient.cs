@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
-    public class UserInterface
-    {
+using Karaté;
+
+public class UserInterface
+{
         private readonly DbAccess db;
         
         public UserInterface()
@@ -49,10 +51,10 @@ using System.Collections.Generic;
             Console.WriteLine("0. Quitter");
             Console.Write("\nVotre choix: ");
         }
-        
-        // ===== MODULE CLIENT =====
-        
-        private void ClientModule()
+
+    #region Client
+
+    private void ClientModule()
         {
             bool exit = false;
             
@@ -85,173 +87,317 @@ using System.Collections.Generic;
                 }
             }
         }
-        
-        private void AjouterClient()
-        {
-            Console.Clear();
-            Console.WriteLine("=== AJOUTER UN CLIENT ===\n");
-            
-            Client client = new Client
-            {
-                IdClient = db.ObtenirProchainClient()
-            };
-            
-            Console.Write("Nom: ");
-            client.Nom = Console.ReadLine();
-            
-            Console.Write("Prénom: ");
-            client.Prenom = Console.ReadLine();
-            
-            Console.Write("Adresse: ");
-            client.Adresse = Console.ReadLine();
-            
-            Console.Write("Email (optionnel): ");
-            client.Email = Console.ReadLine();
-            
-            Console.Write("Téléphone (optionnel): ");
-            client.Telephone = Console.ReadLine();
-            
-            if (db.AjouterClients(client))
-                Console.WriteLine("\nClient ajouté avec succès!");
-            else
-                Console.WriteLine("\nErreur lors de l'ajout du client.");
-                
-            WaitForKey();
-        }
-        
-        private void ModifierClient()
-        {
-            Console.Clear();
-            Console.WriteLine("=== MODIFIER UN CLIENT ===\n");
-            
-            Console.Write("ID du client à modifier: ");
-            if (!int.TryParse(Console.ReadLine(), out int id))
-            {
-                Console.WriteLine("ID invalide.");
-                WaitForKey();
-                return;
-            }
-            
-            Client client = db.ObtenirClientID(id);
-            
-            if (client == null)
-            {
-                Console.WriteLine("Aucun client trouvé avec l'ID " + id);
-                WaitForKey();
-                return;
-            }
-            
-            Console.WriteLine("Modification de " + client + "\n");
-            
-            Console.Write("Nom [" + client.Nom + "]: ");
-            string nom = Console.ReadLine();
-            if (!string.IsNullOrEmpty(nom)) client.Nom = nom;
-            
-            Console.Write("Prénom [" + client.Prenom+ "]: ");
-            string prenom = Console.ReadLine();
-            if (!string.IsNullOrEmpty(prenom)) client.Prenom = prenom;
-            
-            Console.Write("Adresse ["+ client.Adresse+ "]: ");
-            string adresse = Console.ReadLine();
-            if (!string.IsNullOrEmpty(adresse)) client.Adresse = adresse;
-            
-            Console.Write("Email [" + client.Email+ "]: ");
-            string email = Console.ReadLine();
-            if (!string.IsNullOrEmpty(email)) client.Email = email;
-            
-            Console.Write("Téléphone [" + client.Telephone+ "]: ");
-            string telephone = Console.ReadLine();
-            if (!string.IsNullOrEmpty(telephone)) client.Telephone = telephone;
-            
-            if (db.MAJClient(client))
-                Console.WriteLine("\nClient modifié avec succès!");
-            else
-                Console.WriteLine("\nErreur lors de la modification du client");
-                
-            WaitForKey();
-        }
-        
-        private void SupprimerClient()
-        {
-            Console.Clear();
-            Console.WriteLine("=== SUPPRIMER UN CLIENT ===\n");
-            
-            Console.Write("ID du client à supprimer: ");
-            if (!int.TryParse(Console.ReadLine(), out int id))
-            {
-                Console.WriteLine("ID invalide.");
-                WaitForKey();
-                return;
-            }
-            
-            Client client = db.ObtenirClientID(id);
-            
-            if (client == null)
-            {
-                Console.WriteLine("Aucun client trouvé avec l'ID" + id);
-                WaitForKey();
-                return;
-            }
-            
-            Console.WriteLine($"Êtes-vous sûr de vouloir supprimer {client} ? (O/N)");
-            if (Console.ReadLine().ToUpper() != "O")
-            {
-                Console.WriteLine("Suppression annulée.");
-                WaitForKey();
-                return;
-            }
-            
-            if (db.SupprimerClient(id))
-                Console.WriteLine("\nClient supprimé avec succès!");
-            else
-                Console.WriteLine("\nErreur lors de la suppression du client.");
-                
-            WaitForKey();
-        }
-        
-        private void AfficherToutClients()
-        {
-            Console.Clear();
-            Console.WriteLine("=== LISTE DES CLIENTS ===\n");
-            
-            List<Client> clients = db.RecupererClients();
-            
-            if (clients.Count == 0)
-            {
-                Console.WriteLine("Aucun client trouvé.");
-            }
-            else
-            {
-                Console.WriteLine("Voulez vous trier les clients par nom, par adresse, par rien (N/A/R) :");
-                string rep = Console.ReadLine();
 
-                while (rep.ToUpper() != "R" && rep.ToUpper() != "N" && rep.ToUpper() != "A")
+    private void AjouterClient()
+    {
+        Console.Clear();
+        Console.WriteLine("=== AJOUTER UN CLIENT ===\n");
+
+        Client client = new Client();
+        client.IdClient = db.ObtenirProchainIDClient();
+
+        Console.Write("Nom: ");
+        client.Nom = Console.ReadLine();
+
+        Console.Write("Prénom: ");
+        client.Prenom = Console.ReadLine();
+
+        int numRue;
+        Console.Write("Numéro de rue: ");
+        string saisieNumRue = Console.ReadLine();
+        while (!int.TryParse(saisieNumRue, out numRue))
+        {
+            Console.WriteLine("Numéro de rue invalide. Veuillez réessayer : ");
+            saisieNumRue = Console.ReadLine();
+        }
+        client.NumRue = numRue;
+
+        Console.Write("Rue: ");
+        client.NomRue = Console.ReadLine();
+
+        Console.Write("Ville: ");
+        client.Ville = Console.ReadLine();
+
+        Console.Write("Métro le plus proche : ");
+        string saisieMetro = Console.ReadLine();
+        Graphe g = new Graphe();
+        bool test = false;
+        foreach (Noeud n in g.Noeuds)
+        {
+            if (n.Station.ToLower() == saisieMetro.ToLower())
+            {
+                test = true;
+                break;
+            }
+        }
+        while (test == false)
+        {
+            Console.WriteLine("Ce métro n'existe pas.");
+            Console.Write("Métro le plus proche : ");
+            saisieMetro = Console.ReadLine();
+            foreach (Noeud n in g.Noeuds)
+            {
+                if (n.Station.ToLower() == saisieMetro.ToLower())
                 {
-                    Console.WriteLine("Saisie invalide. (N/A/R): ");
-                    rep = Console.ReadLine();
+                    test = true;
+                    break;
                 }
-                if (rep.ToUpper() == "N")
+            }
+        }
+        client.Metro = saisieMetro;
+
+        Console.Write("Email (optionnel): ");
+        client.Email = Console.ReadLine();
+
+        Console.Write("Téléphone (optionnel): ");
+        client.Telephone = Console.ReadLine();
+              
+        client.MontantAchat = 0; // un nouveau client a forcement un montant d'achat total a 0
+
+        if (db.AjouterClients(client))
+        {
+            Console.WriteLine("\nClient ajouté avec succès!");
+        }
+        else
+        {
+            Console.WriteLine("\nErreur lors de l'ajout du client.");
+        }
+
+        WaitForKey();
+    }
+
+
+    private void ModifierClient()
+    {
+        Console.Clear();
+        Console.WriteLine("=== MODIFIER UN CLIENT ===\n");
+
+        Console.Write("ID du client à modifier: ");
+        string saisieId = Console.ReadLine();
+        int id;
+        while (!int.TryParse(saisieId, out id))
+        {
+            Console.WriteLine("ID invalide. Veuillez réessayer: ");
+            saisieId = Console.ReadLine();
+        }
+
+        Client client = db.ObtenirClientID(id);
+
+        if (client == null)
+        {
+            Console.WriteLine("Aucun client trouvé avec l'ID " + id);
+            WaitForKey();
+            return;
+        }
+
+        Console.WriteLine("Modification de " + client.ToString() + "\n");
+
+        Console.Write("Nom [" + client.Nom + "]: ");
+        string nom = Console.ReadLine();
+        if (!string.IsNullOrEmpty(nom))
+        {
+            client.Nom = nom;
+        }
+
+        Console.Write("Prénom [" + client.Prenom + "]: ");
+        string prenom = Console.ReadLine();
+        if (!string.IsNullOrEmpty(prenom))
+        {
+            client.Prenom = prenom;
+        }
+
+        Console.Write("Numéro de rue [" + client.NumRue + "]: ");
+        string saisieNumRue = Console.ReadLine();
+        if (!string.IsNullOrEmpty(saisieNumRue))
+        {
+            int numRue;
+            while (!int.TryParse(saisieNumRue, out numRue))
+            {
+                Console.WriteLine("Numéro de rue invalide. Veuillez réessayer: ");
+                saisieNumRue = Console.ReadLine();
+            }
+            client.NumRue = numRue;
+        }
+
+        Console.Write("Rue [" + client.NomRue + "]: ");
+        string rue = Console.ReadLine();
+        if (!string.IsNullOrEmpty(rue))
+        {
+            client.NomRue = rue;
+        }
+
+        Console.Write("Ville [" + client.Ville + "]: ");
+        string ville = Console.ReadLine();
+        if (!string.IsNullOrEmpty(ville))
+        {
+            client.Ville = ville;
+        }
+
+        Console.Write("Métro le plus proche [" + client.Metro + "]: ");
+        string saisieMetro = Console.ReadLine();
+        Graphe g = new Graphe();
+        bool test = false;
+        foreach (Noeud n in g.Noeuds)
+        {
+            if (n.Station.ToLower() == saisieMetro.ToLower())
+            {
+                test = true;
+                break;
+            }
+        }
+        while (test == false)
+        {
+            Console.WriteLine("Ce métro n'existe pas.");
+            Console.Write("Métro le plus proche [" + client.Metro + "]: ");
+            saisieMetro = Console.ReadLine();
+            foreach (Noeud n in g.Noeuds)
+            {
+                if (n.Station.ToLower() == saisieMetro.ToLower())
                 {
+                    test = true;
+                    break;
+                }
+            }
+        }
+
+        if (!string.IsNullOrEmpty(saisieMetro))
+        {
+            client.Metro = saisieMetro;
+        }
+
+        Console.Write("Email [" + client.Email + "]: ");
+        string email = Console.ReadLine();
+        if (!string.IsNullOrEmpty(email))
+        {
+            client.Email = email;
+        }
+
+        Console.Write("Téléphone [" + client.Telephone + "]: ");
+        string telephone = Console.ReadLine();
+        if (!string.IsNullOrEmpty(telephone))
+        {
+            client.Telephone = telephone;
+        }
+
+        client.MontantAchat = client.MontantAchat; // ne peut etre changee que si commande
+
+        if (db.MAJClient(client))
+        {
+            Console.WriteLine("\nClient modifié avec succès!");
+        }
+        else
+        {
+            Console.WriteLine("\nErreur lors de la modification du client");
+        }
+
+        WaitForKey();
+    }
+
+    private void SupprimerClient()
+    {
+        Console.Clear();
+        Console.WriteLine("=== SUPPRIMER UN CLIENT ===\n");
+
+        int id;
+        string saisieId;
+        Console.Write("ID du client à supprimer: ");
+        saisieId = Console.ReadLine();
+        while (!int.TryParse(saisieId, out id))
+        {
+            Console.WriteLine("ID invalide. Veuillez réessayer:");
+            saisieId = Console.ReadLine();
+        }
+
+        Client client = db.ObtenirClientID(id);
+        if (client == null)
+        {
+            Console.WriteLine("Aucun client trouvé avec l'ID " + id);
+            WaitForKey();
+            return;
+        }
+
+        Console.WriteLine("Êtes-vous sûr de vouloir supprimer " + client.ToString() + " ? (O/N)");
+        string rep = Console.ReadLine();
+        if (rep.ToUpper() != "O")
+        {
+            Console.WriteLine("Suppression annulée.");
+            WaitForKey();
+            return;
+        }
+
+        if (db.SupprimerClient(id))
+            Console.WriteLine("\nClient supprimé avec succès!");
+        else
+            Console.WriteLine("\nErreur lors de la suppression du client.");
+
+        WaitForKey();
+    }
+
+    private void AfficherToutClients()
+    {
+        Console.Clear();
+        Console.WriteLine("=== LISTE DES CLIENTS ===\n");
+
+        List<Client> clients = db.RecupererClients();
+
+        if (clients.Count == 0)
+        {
+            Console.WriteLine("Aucun client trouvé.");
+        }
+        else
+        {
+            Console.WriteLine("Choisissez le type de tri :");
+            Console.WriteLine("1 : Tri par nom");
+            Console.WriteLine("2 : Tri par rue");
+            Console.WriteLine("3 : Tri par montant d'achat");
+            Console.WriteLine("4 : Pas de tri");
+            Console.Write("Votre choix : ");
+            string choixTri = Console.ReadLine().ToUpper();
+
+            switch (choixTri)
+            {
+                case "1":
                     DbAccess.TrierParNom(clients);
-                }
-                else if (rep.ToUpper() == "A")
-                {
-                    DbAccess.TrierParAdress(clients);
-                }
-                foreach (Client client in clients)
-                {
-                    Console.WriteLine(client.ToString());
-                }
-
-            Console.WriteLine($"\nTotal: {clients.Count} client(s)");
+                    break;
+                case "2":
+                    DbAccess.TrierParRue(clients);
+                    break;
+                case "3":
+                    DbAccess.TrierParMontant(clients);
+                    break;
+                case "4":
+                    break;
+                default:
+                    Console.WriteLine("Option invalide. Aucun tri effectué.");
+                    break;
             }
-            
-            WaitForKey();
+
+            foreach (Client client in clients)
+            {
+                Console.WriteLine(client.ToString());
+            }
+            Console.WriteLine("\nTotal: " + clients.Count + " client(s)");
         }
-        
-        // ===== MODULE CUISINIER =====
-        
-        private void CuisinierModule()
+
+        WaitForKey();
+    }
+
+    public static bool EstStationValide(string nomStation, List<Noeud> listeNoeuds)
+    {
+        foreach (Noeud n in listeNoeuds)
+        {
+            if (n.Station.Equals(nomStation, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    #endregion
+
+    #region Cuisinier
+
+    private void CuisinierModule()
         {
             bool exit = false;
             
@@ -336,10 +482,12 @@ using System.Collections.Generic;
             
             WaitForKey();
         }
-        
-        // ===== MODULE COMMANDE =====
-        
-        private void CommandeModule()
+
+    #endregion
+
+    #region Commande
+
+    private void CommandeModule()
         {
             bool exit = false;
             
@@ -714,6 +862,7 @@ using System.Collections.Generic;
         WaitForKey();
     }
 
+    #endregion 
     private void WaitForKey()
         {
             Console.WriteLine("\nAppuyez sur une touche pour continuer...");
