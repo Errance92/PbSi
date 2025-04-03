@@ -547,7 +547,9 @@ using System.Collections.Generic;
                 
             WaitForKey();
         }
-
+    /// <summary>
+    /// affiche la commande
+    /// </summary>
     private void AfficherCommande()
     {
         Console.Clear();
