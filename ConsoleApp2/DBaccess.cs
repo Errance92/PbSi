@@ -6,62 +6,60 @@ using MySql.Data.MySqlClient;
 
 public class DbAccess
 {
-    // Chaîne de connexion codée en dur dans la classe
-    private readonly string _connectionString;
-    private MySqlConnection _connection;
+    private readonly string connectionString;
+    private MySqlConnection connection;
     public DbAccess()
     {
-        // Chaîne de connexion codée directement dans la classe assignée à la variable 
-        _connectionString = "Server=localhost;Port=3306;Database=Liv'in Paris;Uid=root;Pwd=password;CharSet=utf8;";
+        // Chaîne de connexion codée directement dans la classe - REMPLACEZ PAR VOS VALEURS
+        connectionString = "Server=localhost;Port=3306;Database=Liv'in Paris;Uid=root;Pwd=password;CharSet=utf8;";
 
         // Pour le débogage, affichez un message
         Console.WriteLine("Connexion à la base de données initialisée...");
     }
 
-    private MySqlConnection GetConnection()
+    private MySqlConnection Connection()
     {
         try
         {
-            if (_connection == null)
+            if (connection == null)
             {
-                _connection = new MySqlConnection(_connectionString);
+                connection = new MySqlConnection(connectionString);
                 Console.WriteLine("Connexion créée.");
             }
 
-            if (_connection.State != ConnectionState.Open)
+            if (connection.State != ConnectionState.Open)
             {
-                _connection.Open();
+                connection.Open();
                 Console.WriteLine("Connexion ouverte.");
             }
 
-            return _connection;
+            return connection;
         }
         catch (MySqlException ex)
         {
-            Console.WriteLine($"Erreur lors de la connexion à la base de données: {ex.Message}");
+            Console.WriteLine("Erreur lors de la connexion à la base de données: " + ex.Message);
             throw;
         }
     }
 
-    public void CloseConnection()
+    public void FermerConnection()
     {
-        if (_connection != null && _connection.State == ConnectionState.Open)
+        if (connection != null && connection.State == ConnectionState.Open)
         {
-            _connection.Close();
+            connection.Close();
             Console.WriteLine("Connexion fermée.");
         }
     }
 
-    // Méthodes génériques d'accès aux données
-    public DataTable ExecuteQuery(string query, params MySqlParameter[] parameters)
+    public DataTable ExecuterRequete(string requete, params MySqlParameter[] parametres)
     {
-        using (var command = new MySqlCommand(query, GetConnection()))
+        using (var commande = new MySqlCommand(requete, Connection()))
         {
-            if (parameters != null)
-                command.Parameters.AddRange(parameters);
+            if (parametres != null)
+                commande.Parameters.AddRange(parametres);
 
             var dataTable = new DataTable();
-            using (var adapter = new MySqlDataAdapter(command))
+            using (var adapter = new MySqlDataAdapter(commande))
             {
                 adapter.Fill(dataTable);
             }
@@ -69,192 +67,340 @@ public class DbAccess
         }
     }
 
-    public int ExecuteNonQuery(string query, params MySqlParameter[] parameters)
+    public int ExecuterRequeteMAJ(string requete, params MySqlParameter[] parametres)
     {
-        using (var command = new MySqlCommand(query, GetConnection()))
+        using (var commande = new MySqlCommand(requete, Connection()))
         {
-            if (parameters != null)
-                command.Parameters.AddRange(parameters);
+            if (parametres != null)
+                commande.Parameters.AddRange(parametres);
 
-            return command.ExecuteNonQuery();
+            return commande.ExecuteNonQuery();
         }
     }
 
-    public object ExecuteScalar(string query, params MySqlParameter[] parameters)
+    public object ExecuterRequeteScalaire(string requete, params MySqlParameter[] parametres)
     {
-        using (var command = new MySqlCommand(query, GetConnection()))
+        using (var commande = new MySqlCommand(requete, Connection()))
         {
-            if (parameters != null)
-                command.Parameters.AddRange(parameters);
+            if (parametres != null)
+                commande.Parameters.AddRange(parametres);
 
-            return command.ExecuteScalar();
+            return commande.ExecuteScalar();
         }
     }
 
     // ===== MÉTHODES POUR CLIENTS =====
 
-    public List<Client> GetAllClients()
+    public List<Client> RecupererClients()
     {
         var clients = new List<Client>();
-        var table = ExecuteQuery("SELECT * FROM Client");
+        var table = ExecuterRequete("SELECT * FROM Client");
 
         foreach (DataRow row in table.Rows)
         {
-            clients.Add(new Client
+            Client client = new Client();
+            client.IdClient = Convert.ToInt32(row["id_client"]);
+            client.Nom = row["nom"].ToString();
+            client.Prenom = row["prenom"].ToString();
+            client.Adresse = row["addresse"].ToString();
+
+            if (row["email"] == DBNull.Value)
             {
-                IdClient = Convert.ToInt32(row["id_client"]),
-                Nom = row["nom"].ToString(),
-                Prenom = row["prenom"].ToString(),
-                Adresse = row["addresse"].ToString(),
-                Email = row["email"] == DBNull.Value ? null : row["email"].ToString(),
-                Telephone = row["telephone"] == DBNull.Value ? null : row["telephone"].ToString()
-            });
+                client.Email = null;
+            }
+            else
+            {
+                client.Email = row["email"].ToString();
+            }
+
+            if (row["telephone"] == DBNull.Value)
+            {
+                client.Telephone = null;
+            }
+            else
+            {
+                client.Telephone = row["telephone"].ToString();
+            }
+
+            clients.Add(client);
         }
 
         return clients;
     }
 
-    public Client GetClientById(int id)
+    public Client ObtenirClientID(int id)
+    {
+        var table = ExecuterRequete("SELECT * FROM Client WHERE id_client = @id",
+            new MySqlParameter("@id", id));
+
+        if (table.Rows.Count == 0)
+            return null;
+
+        var row = table.Rows[0];
+        Client client = new Client();
+        client.IdClient = Convert.ToInt32(row["id_client"]);
+        client.Nom = row["nom"].ToString();
+        client.Prenom = row["prenom"].ToString();
+        client.Adresse = row["addresse"].ToString();
+
+        if (row["email"] == DBNull.Value)
         {
-            var table = ExecuteQuery("SELECT * FROM Client WHERE id_client = @id", 
-                new MySqlParameter("@id", id));
-                
-            if (table.Rows.Count == 0)
-                return null;
-                
-            var row = table.Rows[0];
-            return new Client
+            client.Email = null;
+        }
+        else
+        {
+            client.Email = row["email"].ToString();
+        }
+
+        if (row["telephone"] == DBNull.Value)
+        {
+            client.Telephone = null;
+        }
+        else
+        {
+            client.Telephone = row["telephone"].ToString();
+        }
+
+        return client;
+    }
+
+    public bool AjouterClients(Client client)
+    {
+        string requete = @"INSERT INTO Client (id_client, nom, prenom, addresse, email, telephone)
+                     VALUES (@id, @nom, @prenom, @adresse, @email, @telephone)";
+
+        MySqlParameter paramId = new MySqlParameter("@id", client.IdClient);
+        MySqlParameter paramNom = new MySqlParameter("@nom", client.Nom);
+        MySqlParameter paramPrenom = new MySqlParameter("@prenom", client.Prenom);
+        MySqlParameter paramAdresse = new MySqlParameter("@adresse", client.Adresse);
+
+        MySqlParameter paramEmail;
+        if (client.Email == null)
+        {
+            paramEmail = new MySqlParameter("@email", DBNull.Value);
+        }
+        else
+        {
+            paramEmail = new MySqlParameter("@email", client.Email);
+        }
+
+        MySqlParameter paramTelephone;
+        if (client.Telephone == null)
+        {
+            paramTelephone = new MySqlParameter("@telephone", DBNull.Value);
+        }
+        else
+        {
+            paramTelephone = new MySqlParameter("@telephone", client.Telephone);
+        }
+
+        var parametres = new MySqlParameter[]
+        {
+        paramId,
+        paramNom,
+        paramPrenom,
+        paramAdresse,
+        paramEmail,
+        paramTelephone
+        };
+
+        return ExecuterRequeteMAJ(requete, parametres) > 0;
+    }
+
+    public bool MAJClient(Client client)
+    {
+        string requete = @"UPDATE Client SET nom = @nom, prenom = @prenom, addresse = @adresse, 
+                     email = @email, telephone = @telephone WHERE id_client = @id";
+
+        MySqlParameter paramId = new MySqlParameter("@id", client.IdClient);
+        MySqlParameter paramNom = new MySqlParameter("@nom", client.Nom);
+        MySqlParameter paramPrenom = new MySqlParameter("@prenom", client.Prenom);
+        MySqlParameter paramAdresse = new MySqlParameter("@adresse", client.Adresse);
+
+        MySqlParameter paramEmail;
+        if (client.Email == null)
+        {
+            paramEmail = new MySqlParameter("@email", DBNull.Value);
+        }
+        else
+        {
+            paramEmail = new MySqlParameter("@email", client.Email);
+        }
+
+        MySqlParameter paramTelephone;
+        if (client.Telephone == null)
+        {
+            paramTelephone = new MySqlParameter("@telephone", DBNull.Value);
+        }
+        else
+        {
+            paramTelephone = new MySqlParameter("@telephone", client.Telephone);
+        }
+
+        var parametres = new MySqlParameter[]
+        {
+        paramId,
+        paramNom,
+        paramPrenom,
+        paramAdresse,
+        paramEmail,
+        paramTelephone
+        };
+
+        return ExecuterRequeteMAJ(requete, parametres) > 0;
+    }
+
+    public bool SupprimerClient(int id)
+    {
+        return ExecuterRequeteMAJ("DELETE FROM Client WHERE id_client = @id",
+                                 new MySqlParameter("@id", id)) > 0;
+    }
+
+    public int ObtenirProchainClient()
+    {
+        object resultat = ExecuterRequeteScalaire("SELECT MAX(id_client) FROM Client");
+        if (resultat == DBNull.Value)
+        {
+            return 1;
+        }
+        else
+        {
+            return Convert.ToInt32(resultat) + 1;
+        }
+    }
+
+    // ===== MÉTHODES POUR CUISINIERS =====
+
+    public List<Cuisinier> RecupererCuisinier()
+    {
+        var cuisiniers = new List<Cuisinier>();
+        var table = ExecuterRequete("SELECT * FROM Cuisinier");
+
+        foreach (DataRow row in table.Rows)
+        {
+            Cuisinier c = new Cuisinier();
+            c.IdCuisinier = Convert.ToInt32(row["id_cuisinier"]);
+            c.Nom = row["nom"].ToString();
+            c.Prenom = row["prenom"].ToString();
+            c.Adresse = row["addresse"].ToString();
+
+            if (row["email"] == DBNull.Value)
             {
-                IdClient = Convert.ToInt32(row["id_client"]),
-                Nom = row["nom"].ToString(),
-                Prenom = row["prenom"].ToString(),
-                Adresse = row["addresse"].ToString(),
-                Email = row["email"] == DBNull.Value ? null : row["email"].ToString(),
-                Telephone = row["telephone"] == DBNull.Value ? null : row["telephone"].ToString()
-            };
-        }
-        
-        public bool AddClient(Client client)
-        {
-            string query = @"INSERT INTO Client (id_client, nom, prenom, addresse, email, telephone)
-                           VALUES (@id, @nom, @prenom, @adresse, @email, @telephone)";
-            
-            var parameters = new MySqlParameter[]
-            {
-                new MySqlParameter("@id", client.IdClient),
-                new MySqlParameter("@nom", client.Nom),
-                new MySqlParameter("@prenom", client.Prenom),
-                new MySqlParameter("@adresse", client.Adresse),
-                new MySqlParameter("@email", client.Email ?? (object)DBNull.Value),
-                new MySqlParameter("@telephone", client.Telephone ?? (object)DBNull.Value)
-            };
-            
-            return ExecuteNonQuery(query, parameters) > 0;
-        }
-        
-        public bool UpdateClient(Client client)
-        {
-            string query = @"UPDATE Client SET nom = @nom, prenom = @prenom, addresse = @adresse, 
-                          email = @email, telephone = @telephone WHERE id_client = @id";
-            
-            var parameters = new MySqlParameter[]
-            {
-                new MySqlParameter("@id", client.IdClient),
-                new MySqlParameter("@nom", client.Nom),
-                new MySqlParameter("@prenom", client.Prenom),
-                new MySqlParameter("@adresse", client.Adresse),
-                new MySqlParameter("@email", client.Email ?? (object)DBNull.Value),
-                new MySqlParameter("@telephone", client.Telephone ?? (object)DBNull.Value)
-            };
-            
-            return ExecuteNonQuery(query, parameters) > 0;
-        }
-        
-        public bool DeleteClient(int id)
-        {
-            return ExecuteNonQuery("DELETE FROM Client WHERE id_client = @id", 
-                new MySqlParameter("@id", id)) > 0;
-        }
-        
-        public int GetNextClientId()
-        {
-            object result = ExecuteScalar("SELECT MAX(id_client) FROM Client");
-            return (result == DBNull.Value) ? 1 : Convert.ToInt32(result) + 1;
-        }
-        
-        // ===== MÉTHODES POUR CUISINIERS =====
-        
-        public List<Cuisinier> GetAllCuisiniers()
-        {
-            var cuisiniers = new List<Cuisinier>();
-            var table = ExecuteQuery("SELECT * FROM Cuisinier");
-            
-            foreach (DataRow row in table.Rows)
-            {
-                cuisiniers.Add(new Cuisinier
-                {
-                    IdCuisinier = Convert.ToInt32(row["id_cuisinier"]),
-                    Nom = row["nom"].ToString(),
-                    Prenom = row["prenom"].ToString(),
-                    Adresse = row["addresse"].ToString(),
-                    Email = row["email"] == DBNull.Value ? null : row["email"].ToString(),
-                    Telephone = row["telephone"] == DBNull.Value ? null : row["telephone"].ToString()
-                });
+                c.Email = null;
             }
-            
-            return cuisiniers;
-        }
-        
-        public Cuisinier GetCuisinierById(int id)
-        {
-            var table = ExecuteQuery("SELECT * FROM Cuisinier WHERE id_cuisinier = @id", 
-                new MySqlParameter("@id", id));
-                
-            if (table.Rows.Count == 0)
-                return null;
-                
-            var row = table.Rows[0];
-            return new Cuisinier
+            else
             {
-                IdCuisinier = Convert.ToInt32(row["id_cuisinier"]),
-                Nom = row["nom"].ToString(),
-                Prenom = row["prenom"].ToString(),
-                Adresse = row["addresse"].ToString(),
-                Email = row["email"] == DBNull.Value ? null : row["email"].ToString(),
-                Telephone = row["telephone"] == DBNull.Value ? null : row["telephone"].ToString()
-            };
-        }
-        
-        public bool AddCuisinier(Cuisinier cuisinier)
-        {
-            string query = @"INSERT INTO Cuisinier (id_cuisinier, nom, prenom, addresse, email, telephone)
-                           VALUES (@id, @nom, @prenom, @adresse, @email, @telephone)";
-            
-            var parameters = new MySqlParameter[]
+                c.Email = row["email"].ToString();
+            }
+
+            if (row["telephone"] == DBNull.Value)
             {
-                new MySqlParameter("@id", cuisinier.IdCuisinier),
-                new MySqlParameter("@nom", cuisinier.Nom),
-                new MySqlParameter("@prenom", cuisinier.Prenom),
-                new MySqlParameter("@adresse", cuisinier.Adresse),
-                new MySqlParameter("@email", cuisinier.Email ?? (object)DBNull.Value),
-                new MySqlParameter("@telephone", cuisinier.Telephone ?? (object)DBNull.Value)
-            };
-            
-            return ExecuteNonQuery(query, parameters) > 0;
+                c.Telephone = null;
+            }
+            else
+            {
+                c.Telephone = row["telephone"].ToString();
+            }
+
+            cuisiniers.Add(c);
         }
-        
-        public int GetNextCuisinierId()
+
+        return cuisiniers;
+    }
+
+    public Cuisinier ObtenirCuisinierID(int id)
+    {
+        var table = ExecuterRequete("SELECT * FROM Cuisinier WHERE id_cuisinier = @id",
+                                     new MySqlParameter("@id", id));
+
+        if (table.Rows.Count == 0)
+            return null;
+
+        DataRow row = table.Rows[0];
+        Cuisinier c = new Cuisinier();
+        c.IdCuisinier = Convert.ToInt32(row["id_cuisinier"]);
+        c.Nom = row["nom"].ToString();
+        c.Prenom = row["prenom"].ToString();
+        c.Adresse = row["addresse"].ToString();
+
+        if (row["email"] == DBNull.Value)
         {
-            object result = ExecuteScalar("SELECT MAX(id_cuisinier) FROM Cuisinier");
-            return (result == DBNull.Value) ? 1 : Convert.ToInt32(result) + 1;
+            c.Email = null;
         }
-        
-        // ===== MÉTHODES POUR PLATS =====
-        
-        public List<Plat> GetAllPlats()
+        else
+        {
+            c.Email = row["email"].ToString();
+        }
+
+        if (row["telephone"] == DBNull.Value)
+        {
+            c.Telephone = null;
+        }
+        else
+        {
+            c.Telephone = row["telephone"].ToString();
+        }
+
+        return c;
+    }
+
+    public bool AjouterCuisinier(Cuisinier cuisinier)
+    {
+        string requete = @"INSERT INTO Cuisinier (id_cuisinier, nom, prenom, addresse, email, telephone)
+                     VALUES (@id, @nom, @prenom, @adresse, @email, @telephone)";
+
+        MySqlParameter paramId = new MySqlParameter("@id", cuisinier.IdCuisinier);
+        MySqlParameter paramNom = new MySqlParameter("@nom", cuisinier.Nom);
+        MySqlParameter paramPrenom = new MySqlParameter("@prenom", cuisinier.Prenom);
+        MySqlParameter paramAdresse = new MySqlParameter("@adresse", cuisinier.Adresse);
+
+        MySqlParameter paramEmail;
+        if (cuisinier.Email == null)
+        {
+            paramEmail = new MySqlParameter("@email", DBNull.Value);
+        }
+        else
+        {
+            paramEmail = new MySqlParameter("@email", cuisinier.Email);
+        }
+
+        MySqlParameter paramTelephone;
+        if (cuisinier.Telephone == null)
+        {
+            paramTelephone = new MySqlParameter("@telephone", DBNull.Value);
+        }
+        else
+        {
+            paramTelephone = new MySqlParameter("@telephone", cuisinier.Telephone);
+        }
+
+        var parametres = new MySqlParameter[]
+        {
+        paramId, paramNom, paramPrenom, paramAdresse, paramEmail, paramTelephone
+        };
+
+        return ExecuterRequeteMAJ(requete, parametres) > 0;
+    }
+
+    public int ObtenirProchainCuisinier()
+    {
+        object result = ExecuterRequeteScalaire("SELECT MAX(id_cuisinier) FROM Cuisinier");
+        if (result == DBNull.Value)
+        {
+            return 1;
+        }
+        else
+        {
+            return Convert.ToInt32(result) + 1;
+        }
+    }
+
+    // ===== MÉTHODES POUR PLATS =====
+
+    public List<Plat> GetAllPlats()
         {
             var plats = new List<Plat>();
-            var table = ExecuteQuery("SELECT * FROM Plat");
+            var table = ExecuterRequete("SELECT * FROM Plat");
             
             foreach (DataRow row in table.Rows)
             {
@@ -266,7 +412,7 @@ public class DbAccess
         
         public Plat GetPlatById(int id)
         {
-            var table = ExecuteQuery("SELECT * FROM Plat WHERE id_plat = @id", 
+            var table = ExecuterRequete("SELECT * FROM Plat WHERE id_plat = @id", 
                 new MySqlParameter("@id", id));
                 
             if (table.Rows.Count == 0)
@@ -293,10 +439,9 @@ public class DbAccess
             };
         }
 
-    // ===== MÉTHODES POUR COMMANDES =====
     public int GetNextPlatId()
     {
-        object result = ExecuteScalar("SELECT MAX(id_plat) FROM Plat");
+        object result = ExecuterRequeteScalaire("SELECT MAX(id_plat) FROM Plat");
         return (result == DBNull.Value) ? 1 : Convert.ToInt32(result) + 1;
     }
 
@@ -320,13 +465,16 @@ public class DbAccess
         new MySqlParameter("@datePer", plat.DatePeremption == DateTime.MinValue ? (object)DBNull.Value : plat.DatePeremption)
         };
 
-        return ExecuteNonQuery(query, parameters) > 0;
+        return ExecuterRequeteMAJ(query, parameters) > 0;
     }
+
+    // ===== MÉTHODES POUR COMMANDES =====
+
 
     public List<Commande> GetAllCommandes()
         {
             var commandes = new List<Commande>();
-            var table = ExecuteQuery("SELECT * FROM Commande ORDER BY date_commande DESC");
+            var table = ExecuterRequete("SELECT * FROM Commande ORDER BY date_commande DESC");
             
             foreach (DataRow row in table.Rows)
             {
@@ -348,7 +496,7 @@ public class DbAccess
         
         public Commande GetCommandeById(int id)
         {
-            var table = ExecuteQuery("SELECT * FROM Commande WHERE id_commande = @id", 
+            var table = ExecuterRequete("SELECT * FROM Commande WHERE id_commande = @id", 
                 new MySqlParameter("@id", id));
                 
             if (table.Rows.Count == 0)
@@ -370,7 +518,7 @@ public class DbAccess
         public List<Ligne> GetLignesForCommande(int commandeId)
         {
             var lignes = new List<Ligne>();
-            var table = ExecuteQuery("SELECT * FROM Ligne WHERE id_commande = @id", 
+            var table = ExecuterRequete("SELECT * FROM Ligne WHERE id_commande = @id", 
                 new MySqlParameter("@id", commandeId));
                 
             foreach (DataRow row in table.Rows)
@@ -398,7 +546,7 @@ public class DbAccess
                         JOIN Ligne_Plat lp ON p.id_plat = lp.id_plat 
                         WHERE lp.id_ligne = @id";
                         
-            var table = ExecuteQuery(query, new MySqlParameter("@id", ligneId));
+            var table = ExecuterRequete(query, new MySqlParameter("@id", ligneId));
             
             foreach (DataRow row in table.Rows)
             {
@@ -407,88 +555,121 @@ public class DbAccess
             
             return plats;
         }
-        
-        public int AddCommande(Commande commande)
+
+    public int AddCommande(Commande commande)
+    {
+        // Vérifier si le client existe
+        if (ObtenirClientID(commande.IdClient) == null)
+            return -1;
+
+        // Commencer une transaction
+        using (var transaction = Connection().BeginTransaction())
         {
-            // Vérifier si le client existe
-            if (GetClientById(commande.IdClient) == null)
-                return -1;
-                
-            // Commencer une transaction
-            using (var transaction = GetConnection().BeginTransaction())
+            try
             {
-                try
+                // Insérer la commande
+                string query = @"INSERT INTO Commande (id_commande, statu_commande, date_commande, montant, paiement, id_client)
+                             VALUES (@id, @status, @date, @montant, @paiement, @idClient)";
+
+                int nextId = GetNextCommandeId();
+
+                MySqlParameter paramId = new MySqlParameter("@id", nextId);
+                MySqlParameter paramStatus = new MySqlParameter("@status", commande.StatuCommande);
+                MySqlParameter paramDate = new MySqlParameter("@date", commande.DateCommande);
+                MySqlParameter paramMontant = new MySqlParameter("@montant", commande.Montant);
+                MySqlParameter paramIdClient = new MySqlParameter("@idClient", commande.IdClient);
+
+                MySqlParameter paramPaiement;
+                if (commande.Paiement == null)
                 {
-                    // Insérer la commande
-                    string query = @"INSERT INTO Commande (id_commande, statu_commande, date_commande, montant, paiement, id_client)
-                                  VALUES (@id, @status, @date, @montant, @paiement, @idClient)";
-                    
-                    int nextId = GetNextCommandeId();
-                    
-                    var parameters = new MySqlParameter[]
+                    paramPaiement = new MySqlParameter("@paiement", DBNull.Value);
+                }
+                else
+                {
+                    paramPaiement = new MySqlParameter("@paiement", commande.Paiement);
+                }
+
+                var parameters = new MySqlParameter[]
+                {
+                paramId, paramStatus, paramDate, paramMontant, paramPaiement, paramIdClient
+                };
+
+                ExecuterRequeteMAJ(query, parameters);
+
+                // Ajouter les lignes de commande
+                foreach (var ligne in commande.Lignes)
+                {
+                    int nextLigneId = GetNextLigneId();
+
+                    // Insérer la ligne
+                    string ligneQuery = @"INSERT INTO Ligne (id_ligne, quantite, prix_total, date_livraison, lieu, id_commande)
+                                      VALUES (@id, @quantite, @prixTotal, @dateLivraison, @lieu, @idCommande)";
+
+                    MySqlParameter paramLigneId = new MySqlParameter("@id", nextLigneId);
+                    MySqlParameter paramQuantite = new MySqlParameter("@quantite", ligne.Quantite);
+                    MySqlParameter paramPrixTotal = new MySqlParameter("@prixTotal", ligne.PrixTotal);
+
+                    MySqlParameter paramDateLivraison;
+                    if (!ligne.DateLivraison.HasValue)
                     {
-                        new MySqlParameter("@id", nextId),
-                        new MySqlParameter("@status", commande.StatuCommande),
-                        new MySqlParameter("@date", commande.DateCommande),
-                        new MySqlParameter("@montant", commande.Montant),
-                        new MySqlParameter("@paiement", commande.Paiement ?? (object)DBNull.Value),
-                        new MySqlParameter("@idClient", commande.IdClient)
-                    };
-                    
-                    ExecuteNonQuery(query, parameters);
-                    
-                    // Ajouter les lignes de commande
-                    foreach (var ligne in commande.Lignes)
-                    {
-                        int nextLigneId = GetNextLigneId();
-                        
-                        // Insérer la ligne
-                        string ligneQuery = @"INSERT INTO Ligne (id_ligne, quantite, prix_total, date_livraison, lieu, id_commande)
-                                           VALUES (@id, @quantite, @prixTotal, @dateLivraison, @lieu, @idCommande)";
-                        
-                        var ligneParams = new MySqlParameter[]
-                        {
-                            new MySqlParameter("@id", nextLigneId),
-                            new MySqlParameter("@quantite", ligne.Quantite),
-                            new MySqlParameter("@prixTotal", ligne.PrixTotal),
-                            new MySqlParameter("@dateLivraison", ligne.DateLivraison.HasValue ? (object)ligne.DateLivraison.Value : DBNull.Value),
-                            new MySqlParameter("@lieu", ligne.Lieu ?? (object)DBNull.Value),
-                            new MySqlParameter("@idCommande", nextId)
-                        };
-                        
-                        ExecuteNonQuery(ligneQuery, ligneParams);
-                        
-                        // Associer les plats à la ligne
-                        foreach (var plat in ligne.Plats)
-                        {
-                            string platQuery = "INSERT INTO Ligne_Plat (id_ligne, id_plat) VALUES (@idLigne, @idPlat)";
-                            
-                            ExecuteNonQuery(platQuery, 
-                                new MySqlParameter("@idLigne", nextLigneId),
-                                new MySqlParameter("@idPlat", plat.IdPlat));
-                        }
+                        paramDateLivraison = new MySqlParameter("@dateLivraison", DBNull.Value);
                     }
-                    
-                    transaction.Commit();
-                    return nextId;
+                    else
+                    {
+                        paramDateLivraison = new MySqlParameter("@dateLivraison", ligne.DateLivraison.Value);
+                    }
+
+                    MySqlParameter paramLieu;
+                    if (ligne.Lieu == null)
+                    {
+                        paramLieu = new MySqlParameter("@lieu", DBNull.Value);
+                    }
+                    else
+                    {
+                        paramLieu = new MySqlParameter("@lieu", ligne.Lieu);
+                    }
+
+                    MySqlParameter paramIdCommande = new MySqlParameter("@idCommande", nextId);
+
+                    var ligneParams = new MySqlParameter[]
+                    {
+                    paramLigneId, paramQuantite, paramPrixTotal, paramDateLivraison, paramLieu, paramIdCommande
+                    };
+
+                    ExecuterRequeteMAJ(ligneQuery, ligneParams);
+
+                    // Associer les plats à la ligne
+                    foreach (var plat in ligne.Plats)
+                    {
+                        string platQuery = "INSERT INTO Ligne_Plat (id_ligne, id_plat) VALUES (@idLigne, @idPlat)";
+
+                        MySqlParameter paramIdLigne = new MySqlParameter("@idLigne", nextLigneId);
+                        MySqlParameter paramIdPlat = new MySqlParameter("@idPlat", plat.IdPlat);
+
+                        ExecuterRequeteMAJ(platQuery, paramIdLigne, paramIdPlat);
+                    }
                 }
-                catch
-                {
-                    transaction.Rollback();
-                    throw;
-                }
+
+                transaction.Commit();
+                return nextId;
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
             }
         }
-        
-        public int GetNextCommandeId()
+    }
+
+    public int GetNextCommandeId()
         {
-            object result = ExecuteScalar("SELECT MAX(id_commande) FROM Commande");
+            object result = ExecuterRequeteScalaire("SELECT MAX(id_commande) FROM Commande");
             return (result == DBNull.Value) ? 1 : Convert.ToInt32(result) + 1;
         }
         
         public int GetNextLigneId()
         {
-            object result = ExecuteScalar("SELECT MAX(id_ligne) FROM Ligne");
+            object result = ExecuterRequeteScalaire("SELECT MAX(id_ligne) FROM Ligne");
             return (result == DBNull.Value) ? 1 : Convert.ToInt32(result) + 1;
         }
     }

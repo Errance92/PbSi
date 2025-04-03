@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
     public class UserInterface
     {
-        private readonly DbAccess _db;
+        private readonly DbAccess db;
         
         public UserInterface()
         {
-            _db = new DbAccess();
+            db = new DbAccess();
         }
         
         public void Run()
@@ -16,7 +16,7 @@ using System.Collections.Generic;
             while (!exit)
             {
                 Console.Clear();
-                DisplayMainMenu();
+                AfficherMenu();
                 
                 string choice = Console.ReadLine();
                 
@@ -33,10 +33,10 @@ using System.Collections.Generic;
                 }
             }
             
-            _db.CloseConnection();
+            db.FermerConnection();
         }
         
-        private void DisplayMainMenu()
+        private void AfficherMenu()
         {
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine("=== LIV'IN PARIS ===");
@@ -67,12 +67,12 @@ using System.Collections.Generic;
                 Console.WriteLine("0. Retour au menu principal");
                 Console.Write("\nVotre choix: ");
                 
-                string choice = Console.ReadLine();
+                string choix = Console.ReadLine();
                 
-                switch (choice)
+                switch (choix)
                 {
-                    case "1": AddClient(); break;
-                    case "2": ModifyClient(); break;
+                    case "1": AjouterClient(); break;
+                    case "2": ModifierClient(); break;
                     case "3": DeleteClient(); break;
                     case "4": DisplayAllClients(); break;
                     case "0": exit = true; break;
@@ -84,14 +84,14 @@ using System.Collections.Generic;
             }
         }
         
-        private void AddClient()
+        private void AjouterClient()
         {
             Console.Clear();
             Console.WriteLine("=== AJOUTER UN CLIENT ===\n");
             
             Client client = new Client
             {
-                IdClient = _db.GetNextClientId()
+                IdClient = db.ObtenirProchainClient()
             };
             
             Console.Write("Nom: ");
@@ -109,7 +109,7 @@ using System.Collections.Generic;
             Console.Write("Téléphone (optionnel): ");
             client.Telephone = Console.ReadLine();
             
-            if (_db.AddClient(client))
+            if (db.AjouterClients(client))
                 Console.WriteLine("\nClient ajouté avec succès!");
             else
                 Console.WriteLine("\nErreur lors de l'ajout du client.");
@@ -117,7 +117,7 @@ using System.Collections.Generic;
             WaitForKey();
         }
         
-        private void ModifyClient()
+        private void ModifierClient()
         {
             Console.Clear();
             Console.WriteLine("=== MODIFIER UN CLIENT ===\n");
@@ -130,41 +130,41 @@ using System.Collections.Generic;
                 return;
             }
             
-            Client client = _db.GetClientById(id);
+            Client client = db.ObtenirClientID(id);
             
             if (client == null)
             {
-                Console.WriteLine($"Aucun client trouvé avec l'ID {id}.");
+                Console.WriteLine("Aucun client trouvé avec l'ID " + id);
                 WaitForKey();
                 return;
             }
             
-            Console.WriteLine($"Modification de {client}\n");
+            Console.WriteLine("Modification de " + client + "\n");
             
-            Console.Write($"Nom [{client.Nom}]: ");
+            Console.Write("Nom [" + client.Nom + "]: ");
             string nom = Console.ReadLine();
             if (!string.IsNullOrEmpty(nom)) client.Nom = nom;
             
-            Console.Write($"Prénom [{client.Prenom}]: ");
+            Console.Write("Prénom [" + client.Prenom+ "]: ");
             string prenom = Console.ReadLine();
             if (!string.IsNullOrEmpty(prenom)) client.Prenom = prenom;
             
-            Console.Write($"Adresse [{client.Adresse}]: ");
+            Console.Write("Adresse ["+ client.Adresse+ "]: ");
             string adresse = Console.ReadLine();
             if (!string.IsNullOrEmpty(adresse)) client.Adresse = adresse;
             
-            Console.Write($"Email [{client.Email}]: ");
+            Console.Write("Email [" + client.Email+ "]: ");
             string email = Console.ReadLine();
             if (!string.IsNullOrEmpty(email)) client.Email = email;
             
-            Console.Write($"Téléphone [{client.Telephone}]: ");
+            Console.Write("Téléphone [" + client.Telephone+ "]: ");
             string telephone = Console.ReadLine();
             if (!string.IsNullOrEmpty(telephone)) client.Telephone = telephone;
             
-            if (_db.UpdateClient(client))
+            if (db.MAJClient(client))
                 Console.WriteLine("\nClient modifié avec succès!");
             else
-                Console.WriteLine("\nErreur lors de la modification du client.");
+                Console.WriteLine("\nErreur lors de la modification du client");
                 
             WaitForKey();
         }
@@ -182,11 +182,11 @@ using System.Collections.Generic;
                 return;
             }
             
-            Client client = _db.GetClientById(id);
+            Client client = db.ObtenirClientID(id);
             
             if (client == null)
             {
-                Console.WriteLine($"Aucun client trouvé avec l'ID {id}.");
+                Console.WriteLine("Aucun client trouvé avec l'ID" + id);
                 WaitForKey();
                 return;
             }
@@ -199,7 +199,7 @@ using System.Collections.Generic;
                 return;
             }
             
-            if (_db.DeleteClient(id))
+            if (db.SupprimerClient(id))
                 Console.WriteLine("\nClient supprimé avec succès!");
             else
                 Console.WriteLine("\nErreur lors de la suppression du client.");
@@ -212,7 +212,7 @@ using System.Collections.Generic;
             Console.Clear();
             Console.WriteLine("=== LISTE DES CLIENTS ===\n");
             
-            List<Client> clients = _db.GetAllClients();
+            List<Client> clients = db.RecupererClients();
             
             if (clients.Count == 0)
             {
@@ -270,7 +270,7 @@ using System.Collections.Generic;
             
             Cuisinier cuisinier = new Cuisinier
             {
-                IdCuisinier = _db.GetNextCuisinierId()
+                IdCuisinier = db.ObtenirProchainCuisinier()
             };
             
             Console.Write("Nom: ");
@@ -288,7 +288,7 @@ using System.Collections.Generic;
             Console.Write("Téléphone (optionnel): ");
             cuisinier.Telephone = Console.ReadLine();
             
-            if (_db.AddCuisinier(cuisinier))
+            if (db.AjouterCuisinier(cuisinier))
                 Console.WriteLine("\nCuisinier ajouté avec succès!");
             else
                 Console.WriteLine("\nErreur lors de l'ajout du cuisinier.");
@@ -301,7 +301,7 @@ using System.Collections.Generic;
             Console.Clear();
             Console.WriteLine("=== LISTE DES CUISINIERS ===\n");
             
-            List<Cuisinier> cuisiniers = _db.GetAllCuisiniers();
+            List<Cuisinier> cuisiniers = db.RecupererCuisinier();
             
             if (cuisiniers.Count == 0)
             {
@@ -334,6 +334,7 @@ using System.Collections.Generic;
                 Console.WriteLine("1. Créer une commande");
                 Console.WriteLine("2. Afficher les détails d'une commande");
                 Console.WriteLine("3. Afficher toutes les commandes");
+                Console.WriteLine("4. Ajoiter un plat");
                 Console.WriteLine("0. Retour au menu principal");
                 Console.Write("\nVotre choix: ");
                 
@@ -362,7 +363,7 @@ using System.Collections.Generic;
         Plat plat = new Plat();
 
         // On suppose que vous avez créé une méthode GetNextPlatId() dans DbAccess
-        plat.IdPlat = _db.GetNextPlatId();
+        plat.IdPlat = db.GetNextPlatId();
 
         Console.Write("Nom du plat: ");
         plat.NomPlat = Console.ReadLine();
@@ -415,7 +416,7 @@ using System.Collections.Generic;
         plat.DatePeremption = datePer;
 
         // On ajoute le plat dans la base de données
-        bool success = _db.AddPlat(plat);
+        bool success = db.AddPlat(plat);
         if (success)
         {
             Console.WriteLine("\nPlat ajouté avec succès !");
@@ -442,7 +443,7 @@ using System.Collections.Generic;
                 return;
             }
             
-            Client client = _db.GetClientById(clientId);
+            Client client = db.ObtenirClientID(clientId);
             
             if (client == null)
             {
@@ -481,7 +482,7 @@ using System.Collections.Generic;
                     continue;
                 }
                 
-                Plat plat = _db.GetPlatById(platId);
+                Plat plat = db.GetPlatById(platId);
                 
                 if (plat == null)
                 {
@@ -537,7 +538,7 @@ using System.Collections.Generic;
                 return;
             }
             
-            int commandeId = _db.AddCommande(commande);
+            int commandeId = db.AddCommande(commande);
             
             if (commandeId > 0)
                 Console.WriteLine($"\nCommande #{commandeId} créée avec succès!");
@@ -560,7 +561,7 @@ using System.Collections.Generic;
                 return;
             }
             
-            Commande commande = _db.GetCommandeById(commandeId);
+            Commande commande = db.GetCommandeById(commandeId);
             
             if (commande == null)
             {
@@ -569,7 +570,7 @@ using System.Collections.Generic;
                 return;
             }
             
-            Client client = _db.GetClientById(commande.IdClient);
+            Client client = db.ObtenirClientID(commande.IdClient);
             
             Console.WriteLine($"\nCommande #{commande.IdCommande}");
             Console.WriteLine($"Date: {commande.DateCommande}");
@@ -593,7 +594,7 @@ using System.Collections.Generic;
             Console.Clear();
             Console.WriteLine("=== LISTE DES COMMANDES ===\n");
             
-            List<Commande> commandes = _db.GetAllCommandes();
+            List<Commande> commandes = db.GetAllCommandes();
             
             if (commandes.Count == 0)
             {
@@ -603,7 +604,7 @@ using System.Collections.Generic;
             {
                 foreach (Commande commande in commandes)
                 {
-                    Client client = _db.GetClientById(commande.IdClient);
+                    Client client = db.ObtenirClientID(commande.IdClient);
                     Console.WriteLine($"{commande} - Client: {client?.ToString() ?? "Inconnu"} - {commande.StatuCommande}");
                 }
                 Console.WriteLine($"\nTotal: {commandes.Count} commande(s)");
