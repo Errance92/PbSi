@@ -35,8 +35,10 @@ using System.Collections.Generic;
             
             db.FermerConnection();
         }
-        
-        private void AfficherMenu()
+    /// <summary>
+    /// affiche le menu principal
+    /// </summary>
+    private void AfficherMenu()
         {
             Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine("=== LIV'IN PARIS ===");
