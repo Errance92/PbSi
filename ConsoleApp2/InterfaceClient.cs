@@ -336,7 +336,8 @@ using System.Collections.Generic;
                 Console.WriteLine("1. Créer une commande");
                 Console.WriteLine("2. Afficher les détails d'une commande");
                 Console.WriteLine("3. Afficher toutes les commandes");
-                Console.WriteLine("4. Ajoiter un plat");
+                Console.WriteLine("4. Ajouter un plat");
+                Console.WriteLine("5. Afficher les plats disponibles");
                 Console.WriteLine("0. Retour au menu principal");
                 Console.Write("\nVotre choix: ");
                 
@@ -348,6 +349,7 @@ using System.Collections.Generic;
                     case "2": AfficherCommande(); break;
                     case "3": AfficherToutCommande(); break;
                     case "4": AjouterPlat(); break;
+                    case "5": AfficherPlat(); break;
                     case "0": exit = true; break;
                     default: 
                         Console.WriteLine("Option invalide.");
@@ -540,7 +542,7 @@ using System.Collections.Generic;
                 return;
             }
             
-            int commandeId = db.AddCommande(commande);
+            int commandeId = db.AjouterCommande(commande);
             
             if (commandeId > 0)
                 Console.WriteLine($"\nCommande #{commandeId} créée avec succès!");
@@ -566,7 +568,7 @@ using System.Collections.Generic;
             return;
         }
 
-        Commande commande = db.GetCommandeById(commandeId);
+        Commande commande = db.RecupereCommandeID(commandeId);
 
         if (commande == null)
         {
@@ -646,7 +648,7 @@ using System.Collections.Generic;
         Console.Clear();
         Console.WriteLine("=== LISTE DES COMMANDES ===\n");
 
-        List<Commande> commandes = db.GetAllCommandes();
+        List<Commande> commandes = db.RecupererToutCommandes();
 
         if (commandes.Count == 0)
         {
@@ -674,7 +676,28 @@ using System.Collections.Generic;
         WaitForKey();
     }
 
-    // Utilitaire pour attendre la saisie de l'utilisateur
+    private void AfficherPlat()
+    {
+        Console.Clear();
+        Console.WriteLine("=== LISTE DES PLATS ===\n");
+        List<Plat> plats = db.RecupererToutPlat();
+
+        if (plats.Count == 0)
+        {
+            Console.WriteLine("Aucun plat trouvé.");
+        }
+        else
+        {
+            foreach (Plat plat in plats)
+            {
+                Console.WriteLine(plat.ToString());
+            }
+            Console.WriteLine("\nTotal: " + plats.Count + " commande(s)");
+        }
+
+        WaitForKey();
+    }
+
     private void WaitForKey()
         {
             Console.WriteLine("\nAppuyez sur une touche pour continuer...");
