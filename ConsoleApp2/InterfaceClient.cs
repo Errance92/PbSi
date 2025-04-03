@@ -363,7 +363,7 @@ using System.Collections.Generic;
         Plat plat = new Plat();
 
         // On suppose que vous avez créé une méthode GetNextPlatId() dans DbAccess
-        plat.IdPlat = db.GetNextPlatId();
+        plat.IdPlat = db.RecupererPlatSuivant();
 
         Console.Write("Nom du plat: ");
         plat.NomPlat = Console.ReadLine();
@@ -416,7 +416,7 @@ using System.Collections.Generic;
         plat.DatePeremption = datePer;
 
         // On ajoute le plat dans la base de données
-        bool success = db.AddPlat(plat);
+        bool success = db.AjouterPlat(plat);
         if (success)
         {
             Console.WriteLine("\nPlat ajouté avec succès !");
@@ -482,7 +482,7 @@ using System.Collections.Generic;
                     continue;
                 }
                 
-                Plat plat = db.GetPlatById(platId);
+                Plat plat = db.RecuperePlatID(platId);
                 
                 if (plat == null)
                 {

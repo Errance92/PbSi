@@ -10,11 +10,8 @@ public class DbAccess
     private MySqlConnection connection;
     public DbAccess()
     {
-        // Chaîne de connexion codée directement dans la classe - REMPLACEZ PAR VOS VALEURS
         connectionString = "Server=localhost;Port=3306;Database=Liv'in Paris;Uid=root;Pwd=password;CharSet=utf8;";
-
-        // Pour le débogage, affichez un message
-        Console.WriteLine("Connexion à la base de données initialisée...");
+        Console.WriteLine("Connexion à la base de données initialisée");
     }
 
     private MySqlConnection Connection()
@@ -397,7 +394,7 @@ public class DbAccess
 
     // ===== MÉTHODES POUR PLATS =====
 
-    public List<Plat> GetAllPlats()
+    public List<Plat> RecupererToutPlat()
     {
         var plats = new List<Plat>();
         var table = ExecuterRequete("SELECT * FROM Plat");
@@ -410,7 +407,7 @@ public class DbAccess
         return plats;
     }
 
-    public Plat GetPlatById(int id)
+    public Plat RecuperePlatID(int id)
     {
         var table = ExecuterRequete("SELECT * FROM Plat WHERE id_plat = @id",
             new MySqlParameter("@id", id));
@@ -488,7 +485,7 @@ public class DbAccess
         return plat;
     }
 
-    public int GetNextPlatId()
+    public int RecupererPlatSuivant()
     {
         object result = ExecuterRequeteScalaire("SELECT MAX(id_plat) FROM Plat");
         if (result == DBNull.Value)
@@ -501,7 +498,7 @@ public class DbAccess
         }
     }
 
-    public bool AddPlat(Plat plat)
+    public bool AjouterPlat(Plat plat)
     {
         string requete = @"INSERT INTO Plat (id_plat, nom_plat, type, stock, origine, regime_alimentaire, ingredient, lien_photo, date_fabrication, prix_par_personne, date_peremption)
                      VALUES (@id, @nom, @type, @stock, @origine, @regime, @ingredient, @lien, @dateFab, @prix, @datePer)";
