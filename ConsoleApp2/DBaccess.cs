@@ -11,7 +11,7 @@ public class DbAccess
     private MySqlConnection _connection;
     public DbAccess()
     {
-        // Chaîne de connexion codée directement dans la classe - REMPLACEZ PAR VOS VALEURS
+        // Chaîne de connexion codée directement dans la classe
         _connectionString = "Server=localhost;Port=3306;Database=Liv'in Paris;Uid=root;Pwd=password;CharSet=utf8;";
 
         // Pour le débogage, affichez un message
