@@ -55,6 +55,9 @@ public class UserInterface
         }
 
     #region Client
+    /// <summary>
+    /// Gère le sous-menu du module client avec les options pour ajouter, modifier, supprimer ou afficher les clients.
+    /// </summary>
 
     private void ClientModule()
         {
@@ -89,6 +92,9 @@ public class UserInterface
                 }
             }
         }
+    /// <summary>
+    /// Permet de saisir les informations d'un nouveau client, vérifie la validité du métro, et l'ajoute à la base de données.
+    /// </summary>
 
     private void AjouterClient()
     {
@@ -168,6 +174,9 @@ public class UserInterface
         WaitForKey();
     }
 
+    /// <summary>
+    /// Modifie les informations d'un client existant en fonction de son ID, avec vérification des saisies et du métro.
+    /// </summary>
 
     private void ModifierClient()
     {
@@ -294,6 +303,9 @@ public class UserInterface
 
         WaitForKey();
     }
+    /// <summary>
+    /// Supprime un client de la base de données après confirmation, en fonction de son ID.
+    /// </summary>
 
     private void SupprimerClient()
     {
@@ -334,6 +346,9 @@ public class UserInterface
 
         WaitForKey();
     }
+    /// <summary>
+    /// Affiche la liste des clients avec la possibilité de trier selon différents critères (nom, rue, montant d'achat).
+    /// </summary>
 
     private void AfficherToutClients()
     {
@@ -383,6 +398,12 @@ public class UserInterface
 
         WaitForKey();
     }
+    /// <summary>
+    /// Vérifie si une station donnée existe dans une liste de nœuds représentant les stations de métro.
+    /// </summary>
+    /// <param name="nomStation">Le nom de la station à vérifier.</param>
+    /// <param name="listeNoeuds">La liste des nœuds contenant les stations.</param>
+    /// <returns>True si la station est valide, sinon False.</returns>
 
     public static bool EstStationValide(string nomStation, List<Noeud> listeNoeuds)
     {
@@ -398,6 +419,9 @@ public class UserInterface
     #endregion
 
     #region Cuisinier
+    /// <summary>
+    /// Gère le sous-menu du module cuisinier avec les options pour ajouter, modifier, supprimer ou afficher les cuisiniers.
+    /// </summary>
 
     private void CuisinierModule()
     {
@@ -432,6 +456,10 @@ public class UserInterface
             }
         }
     }
+    /// <summary>
+    /// Permet d'ajouter un nouveau cuisinier avec vérification des informations, validation de la station de métro,
+    /// et choix ou création d'un plat associé.
+    /// </summary>
 
     private void AjouterCuisinier()
     {
@@ -534,6 +562,11 @@ public class UserInterface
 
         WaitForKey();
     }
+    /// <summary>
+    /// Crée un nouveau plat en demandant les informations nécessaires à l'utilisateur.
+    /// Cette méthode est utilisée dans le contexte de l'ajout ou modification d’un cuisinier.
+    /// </summary>
+    /// <returns>Le plat nouvellement créé, ou null en cas d'échec.</returns>
 
     private Plat AjouterPlatPourCuisinier()
     {
@@ -615,6 +648,10 @@ public class UserInterface
             return null;
         }
     }
+    /// <summary>
+    /// Modifie les informations d’un cuisinier existant, y compris son plat associé,
+    /// avec validation des champs et de la station de métro.
+    /// </summary>
 
     private void ModifierCuisinier()
     {
@@ -736,6 +773,9 @@ public class UserInterface
 
         WaitForKey();
     }
+    /// <summary>
+    /// Affiche la liste de tous les cuisiniers enregistrés dans la base de données.
+    /// </summary>
 
     private void AfficherToutCuisiniers()
         {
@@ -759,6 +799,9 @@ public class UserInterface
             
             WaitForKey();
         }
+    /// <summary>
+    /// Supprime un cuisinier existant après confirmation, à partir de son ID.
+    /// </summary>
 
     private void SupprimerCuisinier()
     {
@@ -805,6 +848,9 @@ public class UserInterface
     #endregion
 
     #region Plat
+    /// <summary>
+    /// Gère le sous-menu du module plat avec les options pour ajouter, modifier, supprimer ou afficher des plats.
+    /// </summary>
 
     private void PlatModule()
     {
@@ -841,6 +887,10 @@ public class UserInterface
             }
         } 
     }
+    /// <summary>
+    /// Permet d'ajouter un nouveau plat avec toutes ses informations : nom, type, stock, origine, etc.
+    /// Inclut la validation des champs saisis.
+    /// </summary>
 
     private void AjouterPlat()
     {
@@ -953,6 +1003,9 @@ public class UserInterface
 
         WaitForKey();
     }
+    /// <summary>
+    /// Affiche tous les plats enregistrés dans la base de données.
+    /// </summary>
 
     private void AfficherToutPlat()
     {
@@ -975,6 +1028,9 @@ public class UserInterface
 
         WaitForKey();
     }
+    /// <summary>
+    /// Affiche les détails complets d’un plat à partir de son ID.
+    /// </summary>
 
     private void AfficherPlat()
     {
@@ -1060,6 +1116,9 @@ public class UserInterface
 
         WaitForKey();
     }
+    /// <summary>
+    /// Permet de modifier les informations d’un plat existant avec vérification et mise à jour des champs.
+    /// </summary>
 
     private void ModifierPlat()
     {
@@ -1177,6 +1236,9 @@ public class UserInterface
 
         WaitForKey();
     }
+    /// <summary>
+    /// Supprime un plat de la base de données après confirmation, à partir de son ID.
+    /// </summary>
 
     private void SupprimerPlat()
     {
@@ -1222,6 +1284,9 @@ public class UserInterface
     #endregion
 
     #region Commande
+    /// <summary>
+    /// Gère le sous-menu du module commande avec les options pour créer, afficher ou consulter les commandes.
+    /// </summary>
 
     private void CommandeModule()
         {
@@ -1255,6 +1320,10 @@ public class UserInterface
             }
         }
 
+    /// <summary>
+    /// Crée une nouvelle commande en associant un client, un plat, un cuisinier et un moyen de paiement.
+    /// Calcule le montant, met à jour le client et affiche le chemin de livraison.
+    /// </summary>
 
     private void PasserCommande()
     {
@@ -1393,6 +1462,10 @@ public class UserInterface
 
         WaitForKey();
     }
+    /// <summary>
+    /// Affiche les détails d'une commande spécifique à partir de son ID.
+    /// Inclut les informations sur le client, le cuisinier et le plat associés.
+    /// </summary>
 
     private void AfficherCommandeParID()
     {
@@ -1465,6 +1538,9 @@ public class UserInterface
 
         WaitForKey();
     }
+    /// <summary>
+    /// Affiche la liste de toutes les commandes, avec les informations liées au client, plat et cuisinier.
+    /// </summary>
 
     private void AfficherToutesCommandes()
     {
@@ -1526,7 +1602,11 @@ public class UserInterface
     }
 
 
-    #endregion 
+    #endregion
+    /// <summary>
+    /// Attend que l'utilisateur appuie sur une touche pour continuer.
+    /// </summary>
+
     private void WaitForKey()
         {
             Console.WriteLine("\nAppuyez sur une touche pour continuer...");
