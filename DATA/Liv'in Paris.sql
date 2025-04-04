@@ -5,17 +5,24 @@ CREATE TABLE IF NOT EXISTS Client (
     id_client INT PRIMARY KEY,
     nom VARCHAR(100) NOT NULL,
     prenom VARCHAR(100) NOT NULL,
-    addresse VARCHAR(255) NOT NULL,
+    numero_rue INT(100) NOT NULL,
+    ville VARCHAR(100) NOT NULL,
+    rue VARCHAR(100) NOT NULL,
     email VARCHAR(100),
-    telephone VARCHAR(20)
+    telephone VARCHAR(20),
+    montant_achat DOUBlE NOT NULL,
+    metro VARCHAR(100) 
 );
 CREATE TABLE IF NOT EXISTS Cuisinier (
     id_cuisinier INT PRIMARY KEY,
     nom VARCHAR(100) NOT NULL,
     prenom VARCHAR(100) NOT NULL,
-    addresse VARCHAR(255) NOT NULL,
+    numero_rue VARCHAR(100) NOT NULL,
+    ville VARCHAR(100) NOT NULL,
+    rue VARCHAR(100) NOT NULL,
     email VARCHAR(100),
-    telephone VARCHAR(20)
+    telephone VARCHAR(20),
+    metro VARCHAR(100)
 );
 CREATE TABLE IF NOT EXISTS Itineraire (
     id_itineraire INT PRIMARY KEY,
@@ -27,7 +34,7 @@ CREATE TABLE IF NOT EXISTS Itineraire (
 CREATE TABLE IF NOT EXISTS Plat (
     id_plat INT PRIMARY KEY,
     nom_plat VARCHAR(100) NOT NULL,
-    type VARCHAR(50) NOT NULL,
+    _type VARCHAR(50) NOT NULL,
     stock INT NOT NULL,
     origine VARCHAR(100),
     regime_alimentaire VARCHAR(50),
@@ -44,7 +51,11 @@ CREATE TABLE IF NOT EXISTS Commande (
     montant DECIMAL(10,2) NOT NULL,
     paiement VARCHAR(50),
     id_client INT,
-    FOREIGN KEY (id_client) REFERENCES Client(id_client)
+    id_cuisinier INT,
+    id_plat INT,
+    FOREIGN KEY (id_client) REFERENCES Client(id_client),
+    FOREIGN KEY (id_cuisinier) REFERENCES Cuisinier(id_cuisinier),
+    FOREIGN KEY (id_plat) REFERENCES Plat(id_plat)
 );
 CREATE TABLE IF NOT EXISTS Transaction (
     id_transaction INT PRIMARY KEY,
@@ -59,15 +70,6 @@ CREATE TABLE IF NOT EXISTS Livraison (
     date_livraison DATETIME NOT NULL,
     addresse_livraison VARCHAR(255) NOT NULL,
     statu_livraison VARCHAR(50) NOT NULL,
-    id_commande INT,
-    FOREIGN KEY (id_commande) REFERENCES Commande(id_commande)
-);
-CREATE TABLE IF NOT EXISTS Ligne (
-    id_ligne INT PRIMARY KEY,
-    quantite INT NOT NULL,
-    prix_total DECIMAL(10,2) NOT NULL,
-    date_livraison DATETIME,
-    lieu VARCHAR(255),
     id_commande INT,
     FOREIGN KEY (id_commande) REFERENCES Commande(id_commande)
 );
@@ -88,20 +90,8 @@ CREATE TABLE IF NOT EXISTS Commande_Itineraire (
     FOREIGN KEY (id_commande) REFERENCES Commande(id_commande),
     FOREIGN KEY (id_itineraire) REFERENCES Itineraire(id_itineraire)
 );
-CREATE TABLE IF NOT EXISTS Ligne_Plat (
-    id_ligne INT,
-    id_plat INT,
-    PRIMARY KEY (id_ligne, id_plat),
-    FOREIGN KEY (id_ligne) REFERENCES Ligne(id_ligne),
-    FOREIGN KEY (id_plat) REFERENCES Plat(id_plat)
-);
-CREATE TABLE IF NOT EXISTS Cuisinier_Plat (
-    id_cuisinier INT,
-    id_plat INT,
-    PRIMARY KEY (id_cuisinier, id_plat),
-    FOREIGN KEY (id_cuisinier) REFERENCES Cuisinier(id_cuisinier),
-    FOREIGN KEY (id_plat) REFERENCES Plat(id_plat)
-);
+
+
 
 -- INSERT INTO Client (id_client, nom, prenom, addresse, email, telephone) 
 -- VALUES (1, 'Durand', 'Medhy', 'Rue Cardinet, 15, 75017 Paris', 'Mdurand@gmail.com', '1234567890');
@@ -124,14 +114,5 @@ CREATE TABLE IF NOT EXISTS Cuisinier_Plat (
 -- INSERT INTO Cuisinier_Plat (id_cuisinier, id_plat) VALUES (1, 1);
 -- INSERT INTO Cuisinier_Plat (id_cuisinier, id_plat) VALUES (1, 2);
 
+select * from commande;
 
-SELECT * FROM Client;
-
-SELECT * FROM Cuisinier;
-
-SELECT id_plat, nom_plat, type, prix_par_personne, origine, regime_alimentaire 
-FROM Plat;
-
-SELECT id_plat, nom_plat, type, stock, prix_par_personne, origine, regime_alimentaire, date_fabrication, date_peremption 
-FROM Plat
-ORDER BY type, nom_plat;
