@@ -370,7 +370,7 @@ public class DbAccess
 
     private static int ComparerParMontant(Client a, Client b)
     {
-        return a.MontantAchat.CompareTo(b.MontantAchat);
+        return b.MontantAchat.CompareTo(a.MontantAchat);
     }
     #endregion
 
@@ -972,33 +972,50 @@ public class DbAccess
 
     #region Commandes
 
-    public List<Commande> RecupererToutCommandes()
+    public List<Commande> RecupererCommandes()
     {
-        var commandes = new List<Commande>();
-        DataTable table = ExecuterRequete("SELECT * FROM Commande ORDER BY date_commande DESC");
+        List<Commande> commandes = new List<Commande>();
+
+        var table = ExecuterRequete("SELECT * FROM Commande");
 
         foreach (DataRow row in table.Rows)
         {
-            int idCommande = Convert.ToInt32(row["id_commande"]);
+            Commande commande = new Commande();
 
-            string paiement;
+            commande.IdCommande = Convert.ToInt32(row["id_commande"]);
+            commande.StatuCommande = row["statu_commande"].ToString();
+            commande.DateCommande = Convert.ToDateTime(row["date_commande"]);
+            commande.Montant = Convert.ToDouble(row["montant"]);
+
             if (row["paiement"] == DBNull.Value)
             {
-                paiement = null;
+                commande.Paiement = null;
             }
             else
             {
-                paiement = row["paiement"].ToString();
+                commande.Paiement = row["paiement"].ToString();
             }
 
-            Commande commande = new Commande();
-            commande.IdCommande = idCommande;
-            commande.StatuCommande = row["statu_commande"].ToString();
-            commande.DateCommande = Convert.ToDateTime(row["date_commande"]);
-            commande.Montant = Convert.ToDecimal(row["montant"]);
-            commande.Paiement = paiement;
-            commande.IdClient = Convert.ToInt32(row["id_client"]);
-            commande.Lignes = LignesCommandes(idCommande);
+            if (row["id_client"] == DBNull.Value)
+            {
+                commande.IdClient = -1; 
+            }
+            else
+            {
+                commande.IdClient = Convert.ToInt32(row["id_client"]);
+            }
+
+            if (row.Table.Columns.Contains("id_cuisinier"))
+            {
+                if (row["id_cuisinier"] == DBNull.Value)
+                {
+                    commande.IdCuisinier = -1; 
+                }
+                else
+                {
+                    commande.IdCuisinier = Convert.ToInt32(row["id_cuisinier"]);
+                }
+            }
 
             commandes.Add(commande);
         }
@@ -1006,20 +1023,22 @@ public class DbAccess
         return commandes;
     }
 
-    public Commande RecupereCommandeID(int id)
+    public Commande ObtenirCommandeParId(int id)
     {
-        DataTable table = ExecuterRequete("SELECT * FROM Commande WHERE id_commande = @id",
-                                           new MySqlParameter("@id", id));
+        var table = ExecuterRequete("SELECT * FROM Commande WHERE id_commande = @id", new MySqlParameter("@id", id));
 
         if (table.Rows.Count == 0)
+        {
             return null;
+        }
 
-        DataRow row = table.Rows[0];
+        var row = table.Rows[0];
         Commande commande = new Commande();
-        commande.IdCommande = id;
+
+        commande.IdCommande = Convert.ToInt32(row["id_commande"]);
         commande.StatuCommande = row["statu_commande"].ToString();
         commande.DateCommande = Convert.ToDateTime(row["date_commande"]);
-        commande.Montant = Convert.ToDecimal(row["montant"]);
+        commande.Montant = Convert.ToDouble(row["montant"]);
 
         if (row["paiement"] == DBNull.Value)
         {
@@ -1030,266 +1049,73 @@ public class DbAccess
             commande.Paiement = row["paiement"].ToString();
         }
 
-        commande.IdClient = Convert.ToInt32(row["id_client"]);
-        commande.Lignes = LignesCommandes(id);
+        if (row["id_client"] == DBNull.Value)
+        {
+            commande.IdClient = -1;
+        }
+        else
+        {
+            commande.IdClient = Convert.ToInt32(row["id_client"]);
+        }
+
+        if (row.Table.Columns.Contains("id_cuisinier"))
+        {
+            if (row["id_cuisinier"] == DBNull.Value)
+            {
+                commande.IdCuisinier = -1;
+            }
+            else
+            {
+                commande.IdCuisinier = Convert.ToInt32(row["id_cuisinier"]);
+            }
+        }
 
         return commande;
     }
 
-    public List<Ligne> LignesCommandes(int commandeId)
+
+    public bool AjouterCommande(Commande commande)
     {
-        var lignes = new List<Ligne>();
-        DataTable table = ExecuterRequete("SELECT * FROM Ligne WHERE id_commande = @id",
-            new MySqlParameter("@id", commandeId));
+        string requete = @"INSERT INTO Commande (id_commande, statu_commande, date_commande, montant, paiement, id_client, id_cuisinier)
+                       VALUES (@id, @statut, @dateCom, @montant, @paiement, @idClient, @idCuisinier)";
 
-        foreach (DataRow row in table.Rows)
+        MySqlParameter paramId = new MySqlParameter("@id", commande.IdCommande);
+        MySqlParameter paramStatut = new MySqlParameter("@statut", commande.StatuCommande);
+        MySqlParameter paramDate = new MySqlParameter("@dateCom", commande.DateCommande);
+        MySqlParameter paramMontant = new MySqlParameter("@montant", commande.Montant);
+        MySqlParameter paramIdClient = new MySqlParameter("@idClient", commande.IdClient);
+        MySqlParameter paramIdCuisinier = new MySqlParameter("@idCuisinier", commande.IdCuisinier);
+
+        MySqlParameter paramPaiement;
+        if (commande.Paiement == null)
         {
-            int idLigne = Convert.ToInt32(row["id_ligne"]);
-            int quantite = Convert.ToInt32(row["quantite"]);
-            decimal prixTotal = Convert.ToDecimal(row["prix_total"]);
-
-            DateTime? dateLivraison;
-            if (row["date_livraison"] == DBNull.Value)
-            {
-                dateLivraison = null;
-            }
-            else
-            {
-                dateLivraison = Convert.ToDateTime(row["date_livraison"]);
-            }
-
-            string lieu;
-            if (row["lieu"] == DBNull.Value)
-            {
-                lieu = null;
-            }
-            else
-            {
-                lieu = row["lieu"].ToString();
-            }
-
-            Ligne ligne = new Ligne();
-            ligne.IdLigne = idLigne;
-            ligne.Quantite = quantite;
-            ligne.PrixTotal = prixTotal;
-            ligne.DateLivraison = dateLivraison;
-            ligne.Lieu = lieu;
-            ligne.IdCommande = commandeId;
-            ligne.Plats = PlatLigne(idLigne);
-
-            lignes.Add(ligne);
-        }
-
-        return lignes;
-    }
-
-    public List<Plat> PlatLigne(int ligneId)
-    {
-        var plats = new List<Plat>();
-        string requete = @"SELECT p.* FROM Plat p 
-                       JOIN Ligne_Plat lp ON p.id_plat = lp.id_plat 
-                       WHERE lp.id_ligne = @id";
-        DataTable table = ExecuterRequete(requete, new MySqlParameter("@id", ligneId));
-
-        foreach (DataRow row in table.Rows)
-        {
-            Plat plat = new Plat();
-            plat.IdPlat = Convert.ToInt32(row["id_plat"]);
-            plat.NomPlat = row["nom_plat"].ToString();
-            plat.Type = row["type"].ToString();
-            plat.Stock = Convert.ToInt32(row["stock"]);
-
-            if (row["origine"] == DBNull.Value)
-            {
-                plat.Origine = null;
-            }
-            else
-            {
-                plat.Origine = row["origine"].ToString();
-            }
-
-            if (row["regime_alimentaire"] == DBNull.Value)
-            {
-                plat.RegimeAlimentaire = null;
-            }
-            else
-            {
-                plat.RegimeAlimentaire = row["regime_alimentaire"].ToString();
-            }
-
-            if (row["ingredient"] == DBNull.Value)
-            {
-                plat.Ingredient = null;
-            }
-            else
-            {
-                plat.Ingredient = row["ingredient"].ToString();
-            }
-
-            if (row["lien_photo"] == DBNull.Value)
-            {
-                plat.LienPhoto = null;
-            }
-            else
-            {
-                plat.LienPhoto = row["lien_photo"].ToString();
-            }
-
-            if (row["date_fabrication"] == DBNull.Value)
-            {
-                plat.DateFabrication = DateTime.MinValue;
-            }
-            else
-            {
-                plat.DateFabrication = Convert.ToDateTime(row["date_fabrication"]);
-            }
-
-            plat.PrixParPersonne = Convert.ToDecimal(row["prix_par_personne"]);
-
-            if (row["date_peremption"] == DBNull.Value)
-            {
-                plat.DatePeremption = DateTime.MinValue;
-            }
-            else
-            {
-                plat.DatePeremption = Convert.ToDateTime(row["date_peremption"]);
-            }
-
-            plats.Add(plat);
-        }
-
-        return plats;
-    }
-
-    public int AjouterCommande(Commande commande)
-    {
-        // Vérifier si le client existe
-        if (ObtenirClientID(commande.IdClient) == null)
-            return -1;
-
-        // Commencer une transaction
-        using (var transaction = Connection().BeginTransaction())
-        {
-            try
-            {
-                // Insérer la commande
-                string query = @"INSERT INTO Commande (id_commande, statu_commande, date_commande, montant, paiement, id_client)
-                             VALUES (@id, @status, @date, @montant, @paiement, @idClient)";
-
-                int nextId = RecupereProchaineCommande();
-
-                MySqlParameter paramId = new MySqlParameter("@id", nextId);
-                MySqlParameter paramStatus = new MySqlParameter("@status", commande.StatuCommande);
-                MySqlParameter paramDate = new MySqlParameter("@date", commande.DateCommande);
-                MySqlParameter paramMontant = new MySqlParameter("@montant", commande.Montant);
-                MySqlParameter paramIdClient = new MySqlParameter("@idClient", commande.IdClient);
-
-                MySqlParameter paramPaiement;
-                if (commande.Paiement == null)
-                {
-                    paramPaiement = new MySqlParameter("@paiement", DBNull.Value);
-                }
-                else
-                {
-                    paramPaiement = new MySqlParameter("@paiement", commande.Paiement);
-                }
-
-                var parameters = new MySqlParameter[]
-                {
-                paramId, paramStatus, paramDate, paramMontant, paramPaiement, paramIdClient
-                };
-
-                ExecuterRequeteMAJ(query, parameters);
-
-                // Ajouter les lignes de commande
-                foreach (var ligne in commande.Lignes)
-                {
-                    int nextLigneId = RecupereProchaineLigne();
-
-                    // Insérer la ligne
-                    string ligneQuery = @"INSERT INTO Ligne (id_ligne, quantite, prix_total, date_livraison, lieu, id_commande)
-                                      VALUES (@id, @quantite, @prixTotal, @dateLivraison, @lieu, @idCommande)";
-
-                    MySqlParameter paramLigneId = new MySqlParameter("@id", nextLigneId);
-                    MySqlParameter paramQuantite = new MySqlParameter("@quantite", ligne.Quantite);
-                    MySqlParameter paramPrixTotal = new MySqlParameter("@prixTotal", ligne.PrixTotal);
-
-                    MySqlParameter paramDateLivraison;
-                    if (!ligne.DateLivraison.HasValue)
-                    {
-                        paramDateLivraison = new MySqlParameter("@dateLivraison", DBNull.Value);
-                    }
-                    else
-                    {
-                        paramDateLivraison = new MySqlParameter("@dateLivraison", ligne.DateLivraison.Value);
-                    }
-
-                    MySqlParameter paramLieu;
-                    if (ligne.Lieu == null)
-                    {
-                        paramLieu = new MySqlParameter("@lieu", DBNull.Value);
-                    }
-                    else
-                    {
-                        paramLieu = new MySqlParameter("@lieu", ligne.Lieu);
-                    }
-
-                    MySqlParameter paramIdCommande = new MySqlParameter("@idCommande", nextId);
-
-                    var ligneParams = new MySqlParameter[]
-                    {
-                    paramLigneId, paramQuantite, paramPrixTotal, paramDateLivraison, paramLieu, paramIdCommande
-                    };
-
-                    ExecuterRequeteMAJ(ligneQuery, ligneParams);
-
-                    // Associer les plats à la ligne
-                    foreach (var plat in ligne.Plats)
-                    {
-                        string platQuery = "INSERT INTO Ligne_Plat (id_ligne, id_plat) VALUES (@idLigne, @idPlat)";
-
-                        MySqlParameter paramIdLigne = new MySqlParameter("@idLigne", nextLigneId);
-                        MySqlParameter paramIdPlat = new MySqlParameter("@idPlat", plat.IdPlat);
-
-                        ExecuterRequeteMAJ(platQuery, paramIdLigne, paramIdPlat);
-                    }
-                }
-
-                transaction.Commit();
-                return nextId;
-            }
-            catch
-            {
-                transaction.Rollback();
-                throw;
-            }
-        }
-    }
-
-    public int RecupereProchaineCommande()
-    {
-        object result = ExecuterRequeteScalaire("SELECT MAX(id_commande) FROM Commande");
-        if (result == DBNull.Value)
-        {
-            return 1;
+            paramPaiement = new MySqlParameter("@paiement", DBNull.Value);
         }
         else
         {
-            return Convert.ToInt32(result) + 1;
+            paramPaiement = new MySqlParameter("@paiement", commande.Paiement);
         }
+
+        MySqlParameter[] parametres = new MySqlParameter[]
+        {
+        paramId,
+        paramStatut,
+        paramDate,
+        paramMontant,
+        paramPaiement,
+        paramIdClient,
+        paramIdCuisinier
+        };
+
+        return ExecuterRequeteMAJ(requete, parametres) > 0;
     }
 
-    public int RecupereProchaineLigne()
+
+    public int ObtenirProchainIdCommande()
     {
-        object result = ExecuterRequeteScalaire("SELECT MAX(id_ligne) FROM Ligne");
-        if (result == DBNull.Value)
-        {
-            return 1;
-        }
-        else
-        {
-            return Convert.ToInt32(result) + 1;
-        }
+        object resultat = ExecuterRequeteScalaire("SELECT MAX(id_commande) FROM Commande");
+        return (resultat == DBNull.Value) ? 1 : Convert.ToInt32(resultat) + 1;
     }
+
     #endregion
 }

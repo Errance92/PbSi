@@ -1243,9 +1243,9 @@ public class UserInterface
                 
                 switch (choice)
                 {
-                    case "1": CreeCommande(); break;
-                    case "2": AfficherCommande(); break;
-                    case "3": AfficherToutCommande(); break;
+                    case "1": PasserCommande(); break;
+                    case "2": AfficherCommandeParID(); break;
+                    case "3": AfficherToutesCommandes(); break;
                     case "0": exit = true; break;
                     default: 
                         Console.WriteLine("Option invalide.");
@@ -1256,246 +1256,272 @@ public class UserInterface
         }
 
 
-    private void CreeCommande()
-        {
-            Console.Clear();
-            Console.WriteLine("=== CRÉER UNE COMMANDE ===\n");
-            
-            // Sélection du client
-            Console.Write("ID du client: ");
-            if (!int.TryParse(Console.ReadLine(), out int clientId))
-            {
-                Console.WriteLine("ID client invalide.");
-                WaitForKey();
-                return;
-            }
-            
-            Client client = db.ObtenirClientID(clientId);
-            
-            if (client == null)
-            {
-                Console.WriteLine($"Aucun client trouvé avec l'ID {clientId}.");
-                WaitForKey();
-                return;
-            }
-            
-            // Création de la commande
-            Commande commande = new Commande
-            {
-                IdClient = clientId,
-                DateCommande = DateTime.Now,
-                StatuCommande = "En cours",
-                Lignes = new List<Ligne>()
-            };
-            
-            // Ajout de ligne(s)
-            bool addingLines = true;
-            decimal totalAmount = 0;
-            
-            while (addingLines)
-            {
-                Console.WriteLine("\n=== AJOUTER UNE LIGNE ===");
-                
-                Ligne ligne = new Ligne
-                {
-                    Plats = new List<Plat>()
-                };
-                
-                // Sélection du plat
-                Console.Write("ID du plat: ");
-                if (!int.TryParse(Console.ReadLine(), out int platId))
-                {
-                    Console.WriteLine("ID plat invalide.");
-                    continue;
-                }
-                
-                Plat plat = db.RecuperePlatID(platId);
-                
-                if (plat == null)
-                {
-                    Console.WriteLine($"Aucun plat trouvé avec l'ID {platId}.");
-                    continue;
-                }
-                
-                // Quantité
-                Console.Write("Quantité: ");
-                if (!int.TryParse(Console.ReadLine(), out int quantite) || quantite <= 0)
-                {
-                    Console.WriteLine("Quantité invalide.");
-                    continue;
-                }
-                
-                ligne.Quantite = quantite;
-                ligne.Plats.Add(plat);
-                ligne.PrixTotal = plat.PrixParPersonne * quantite;
-                totalAmount += ligne.PrixTotal;
-                
-                // Date de livraison (optionnelle)
-                Console.Write("Date de livraison (JJ/MM/AAAA): ");
-                string dateLivraisonStr = Console.ReadLine();
-                if (DateTime.TryParse(dateLivraisonStr, out DateTime dateLivraison))
-                {
-                    ligne.DateLivraison = dateLivraison;
-                }
-                
-                // Lieu de livraison
-                Console.Write("Lieu de livraison: ");
-                ligne.Lieu = Console.ReadLine();
-                
-                commande.Lignes.Add(ligne);
-                
-                Console.Write("\nAjouter une autre ligne? (O/N): ");
-                addingLines = Console.ReadLine().ToUpper() == "O";
-            }
-            
-            commande.Montant = totalAmount;
-            
-            // Mode de paiement
-            Console.Write("\nMode de paiement: ");
-            commande.Paiement = Console.ReadLine();
-            
-            // Confirmation
-            Console.WriteLine($"\nTotal de la commande: {commande.Montant}€");
-            Console.Write("Confirmer la commande? (O/N): ");
-            
-            if (Console.ReadLine().ToUpper() != "O")
-            {
-                Console.WriteLine("Création de commande annulée.");
-                WaitForKey();
-                return;
-            }
-            
-            int commandeId = db.AjouterCommande(commande);
-            
-            if (commandeId > 0)
-                Console.WriteLine($"\nCommande #{commandeId} créée avec succès!");
-            else
-                Console.WriteLine("\nErreur lors de la création de la commande.");
-                
-            WaitForKey();
-        }
-    /// <summary>
-    /// affiche la commande
-    /// </summary>
-    private void AfficherCommande()
+    private void PasserCommande()
     {
         Console.Clear();
-        Console.WriteLine("=== DÉTAILS D'UNE COMMANDE ===\n");
+        Console.WriteLine("=== PASSER UNE COMMANDE ===\n");
 
-        Console.Write("ID de la commande: ");
-        int commandeId;
-        if (!int.TryParse(Console.ReadLine(), out commandeId))
+        Console.Write("ID du client : ");
+        int idClient;
+        string saisieId = Console.ReadLine();
+        while (!int.TryParse(saisieId, out idClient) || db.ObtenirClientID(idClient) == null)
         {
-            Console.WriteLine("ID commande invalide.");
+            Console.WriteLine("ID invalide ou client inexistant. Réessayez : ");
+            saisieId = Console.ReadLine();
+        }
+
+        Client client = db.ObtenirClientID(idClient);
+
+        Console.Clear();
+        Console.WriteLine("=== SÉLECTION DU PLAT ===\n");
+        List<Plat> platsDispo = db.RecupererToutPlat();
+
+        foreach (var p in platsDispo)
+        {
+            Console.WriteLine(p.ToString());
+        }
+
+        Console.Write("\nID du plat souhaité : ");
+        int idPlat;
+        string saisiePlat = Console.ReadLine();
+        while (!int.TryParse(saisiePlat, out idPlat) || db.RecuperePlatID(idPlat) == null)
+        {
+            Console.WriteLine("ID invalide. Réessayez : ");
+            saisiePlat = Console.ReadLine();
+        }
+
+        Plat plat = db.RecuperePlatID(idPlat);
+
+        Console.Write("Quantité (nombre de portions) : ");
+        int quantite;
+        while (!int.TryParse(Console.ReadLine(), out quantite) || quantite <= 0)
+        {
+            Console.WriteLine("Quantité invalide. Réessayez : ");
+        }
+
+        double montantTotal = Convert.ToDouble(plat.PrixParPersonne * quantite);
+
+        List<Cuisinier> cuisiniers = db.RecupererCuisinier();
+        List<Cuisinier> disponibles = new List<Cuisinier>();
+
+        foreach (Cuisinier c in cuisiniers)
+        {
+            if (c.IdPlat != null && c.IdPlat == plat.IdPlat)
+            {
+                disponibles.Add(c);
+            }
+        }
+
+        if (disponibles.Count == 0)
+        {
+            Console.WriteLine("Aucun cuisinier ne propose ce plat. Annulation.");
             WaitForKey();
             return;
         }
 
-        Commande commande = db.RecupereCommandeID(commandeId);
-
-        if (commande == null)
+        Console.WriteLine("\nCuisiniers disponibles pour ce plat :");
+        for (int i = 0; i < disponibles.Count; i++)
         {
-            Console.WriteLine("Aucune commande trouvée avec l'ID " + commandeId + ".");
+            Console.WriteLine((i + 1) + ". " + disponibles[i].ToString());
+        }
+
+        Console.Write("Choisissez un cuisinier (par numéro) : ");
+        int choixCuisinier;
+        string saisieChoix = Console.ReadLine();
+        while (!int.TryParse(saisieChoix, out choixCuisinier) || choixCuisinier < 1 || choixCuisinier > disponibles.Count)
+        {
+            Console.WriteLine("Choix invalide. Réessayez : ");
+            saisieChoix = Console.ReadLine();
+        }
+
+        Cuisinier cuisinier = disponibles[choixCuisinier - 1];
+
+        Console.Write("Moyen de paiement (carte ou espece) : ");
+        string paiement = Console.ReadLine().ToLower();
+        while (paiement != "carte" && paiement != "espece")
+        {
+            Console.WriteLine("Moyen de paiement invalide. Veuillez entrer 'carte' ou 'espece' : ");
+            paiement = Console.ReadLine().ToLower();
+        }
+
+        Commande commande = new Commande();
+        commande.IdCommande = db.ObtenirProchainIdCommande();
+        commande.IdClient = client.IdClient;
+        commande.IdCuisinier = cuisinier.IdCuisinier;
+        commande.StatuCommande = "En cours";
+        commande.DateCommande = DateTime.Now;
+        commande.Paiement = paiement;
+        commande.Montant = montantTotal;
+
+        bool succes = db.AjouterCommande(commande);
+        if (succes)
+        {
+            Console.WriteLine("\nCommande ajoutée avec succès !");
+
+            // Mise à jour du MontantAchat du client
+            client.MontantAchat = client.MontantAchat + montantTotal;
+            db.MAJClient(client);
+            Console.WriteLine("Cout de la commande : " + montantTotal + "€");
+        }
+        else
+        {
+            Console.WriteLine("\nErreur lors de l’ajout de la commande.");
             WaitForKey();
             return;
         }
 
-        Client client = db.ObtenirClientID(commande.IdClient);
+        Graphe g = new Graphe();
+        string stationDepart = client.Metro;
+        string stationArrivee = cuisinier.Metro;
 
-        Console.WriteLine("\nCommande #" + commande.IdCommande);
-        Console.WriteLine("Date: " + commande.DateCommande);
+        List<string> chemin = g.DijkstraChemin(stationDepart, stationArrivee);
+        int temps = g.DijkstraCout(stationDepart, stationArrivee);
 
-        string clientString;
-        if (client == null)
+        if (chemin.Count == 0)
         {
-            clientString = "Inconnu";
+            Console.WriteLine("\nAucun chemin trouvé entre " + stationDepart + " et " + stationArrivee + ".");
         }
         else
         {
-            clientString = client.ToString();
+            Console.WriteLine("\n--- Chemin de livraison ---");
+            for (int i = 0; i < chemin.Count; i++)
+            {
+                Console.WriteLine((i + 1) + ". " + chemin[i]);
+            }
         }
-        Console.WriteLine("Client: " + clientString);
-
-        Console.WriteLine("Statut: " + commande.StatuCommande);
-        Console.WriteLine("Montant: " + commande.Montant + "€");
-
-        string paiementStr;
-        if (commande.Paiement == null)
-        {
-            paiementStr = "Non défini";
-        }
-        else
-        {
-            paiementStr = commande.Paiement;
-        }
-        Console.WriteLine("Paiement: " + paiementStr);
-
-        Console.WriteLine("\nLignes de commande:");
-        foreach (var ligne in commande.Lignes)
-        {
-            // Ici, on suppose que chaque ligne comporte au moins un plat dans la liste.
-            string platNom = "";
-            if (ligne.Plats != null && ligne.Plats.Count > 0)
-            {
-                platNom = ligne.Plats[0].NomPlat;
-            }
-            Console.WriteLine("- Ligne #" + ligne.IdLigne + ": " + ligne.Quantite + "x " + platNom + " = " + ligne.PrixTotal + "€");
-
-            string livraisonStr;
-            if (!ligne.DateLivraison.HasValue)
-            {
-                livraisonStr = "Non définie";
-            }
-            else
-            {
-                livraisonStr = ligne.DateLivraison.Value.ToString("dd/MM/yyyy");
-            }
-
-            string lieuStr;
-            if (ligne.Lieu == null)
-            {
-                lieuStr = "Non défini";
-            }
-            else
-            {
-                lieuStr = ligne.Lieu;
-            }
-            Console.WriteLine("  Livraison: " + livraisonStr + " - " + lieuStr);
-        }
+        Console.WriteLine("Temps de livraison : " + temps + " minutes");
 
         WaitForKey();
     }
 
-    private void AfficherToutCommande()
+    private void AfficherCommandeParID()
+    {
+        Console.Clear();
+        Console.WriteLine("=== AFFICHER UNE COMMANDE PAR ID ===\n");
+
+        Console.Write("ID de la commande : ");
+        int idCommande;
+        while (!int.TryParse(Console.ReadLine(), out idCommande))
+        {
+            Console.WriteLine("ID invalide. Veuillez réessayer : ");
+        }
+
+        Commande commande = db.ObtenirCommandeParId(idCommande);
+
+        if (commande == null)
+        {
+            Console.WriteLine("Aucune commande trouvée avec l'ID " + idCommande);
+            WaitForKey();
+            return;
+        }
+
+        Console.WriteLine("\n--- Détails de la commande ---");
+
+        Console.WriteLine("ID : " + commande.IdCommande);
+        Console.WriteLine("Date : " + commande.DateCommande.ToString("dd/MM/yyyy HH:mm"));
+
+        Client client = db.ObtenirClientID(commande.IdClient);
+        if (client != null)
+        {
+            Console.WriteLine("Client : " + client.ToString());
+        }
+        else
+        {
+            Console.WriteLine("Client : Inconnu");
+        }
+
+        Cuisinier cuisinier = db.ObtenirCuisinierID(commande.IdCuisinier);
+        if (cuisinier != null)
+        {
+            Console.WriteLine("Cuisinier : " + cuisinier.ToString());
+        }
+        else
+        {
+            Console.WriteLine("Cuisinier : Inconnu");
+        }
+
+        Plat plat = db.RecuperePlatID(commande.IdPlat);
+        if (plat != null)
+        {
+            Console.WriteLine("Plat : " + plat.ToString());
+        }
+        else
+        {
+            Console.WriteLine("Plat : Inconnu");
+        }
+
+        Console.WriteLine("Statut : " + commande.StatuCommande);
+
+        if (commande.Paiement == null || commande.Paiement == "")
+        {
+            Console.WriteLine("Paiement : Non défini");
+        }
+        else
+        {
+            Console.WriteLine("Paiement : " + commande.Paiement);
+        }
+
+        Console.WriteLine("Montant : " + commande.Montant + " €");
+
+        WaitForKey();
+    }
+
+    private void AfficherToutesCommandes()
     {
         Console.Clear();
         Console.WriteLine("=== LISTE DES COMMANDES ===\n");
 
-        List<Commande> commandes = db.RecupererToutCommandes();
+        List<Commande> commandes = db.RecupererCommandes();
 
         if (commandes.Count == 0)
         {
             Console.WriteLine("Aucune commande trouvée.");
-        }
-        else
-        {
-            foreach (Commande commande in commandes)
-            {
-                Client client = db.ObtenirClientID(commande.IdClient);
-                string clientString;
-                if (client == null)
-                {
-                    clientString = "Inconnu";
-                }
-                else
-                {
-                    clientString = client.ToString();
-                }
-                Console.WriteLine(commande.ToString() + " - Client: " + clientString + " - " + commande.StatuCommande);
-            }
-            Console.WriteLine("\nTotal: " + commandes.Count + " commande(s)");
+            WaitForKey();
+            return;
         }
 
+        foreach (Commande commande in commandes)
+        {
+            Client client = db.ObtenirClientID(commande.IdClient);
+            Cuisinier cuisinier = db.ObtenirCuisinierID(commande.IdCuisinier);
+            Plat plat = db.RecuperePlatID(commande.IdPlat);
+
+            string ligne = "[" + commande.IdCommande + "] " +
+                           commande.DateCommande.ToString("dd/MM/yyyy") + " - ";
+
+            if (client != null)
+            {
+                ligne += "Client : " + client.Nom + " ";
+            }
+            else
+            {
+                ligne += "Client : Inconnu ";
+            }
+
+            if (plat != null)
+            {
+                ligne += "- Plat : " + plat.NomPlat + " ";
+            }
+            else
+            {
+                ligne += "- Plat : Inconnu ";
+            }
+
+            if (cuisinier != null)
+            {
+                ligne += "- Cuisinier : " + cuisinier.Nom + " ";
+            }
+            else
+            {
+                ligne += "- Cuisinier : Inconnu ";
+            }
+
+            ligne += "- " + commande.Montant + " € - " + commande.Paiement + " - " + commande.StatuCommande;
+
+            Console.WriteLine(ligne);
+        }
+
+        Console.WriteLine("\nTotal : " + commandes.Count + " commande(s)");
         WaitForKey();
     }
 

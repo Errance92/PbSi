@@ -115,26 +115,16 @@ public class Cuisinier
         public int IdCommande;
         public string StatuCommande;
         public DateTime DateCommande;
-        public decimal Montant;
+        public double Montant;
         public string Paiement;
         public int IdClient;
-        public List<Ligne> Lignes = new List<Ligne>();
-        
+        public int IdCuisinier;
+        public int IdPlat;
+
         public string ToString()
         {
             return "Commande #" + IdCommande + " - " + DateCommande.ToShortDateString() + " - " + Montant + "€";
         }
-    }
-
-    public class Ligne
-    {
-        public int IdLigne;
-        public int Quantite;
-        public decimal PrixTotal;
-        public DateTime? DateLivraison;
-        public string Lieu;
-        public int IdCommande;
-        public List<Plat> Plats = new List<Plat>();
     }
 
     public class Itineraire
