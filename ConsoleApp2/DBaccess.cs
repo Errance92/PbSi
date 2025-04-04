@@ -15,6 +15,12 @@ public class DbAccess
     }
 
     #region Connexion
+
+    /// <summary>
+    /// Établit une connexion MySQL si elle n'existe pas ou n'est pas ouverte.
+    /// </summary>
+    /// <returns>Une instance ouverte de <see cref="MySqlConnection"/>.</returns>
+
     private MySqlConnection Connection()
     {
         try
@@ -39,6 +45,9 @@ public class DbAccess
             throw;
         }
     }
+    /// <summary>
+    /// Ferme la connexion MySQL si elle est ouverte.
+    /// </summary>
 
     public void FermerConnection()
     {
@@ -52,6 +61,13 @@ public class DbAccess
     #endregion
 
     #region Requete
+    /// <summary>
+    /// Exécute une requête SQL SELECT avec des paramètres facultatifs et retourne les résultats dans un DataTable.
+    /// </summary>
+    /// <param name="requete">La requête SQL à exécuter.</param>
+    /// <param name="parametres">Les paramètres associés à la requête.</param>
+    /// <returns>Un DataTable contenant les résultats.</returns>
+
     public DataTable ExecuterRequete(string requete, params MySqlParameter[] parametres)
     {
         using (var commande = new MySqlCommand(requete, Connection()))
@@ -67,6 +83,12 @@ public class DbAccess
             return dataTable;
         }
     }
+    /// <summary>
+    /// Exécute une requête SQL de mise à jour (INSERT, UPDATE, DELETE) avec des paramètres facultatifs.
+    /// </summary>
+    /// <param name="requete">La requête SQL à exécuter.</param>
+    /// <param name="parametres">Les paramètres associés à la requête.</param>
+    /// <returns>Le nombre de lignes affectées par la requête.</returns>
 
     public int ExecuterRequeteMAJ(string requete, params MySqlParameter[] parametres)
     {
@@ -78,6 +100,12 @@ public class DbAccess
             return commande.ExecuteNonQuery();
         }
     }
+    /// <summary>
+    /// Exécute une requête SQL qui retourne une seule valeur (ex: COUNT, MAX, etc.).
+    /// </summary>
+    /// <param name="requete">La requête SQL à exécuter.</param>
+    /// <param name="parametres">Les paramètres associés à la requête.</param>
+    /// <returns>La valeur scalaire retournée par la requête.</returns>
 
     public object ExecuterRequeteScalaire(string requete, params MySqlParameter[] parametres)
     {
@@ -92,6 +120,11 @@ public class DbAccess
     #endregion
 
     #region Clients
+    /// <summary>
+    /// Récupère l'ensemble des clients présents dans la base de données.
+    /// </summary>
+    /// <returns>Une liste d'objets <see cref="Client"/> représentant les clients.</returns>
+
     public List<Client> RecupererClients()
     {
         var clients = new List<Client>();
@@ -139,6 +172,11 @@ public class DbAccess
 
         return clients;
     }
+    /// <summary>
+    /// Récupère un client spécifique à partir de son identifiant unique.
+    /// </summary>
+    /// <param name="id">L'identifiant du client.</param>
+    /// <returns>Un objet <see cref="Client"/> correspondant ou null si non trouvé.</returns>
 
     public Client ObtenirClientID(int id)
     {
@@ -189,6 +227,11 @@ public class DbAccess
 
         return client;
     }
+    /// <summary>
+    /// Ajoute un nouveau client dans la base de données.
+    /// </summary>
+    /// <param name="client">Le client à ajouter.</param>
+    /// <returns>True si l'insertion a réussi, sinon false.</returns>
 
     public bool AjouterClients(Client client)
     {
@@ -249,6 +292,11 @@ public class DbAccess
 
         return ExecuterRequeteMAJ(requete, parametres) > 0;
     }
+    /// <summary>
+    /// Met à jour les informations d'un client existant.
+    /// </summary>
+    /// <param name="client">Le client avec les données mises à jour.</param>
+    /// <returns>True si la mise à jour a réussi, sinon false.</returns>
 
     public bool MAJClient(Client client)
     {
@@ -320,12 +368,21 @@ public class DbAccess
 
         return ExecuterRequeteMAJ(requete, parametres) > 0;
     }
+    /// <summary>
+    /// Supprime un client à partir de son identifiant.
+    /// </summary>
+    /// <param name="id">L'identifiant du client à supprimer.</param>
+    /// <returns>True si la suppression a réussi, sinon false.</returns>
 
     public bool SupprimerClient(int id)
     {
         return ExecuterRequeteMAJ("DELETE FROM Client WHERE id_client = @id",
                                  new MySqlParameter("@id", id)) > 0;
     }
+    /// <summary>
+    /// Récupère l'identifiant disponible suivant pour l'ajout d'un nouveau client.
+    /// </summary>
+    /// <returns>L'identifiant suivant disponible.</returns>
 
     public int ObtenirProchainIDClient()
     {
@@ -339,34 +396,67 @@ public class DbAccess
             return Convert.ToInt32(resultat) + 1;
         }
     }
+    /// <summary>
+    /// Trie une liste de clients par ordre alphabétique de nom.
+    /// </summary>
+    /// <param name="clients">Liste des clients à trier.</param>
+    /// <returns>La liste triée par nom.</returns>
 
     public static List<Client> TrierParNom(List<Client> clients)
     {
         clients.Sort(ComparerParNom);
         return clients;
     }
+    /// <summary>
+    /// Compare deux clients selon leur nom.
+    /// </summary>
+    /// <param name="a">Premier client.</param>
+    /// <param name="b">Deuxième client.</param>
+    /// <returns>Un entier indiquant l'ordre de tri.</returns>
 
     private static int ComparerParNom(Client a, Client b)
     {
         return a.Nom.CompareTo(b.Nom);
     }
+    /// <summary>
+    /// Trie une liste de clients par nom de rue.
+    /// </summary>
+    /// <param name="clients">Liste des clients à trier.</param>
+    /// <returns>La liste triée par rue.</returns>
 
     public static List<Client> TrierParRue(List<Client> clients)
     {
         clients.Sort(ComparerParRue);
         return clients;
     }
+    /// <summary>
+    /// Compare deux clients selon leur rue.
+    /// </summary>
+    /// <param name="a">Premier client.</param>
+    /// <param name="b">Deuxième client.</param>
+    /// <returns>Un entier indiquant l'ordre de tri.</returns>
 
     private static int ComparerParRue(Client a, Client b)
     {
         return a.NomRue.CompareTo(b.NomRue);
     }
+    /// <summary>
+    /// Trie une liste de clients par montant d'achat décroissant.
+    /// </summary>
+    /// <param name="clients">Liste des clients à trier.</param>
+    /// <returns>La liste triée par montant d'achat.</returns>
 
     public static List<Client> TrierParMontant(List<Client> clients)
     {
         clients.Sort(ComparerParMontant);
         return clients;
     }
+    /// <summary>
+    /// Compare deux clients selon leur montant d'achat.
+    /// </summary>
+    /// <param name="a">Premier client.</param>
+    /// <param name="b">Deuxième client.</param>
+    /// <returns>Un entier indiquant l'ordre de tri décroissant.</returns>
 
     private static int ComparerParMontant(Client a, Client b)
     {
@@ -375,6 +465,11 @@ public class DbAccess
     #endregion
 
     #region Cuisinier
+    /// <summary>
+    /// Récupère tous les cuisiniers présents dans la base de données.
+    /// </summary>
+    /// <returns>Une liste d'objets <see cref="Cuisinier"/>.</returns>
+
     public List<Cuisinier> RecupererCuisinier()
     {
         var cuisiniers = new List<Cuisinier>();
@@ -423,6 +518,11 @@ public class DbAccess
 
         return cuisiniers;
     }
+    /// <summary>
+    /// Récupère un cuisinier à partir de son identifiant unique.
+    /// </summary>
+    /// <param name="id">L'identifiant du cuisinier.</param>
+    /// <returns>Un objet <see cref="Cuisinier"/> ou null si non trouvé.</returns>
 
     public Cuisinier ObtenirCuisinierID(int id)
     {
@@ -471,6 +571,11 @@ public class DbAccess
 
         return c;
     }
+    /// <summary>
+    /// Ajoute un nouveau cuisinier à la base de données.
+    /// </summary>
+    /// <param name="cuisinier">Le cuisinier à ajouter.</param>
+    /// <returns>True si l'ajout a réussi, sinon false.</returns>
 
     public bool AjouterCuisinier(Cuisinier cuisinier)
     {
@@ -531,6 +636,10 @@ public class DbAccess
 
         return ExecuterRequeteMAJ(requete, parametres) > 0;
     }
+    /// <summary>
+    /// Récupère l'identifiant disponible suivant pour un nouveau cuisinier.
+    /// </summary>
+    /// <returns>L'identifiant suivant disponible.</returns>
 
     public int ObtenirProchainCuisinier()
     {
@@ -544,6 +653,11 @@ public class DbAccess
             return Convert.ToInt32(result) + 1;
         }
     }
+    /// <summary>
+    /// Met à jour les informations d’un cuisinier existant dans la base.
+    /// </summary>
+    /// <param name="cuisinier">Le cuisinier avec les informations mises à jour.</param>
+    /// <returns>True si la mise à jour a réussi, sinon false.</returns>
 
     public bool MAJCuisinier(Cuisinier cuisinier)
     {
@@ -613,6 +727,11 @@ public class DbAccess
 
         return ExecuterRequeteMAJ(requete, parametres) > 0;
     }
+    /// <summary>
+    /// Supprime un cuisinier en fonction de son identifiant.
+    /// </summary>
+    /// <param name="id">L’identifiant du cuisinier à supprimer.</param>
+    /// <returns>True si la suppression a réussi, sinon false.</returns>
 
     public bool SupprimerCuisinier(int id)
     {
@@ -623,6 +742,11 @@ public class DbAccess
     #endregion
 
     #region Plat
+    /// <summary>
+    /// Récupère tous les plats disponibles dans la base de données.
+    /// </summary>
+    /// <returns>Une liste d'objets <see cref="Plat"/> représentant les plats.</returns>
+
     public List<Plat> RecupererToutPlat()
     {
         var plats = new List<Plat>();
@@ -696,6 +820,11 @@ public class DbAccess
 
         return plats;
     }
+    /// <summary>
+    /// Récupère un plat spécifique à partir de son identifiant.
+    /// </summary>
+    /// <param name="id">L'identifiant du plat.</param>
+    /// <returns>Un objet <see cref="Plat"/> ou null si non trouvé.</returns>
 
     public Plat RecuperePlatID(int id)
     {
@@ -769,6 +898,10 @@ public class DbAccess
 
         return plat;
     }
+    /// <summary>
+    /// Récupère l'identifiant disponible suivant pour ajouter un nouveau plat.
+    /// </summary>
+    /// <returns>L'identifiant suivant disponible.</returns>
 
     public int RecupererPlatSuivant()
     {
@@ -782,6 +915,11 @@ public class DbAccess
             return Convert.ToInt32(result) + 1;
         }
     }
+    /// <summary>
+    /// Ajoute un nouveau plat dans la base de données.
+    /// </summary>
+    /// <param name="plat">Le plat à ajouter.</param>
+    /// <returns>True si l'ajout a réussi, sinon false.</returns>
 
     public bool AjouterPlat(Plat plat)
     {
@@ -862,6 +1000,11 @@ public class DbAccess
 
         return ExecuterRequeteMAJ(requete, parametres) > 0;
     }
+    /// <summary>
+    /// Met à jour les informations d’un plat existant dans la base.
+    /// </summary>
+    /// <param name="plat">Le plat avec les données à jour.</param>
+    /// <returns>True si la mise à jour a réussi, sinon false.</returns>
 
     public bool MAJPlat(Plat plat)
     {
@@ -961,6 +1104,11 @@ public class DbAccess
 
         return ExecuterRequeteMAJ(requete, parametres) > 0;
     }
+    /// <summary>
+    /// Supprime un plat de la base de données via son identifiant.
+    /// </summary>
+    /// <param name="id">L’identifiant du plat à supprimer.</param>
+    /// <returns>True si la suppression a réussi, sinon false.</returns>
 
     public bool SupprimerPlat(int id)
     {
@@ -971,6 +1119,10 @@ public class DbAccess
     #endregion
 
     #region Commandes
+    /// <summary>
+    /// Récupère toutes les commandes enregistrées dans la base de données.
+    /// </summary>
+    /// <returns>Une liste d'objets <see cref="Commande"/> représentant les commandes.</returns>
 
     public List<Commande> RecupererCommandes()
     {
@@ -1022,6 +1174,11 @@ public class DbAccess
 
         return commandes;
     }
+    /// <summary>
+    /// Récupère une commande à partir de son identifiant unique.
+    /// </summary>
+    /// <param name="id">L’identifiant de la commande.</param>
+    /// <returns>Un objet <see cref="Commande"/> ou null si non trouvé.</returns>
 
     public Commande ObtenirCommandeParId(int id)
     {
@@ -1073,6 +1230,11 @@ public class DbAccess
         return commande;
     }
 
+    /// <summary>
+    /// Ajoute une nouvelle commande dans la base de données.
+    /// </summary>
+    /// <param name="commande">La commande à insérer.</param>
+    /// <returns>True si l'insertion a réussi, sinon false.</returns>
 
     public bool AjouterCommande(Commande commande)
     {
@@ -1110,6 +1272,10 @@ public class DbAccess
         return ExecuterRequeteMAJ(requete, parametres) > 0;
     }
 
+    /// <summary>
+    /// Récupère l'identifiant disponible suivant pour une nouvelle commande.
+    /// </summary>
+    /// <returns>L'identifiant suivant disponible.</returns>
 
     public int ObtenirProchainIdCommande()
     {

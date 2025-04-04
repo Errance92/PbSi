@@ -228,6 +228,9 @@ namespace Karaté
                 listeAdjacence[key].Sort();
             }
         }
+        /// <summary>
+        /// Construit la liste d’adjacence avec les noms de stations au lieu des identifiants.
+        /// </summary>
 
         public void RemplirListeAdjNom()
         {
@@ -273,6 +276,11 @@ namespace Karaté
             }
 
         }
+        /// <summary>
+        /// Effectue un parcours en largeur (BFS) à partir d’un nœud donné.
+        /// </summary>
+        /// <param name="debut">Identifiant du nœud de départ.</param>
+        /// <returns>Le parcours sous forme de chaîne de caractères.</returns>
 
         public string BFS(int debut)
         {
@@ -757,6 +765,12 @@ namespace Karaté
             }
             return Tuple.Create(distances, precedent, ligneUtilisee);
         }
+        /// <summary>
+        /// Récupère le plus court chemin entre deux stations à l’aide de l’algorithme de Dijkstra.
+        /// </summary>
+        /// <param name="depart">Nom de la station de départ.</param>
+        /// <param name="arrivee">Nom de la station d’arrivée.</param>
+        /// <returns>Liste représentant le chemin avec les changements de ligne.</returns>
 
         public List<string> DijkstraChemin(string depart, string arrivee)
         {
@@ -817,6 +831,12 @@ namespace Karaté
             }
             return chemin;
         }
+        /// <summary>
+        /// Calcule le coût du chemin le plus court entre deux stations avec Dijkstra.
+        /// </summary>
+        /// <param name="depart">Station de départ.</param>
+        /// <param name="arrivee">Station d’arrivée.</param>
+        /// <returns>Le coût total du trajet.</returns>
 
         public int DijkstraCout(string depart, string arrivee)
         {
@@ -837,6 +857,11 @@ namespace Karaté
             }
             return distances[id];
         }
+        /// <summary>
+        /// Calcule les plus courts chemins depuis une station source à l’aide de l’algorithme de Bellman-Ford.
+        /// </summary>
+        /// <param name="stationDepart">Nom de la station de départ.</param>
+        /// <returns>Un tuple avec les distances, les prédécesseurs, et les lignes utilisées.</returns>
 
         private Tuple<int[], int[], string[]> CalculerBellmanFord(string stationDepart)
         {
@@ -915,6 +940,12 @@ namespace Karaté
             }
             return Tuple.Create(distances, predecesseurs, lignesUtilisees);
         }
+        /// <summary>
+        /// Retourne le plus court chemin entre deux stations selon Bellman-Ford.
+        /// </summary>
+        /// <param name="stationDepart">Nom de la station de départ.</param>
+        /// <param name="stationArrivee">Nom de la station d’arrivée.</param>
+        /// <returns>Liste des stations traversées avec les lignes empruntées.</returns>
 
         public List<string> BellmanFordChemin(string stationDepart, string stationArrivee)
         {
@@ -973,6 +1004,12 @@ namespace Karaté
             }
             return chemin;
         }
+        /// <summary>
+        /// Retourne le coût du trajet le plus court selon Bellman-Ford.
+        /// </summary>
+        /// <param name="stationDepart">Nom de la station de départ.</param>
+        /// <param name="stationArrivee">Nom de la station d’arrivée.</param>
+        /// <returns>Le coût minimal du trajet.</returns>
 
         public int BellmanFordCout(string stationDepart, string stationArrivee)
         {
@@ -992,6 +1029,10 @@ namespace Karaté
             }
             return distances[indiceArrivee];
         }
+        /// <summary>
+        /// Calcule toutes les distances minimales entre toutes les paires de stations avec Floyd-Warshall.
+        /// </summary>
+        /// <returns>Un tuple contenant la matrice de distances et la matrice de précédents.</returns>
 
         private Tuple<int[,], int[,]> CalculerFloydWarshall()
         {
@@ -1037,6 +1078,12 @@ namespace Karaté
             }
             return Tuple.Create(distance, precedent);
         }
+        /// <summary>
+        /// Donne le chemin optimal entre deux stations selon Floyd-Warshall.
+        /// </summary>
+        /// <param name="stationDepart">Station de départ.</param>
+        /// <param name="stationArrivee">Station d’arrivée.</param>
+        /// <returns>Liste des stations à parcourir, avec indication des lignes.</returns>
 
         public List<string> FloydChemin(string stationDepart, string stationArrivee)
         {
@@ -1120,6 +1167,12 @@ namespace Karaté
             }
             return chemin;
         }
+        /// <summary>
+        /// Retourne le coût minimal entre deux stations en utilisant l’algorithme de Floyd-Warshall.
+        /// </summary>
+        /// <param name="stationDepart">Station de départ.</param>
+        /// <param name="stationArrivee">Station d’arrivée.</param>
+        /// <returns>Coût minimal entre les deux stations.</returns>
 
         public int FloydCout(string stationDepart, string stationArrivee)
         {
