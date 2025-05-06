@@ -206,9 +206,9 @@ public class LoginInterface
             return CreerNouveauClient();
         }
 
-        foreach (var client in clients)
+        foreach (var clien in clients)
         {
-            Console.WriteLine($"{client.IdClient}: {client.Nom} {client.Prenom}");
+            Console.WriteLine($"{clien.IdClient}: {clien.Nom} {clien.Prenom}");
         }
 
         Console.Write("\nID du client à associer (0 pour annuler): ");
@@ -332,9 +332,9 @@ public class LoginInterface
             return CreerNouveauCuisinier();
         }
 
-        foreach (var cuisinier in cuisiniers)
+        foreach (var cuisin in cuisiniers)
         {
-            Console.WriteLine($"{cuisinier.IdCuisinier}: {cuisinier.Nom} {cuisinier.Prenom}");
+            Console.WriteLine($"{cuisin.IdCuisinier}: {cuisin.Nom} {cuisin.Prenom}");
         }
 
         Console.Write("\nID du cuisinier à associer (0 pour annuler): ");
