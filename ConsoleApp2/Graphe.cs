@@ -479,11 +479,9 @@ namespace Karaté
             using (var surface = SKSurface.Create(new SKImageInfo(largeur, hauteur)))
             {
                 var toile = surface.Canvas;
-                // Fond beige clair
+
                 toile.Clear(SKColors.Beige);
 
-                // Calcul des positions en fonction des vraies coordonnées géographiques
-                // (Supposant que vos nœuds disposent de Latitude et Longitude)
                 double minLat = double.MaxValue, maxLat = double.MinValue;
                 double minLon = double.MaxValue, maxLon = double.MinValue;
                 foreach (Noeud n in noeuds)
@@ -493,7 +491,7 @@ namespace Karaté
                     if (n.Longitude < minLon) minLon = n.Longitude;
                     if (n.Longitude > maxLon) maxLon = n.Longitude;
                 }
-                double marge = 0.008;  // Marge plus importante
+                double marge = 0.008; 
                 minLat -= marge; maxLat += marge;
                 minLon -= marge; maxLon += marge;
 
@@ -501,18 +499,13 @@ namespace Karaté
                 foreach (Noeud n in noeuds)
                 {
                     float x = (float)((n.Longitude - minLon) / (maxLon - minLon) * largeur);
-                    // Inverser l'axe y pour que la latitude élevée soit en haut
                     float y = (float)(hauteur - ((n.Latitude - minLat) / (maxLat - minLat) * hauteur));
                     positions[n.Identifiant] = new SKPoint(x, y);
                 }
 
-                // Préparation pour le décalage des liens superposés :
-                // Clé : "minID_maxID" (pour une paire de nœuds) ; valeur : nombre total de liens pour cette paire.
                 Dictionary<string, int> compteLiens = new Dictionary<string, int>();
-                // Clé : même clé, valeur : compteur pour le décalage lors du dessin.
                 Dictionary<string, int> indiceActuel = new Dictionary<string, int>();
 
-                // Calcul du nombre de liens par paire
                 foreach (var lien in liens)
                 {
                     int id1 = lien.NoeudUn.Identifiant;
@@ -526,13 +519,11 @@ namespace Karaté
                     }
                     compteLiens[cle]++;
                 }
-                // Initialisation du compteur pour chaque clé
                 foreach (var kvp in compteLiens)
                 {
                     indiceActuel[kvp.Key] = 0;
                 }
 
-                // Dessin des liens avec décalage si nécessaire
                 foreach (var lien in liens)
                 {
                     int id1 = lien.NoeudUn.Identifiant;
@@ -541,18 +532,16 @@ namespace Karaté
                     int maxi = Math.Max(id1, id2);
                     string cle = mini + "_" + maxi;
 
-                    // Récupération des positions initiales
                     SKPoint p1 = positions[id1];
                     SKPoint p2 = positions[id2];
 
-                    // Calcul de l'offset s'il y a plusieurs liens pour cette paire
                     int total = compteLiens[cle];
                     int index = indiceActuel[cle];
                     indiceActuel[cle] = index + 1;
-                    float decalageBase = 5f; // espacement de base
-                                             // Calcul de la position d'offset (centrer les offsets)
+                    float decalageBase = 5f; 
+
                     float decalageMultiplier = (float)(index - (total - 1) / 2.0);
-                    // Calcul d'un vecteur perpendiculaire à la ligne reliant p1 à p2
+
                     SKPoint diff = new SKPoint(p2.X - p1.X, p2.Y - p1.Y);
                     float longueur = (float)Math.Sqrt(diff.X * diff.X + diff.Y * diff.Y);
                     SKPoint perp = new SKPoint(0, 0);
@@ -572,27 +561,20 @@ namespace Karaté
                         StrokeWidth = 7
                     });
                 }
-
-                // Utilisez un dictionnaire insensible à la casse et normalisez les clés en supprimant les espaces superflus.
                 Dictionary<string, int> lignesParStation = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
                 foreach (var noeud in noeuds)
                 {
-                    // On récupère les lignes distinctes pour lesquelles ce nœud est impliqué
                     HashSet<string> lignesDistinctes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                     foreach (var lien in liens)
                     {
-                        // Si ce nœud est le noeud de départ ou d'arrivée du lien, on ajoute la ligne
                         if (lien.NoeudUn.Identifiant == noeud.Identifiant || lien.NoeudDeux.Identifiant == noeud.Identifiant)
                         {
                             lignesDistinctes.Add(lien.Ligne);
                         }
                     }
-                    // On enregistre le nombre de lignes distinctes pour ce noeud (station)
                     lignesParStation[noeud.Station.Trim()] = lignesDistinctes.Count;
                 }
 
-
-                // Dessin des nœuds
                 foreach (var noeud in noeuds)
                 {
                     var point = positions[noeud.Identifiant];
