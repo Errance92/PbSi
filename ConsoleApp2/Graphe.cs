@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Globalization;
 using SkiaSharp;
 
 namespace Karaté
@@ -77,8 +78,9 @@ namespace Karaté
                         string libelleLigne = partie[1].Trim();
                         string nomStation = partie[2].Trim();
                         string cle = nomStation + "_" + libelleLigne;
-                        double latitude = Convert.ToDouble(partie[4].Trim());
-                        double longitude = Convert.ToDouble(partie[3].Trim());
+                        double latitude = double.Parse(partie[4].Trim(), CultureInfo.InvariantCulture);
+                        double longitude = double.Parse(partie[3].Trim(), CultureInfo.InvariantCulture);
+
                         if (station.ContainsKey(nomStation) == false)
                         {
                             Noeud n = new Noeud(station.Count + 1, nomStation, latitude, longitude);
