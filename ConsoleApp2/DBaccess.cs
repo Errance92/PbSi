@@ -1118,6 +1118,367 @@ public class DbAccess
 
     #endregion
 
+    #region Statistiques
+    /// <summary>
+    /// Récupère le chiffre d'affaires total par mois sur une année donnée.
+    /// Utilise GROUP BY et SUM.
+    /// </summary>
+    /// <param name="annee">L'année pour laquelle on veut les statistiques</param>
+    /// <returns>Un dictionnaire avec le mois comme clé et le chiffre d'affaires comme valeur</returns>
+    public Dictionary<int, double> ObtenirChiffreAffairesParMois(int annee)
+    {
+        Dictionary<int, double> resultat = new Dictionary<int, double>();
+        string requete = @"SELECT MONTH(date_commande) AS mois, SUM(montant) AS chiffre_affaires 
+                     FROM Commande 
+                     WHERE YEAR(date_commande) = @annee 
+                     GROUP BY MONTH(date_commande) 
+                     ORDER BY mois";
+
+        DataTable table = ExecuterRequete(requete, new MySqlParameter("@annee", annee));
+
+        foreach (DataRow row in table.Rows)
+        {
+            int mois = Convert.ToInt32(row["mois"]);
+            double chiffreAffaires = Convert.ToDouble(row["chiffre_affaires"]);
+            resultat.Add(mois, chiffreAffaires);
+        }
+
+        return resultat;
+    }
+
+    /// <summary>
+    /// Récupère le nombre de commandes par client, pour les clients ayant plus de X commandes.
+    /// Utilise GROUP BY et HAVING.
+    /// </summary>
+    /// <param name="minCommandes">Nombre minimal de commandes</param>
+    /// <returns>Un dictionnaire avec l'ID du client comme clé et le nombre de commandes comme valeur</returns>
+    public Dictionary<int, int> ObtenirClientsFrequents(int minCommandes)
+    {
+        Dictionary<int, int> resultat = new Dictionary<int, int>();
+
+        string requete = @"SELECT id_client, COUNT(*) AS nombre_commandes 
+                     FROM Commande 
+                     GROUP BY id_client 
+                     HAVING COUNT(*) >= @minCommandes
+                     ORDER BY nombre_commandes DESC";
+
+        DataTable table = ExecuterRequete(requete, new MySqlParameter("@minCommandes", minCommandes));
+
+        foreach (DataRow row in table.Rows)
+        {
+            int idClient = Convert.ToInt32(row["id_client"]);
+            int nombreCommandes = Convert.ToInt32(row["nombre_commandes"]);
+            resultat.Add(idClient, nombreCommandes);
+        }
+
+        return resultat;
+    }
+
+    /// <summary>
+    /// Récupère les plats populaires (commandés plus de X fois).
+    /// Utilise LEFT JOIN, GROUP BY et HAVING.
+    /// </summary>
+    /// <param name="minCommandes">Nombre minimal de commandes</param>
+    /// <returns>Une liste des plats populaires avec leurs statistiques</returns>
+    public List<Tuple<int, string, int>> ObtenirPlatsPopulaires(int minCommandes)
+    {
+        List<Tuple<int, string, int>> resultat = new List<Tuple<int, string, int>>();
+
+        string requete = @"SELECT p.id_plat, p.nom_plat, COUNT(c.id_commande) AS nombre_commandes 
+                     FROM Plat p 
+                     LEFT JOIN Commande c ON p.id_plat = c.id_plat 
+                     GROUP BY p.id_plat, p.nom_plat 
+                     HAVING COUNT(c.id_commande) >= @minCommandes
+                     ORDER BY nombre_commandes DESC";
+
+        DataTable table = ExecuterRequete(requete, new MySqlParameter("@minCommandes", minCommandes));
+
+        foreach (DataRow row in table.Rows)
+        {
+            int idPlat = Convert.ToInt32(row["id_plat"]);
+            string nomPlat = row["nom_plat"].ToString();
+            int nombreCommandes = Convert.ToInt32(row["nombre_commandes"]);
+            resultat.Add(new Tuple<int, string, int>(idPlat, nomPlat, nombreCommandes));
+        }
+
+        return resultat;
+    }
+
+    /// <summary>
+    /// Récupère la liste des cuisiniers qui proposent un plat dont le prix est supérieur à celui de tous les plats d'un type donné.
+    /// Utilise ALL.
+    /// </summary>
+    /// <param name="type">Type de plat pour la comparaison</param>
+    /// <returns>Liste des cuisiniers concernés</returns>
+    public List<Cuisinier> ObtenirCuisiniersPlatsExclusifs(string type)
+    {
+        List<Cuisinier> resultat = new List<Cuisinier>();
+
+        string requete = @"SELECT c.* FROM Cuisinier c 
+                     JOIN Plat p ON c.id_plat = p.id_plat 
+                     WHERE p.prix_par_personne > ALL (
+                         SELECT prix_par_personne FROM Plat WHERE _type = @type
+                     )";
+
+        DataTable table = ExecuterRequete(requete, new MySqlParameter("@type", type));
+
+        foreach (DataRow row in table.Rows)
+        {
+            Cuisinier c = new Cuisinier();
+            c.IdCuisinier = Convert.ToInt32(row["id_cuisinier"]);
+            c.Nom = row["nom"].ToString();
+            c.Prenom = row["prenom"].ToString();
+            c.NumRue = Convert.ToInt32(row["numero_rue"]);
+            c.NomRue = row["rue"].ToString();
+            c.Ville = row["ville"].ToString();
+            c.Metro = row["metro"].ToString();
+
+            if (row["email"] != DBNull.Value)
+                c.Email = row["email"].ToString();
+
+            if (row["telephone"] != DBNull.Value)
+                c.Telephone = row["telephone"].ToString();
+
+            if (row["id_plat"] != DBNull.Value)
+                c.IdPlat = Convert.ToInt32(row["id_plat"]);
+
+            resultat.Add(c);
+        }
+
+        return resultat;
+    }
+
+    /// <summary>
+    /// Récupère les clients qui n'ont pas encore passé de commande.
+    /// Utilise EXISTS avec négation.
+    /// </summary>
+    /// <returns>Liste des clients sans commande</returns>
+    public List<Client> ObtenirClientsSansCommande()
+    {
+        List<Client> resultat = new List<Client>();
+
+        string requete = @"SELECT * FROM Client c 
+                     WHERE NOT EXISTS (
+                         SELECT 1 FROM Commande cmd WHERE cmd.id_client = c.id_client
+                     )";
+
+        DataTable table = ExecuterRequete(requete);
+
+        foreach (DataRow row in table.Rows)
+        {
+            Client client = new Client();
+            client.IdClient = Convert.ToInt32(row["id_client"]);
+            client.Nom = row["nom"].ToString();
+            client.Prenom = row["prenom"].ToString();
+            client.NumRue = Convert.ToInt32(row["numero_rue"]);
+            client.NomRue = row["rue"].ToString();
+            client.Ville = row["ville"].ToString();
+            client.Metro = row["metro"].ToString();
+
+            if (row["email"] != DBNull.Value)
+                client.Email = row["email"].ToString();
+
+            if (row["telephone"] != DBNull.Value)
+                client.Telephone = row["telephone"].ToString();
+
+            if (row["montant_achat"] != DBNull.Value)
+                client.MontantAchat = Convert.ToDouble(row["montant_achat"]);
+
+            resultat.Add(client);
+        }
+
+        return resultat;
+    }
+
+    /// <summary>
+    /// Obtient le temps moyen de préparation des commandes par cuisinier.
+    /// Utilise GROUP BY et AVG.
+    /// </summary>
+    /// <returns>Dictionnaire avec ID du cuisinier comme clé et temps moyen comme valeur</returns>
+    public Dictionary<int, double> ObtenirTempsMoyenPreparationParCuisinier()
+    {
+        Dictionary<int, double> resultat = new Dictionary<int, double>();
+
+        string requete = @"SELECT c.id_cuisinier, AVG(TIMESTAMPDIFF(MINUTE, cmd.date_commande, l.date_livraison)) AS temps_moyen
+                     FROM Cuisinier c
+                     JOIN Commande cmd ON c.id_cuisinier = cmd.id_cuisinier
+                     JOIN Livraison l ON cmd.id_commande = l.id_commande
+                     GROUP BY c.id_cuisinier";
+
+        DataTable table = ExecuterRequete(requete);
+
+        foreach (DataRow row in table.Rows)
+        {
+            int idCuisinier = Convert.ToInt32(row["id_cuisinier"]);
+            double tempsMoyen = Convert.ToDouble(row["temps_moyen"]);
+            resultat.Add(idCuisinier, tempsMoyen);
+        }
+
+        return resultat;
+    }
+
+    /// <summary>
+    /// Obtient le nombre de clients par station de métro.
+    /// Utilise GROUP BY.
+    /// </summary>
+    /// <returns>Dictionnaire avec le nom de la station comme clé et le nombre de clients comme valeur</returns>
+    public Dictionary<string, int> ObtenirNombreClientsParMetro()
+    {
+        Dictionary<string, int> resultat = new Dictionary<string, int>();
+
+        string requete = @"SELECT metro, COUNT(*) AS nombre_clients
+                     FROM Client
+                     GROUP BY metro
+                     ORDER BY nombre_clients DESC";
+
+        DataTable table = ExecuterRequete(requete);
+
+        foreach (DataRow row in table.Rows)
+        {
+            string metro = row["metro"].ToString();
+            int nombreClients = Convert.ToInt32(row["nombre_clients"]);
+            resultat.Add(metro, nombreClients);
+        }
+
+        return resultat;
+    }
+    #endregion
+
+    #region Utilisateurs
+    /// <summary>
+    /// Vérifie si les identifiants fournis correspondent à un utilisateur valide.
+    /// </summary>
+    /// <param name="email">Email de l'utilisateur</param>
+    /// <param name="motDePasse">Mot de passe de l'utilisateur</param>
+    /// <returns>L'utilisateur authentifié ou null si échec</returns>
+    public Utilisateur Authentifier(string email, string motDePasse)
+    {
+        string requete = "SELECT * FROM Utilisateur WHERE email = @email AND mot_de_passe = @motDePasse";
+
+        MySqlParameter paramEmail = new MySqlParameter("@email", email);
+        MySqlParameter paramMotDePasse = new MySqlParameter("@motDePasse", motDePasse);
+
+        DataTable table = ExecuterRequete(requete, paramEmail, paramMotDePasse);
+
+        if (table.Rows.Count == 0)
+            return null;
+
+        DataRow row = table.Rows[0];
+        Utilisateur utilisateur = new Utilisateur
+        {
+            IdUtilisateur = Convert.ToInt32(row["id_utilisateur"]),
+            Email = row["email"].ToString(),
+            MotDePasse = row["mot_de_passe"].ToString(),
+            Role = row["role"].ToString()
+        };
+
+        if (row["id_reference"] != DBNull.Value)
+            utilisateur.IdReference = Convert.ToInt32(row["id_reference"]);
+
+        return utilisateur;
+    }
+
+    /// <summary>
+    /// Vérifie si un email est déjà utilisé.
+    /// </summary>
+    /// <param name="email">Email à vérifier</param>
+    /// <returns>True si l'email est déjà utilisé, sinon False</returns>
+    public bool EmailExiste(string email)
+    {
+        string requete = "SELECT COUNT(*) FROM Utilisateur WHERE email = @email";
+        object resultat = ExecuterRequeteScalaire(requete, new MySqlParameter("@email", email));
+        return Convert.ToInt32(resultat) > 0;
+    }
+
+    /// <summary>
+    /// Crée un nouvel utilisateur.
+    /// </summary>
+    /// <param name="utilisateur">Données de l'utilisateur à créer</param>
+    /// <returns>True si la création a réussi, sinon False</returns>
+    public bool CreerUtilisateur(Utilisateur utilisateur)
+    {
+        string requete = @"INSERT INTO Utilisateur (email, mot_de_passe, role, id_reference) 
+                     VALUES (@email, @motDePasse, @role, @idReference)";
+
+        MySqlParameter paramEmail = new MySqlParameter("@email", utilisateur.Email);
+        MySqlParameter paramMotDePasse = new MySqlParameter("@motDePasse", utilisateur.MotDePasse);
+        MySqlParameter paramRole = new MySqlParameter("@role", utilisateur.Role);
+        MySqlParameter paramIdReference;
+
+        if (utilisateur.IdReference.HasValue)
+            paramIdReference = new MySqlParameter("@idReference", utilisateur.IdReference.Value);
+        else
+            paramIdReference = new MySqlParameter("@idReference", DBNull.Value);
+
+        try
+        {
+            return ExecuterRequeteMAJ(requete, paramEmail, paramMotDePasse, paramRole, paramIdReference) > 0;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Récupère tous les utilisateurs.
+    /// </summary>
+    /// <returns>Liste des utilisateurs</returns>
+    public List<Utilisateur> ObtenirTousUtilisateurs()
+    {
+        List<Utilisateur> utilisateurs = new List<Utilisateur>();
+        string requete = "SELECT * FROM Utilisateur";
+
+        DataTable table = ExecuterRequete(requete);
+
+        foreach (DataRow row in table.Rows)
+        {
+            Utilisateur utilisateur = new Utilisateur
+            {
+                IdUtilisateur = Convert.ToInt32(row["id_utilisateur"]),
+                Email = row["email"].ToString(),
+                MotDePasse = row["mot_de_passe"].ToString(),
+                Role = row["role"].ToString()
+            };
+
+            if (row["id_reference"] != DBNull.Value)
+                utilisateur.IdReference = Convert.ToInt32(row["id_reference"]);
+
+            utilisateurs.Add(utilisateur);
+        }
+
+        return utilisateurs;
+    }
+
+    /// <summary>
+    /// Obtient un utilisateur par son email.
+    /// </summary>
+    /// <param name="email">Email de l'utilisateur</param>
+    /// <returns>L'utilisateur correspondant ou null</returns>
+    public Utilisateur ObtenirUtilisateurParEmail(string email)
+    {
+        string requete = "SELECT * FROM Utilisateur WHERE email = @email";
+        DataTable table = ExecuterRequete(requete, new MySqlParameter("@email", email));
+
+        if (table.Rows.Count == 0)
+            return null;
+
+        DataRow row = table.Rows[0];
+        Utilisateur utilisateur = new Utilisateur
+        {
+            IdUtilisateur = Convert.ToInt32(row["id_utilisateur"]),
+            Email = row["email"].ToString(),
+            MotDePasse = row["mot_de_passe"].ToString(),
+            Role = row["role"].ToString()
+        };
+
+        if (row["id_reference"] != DBNull.Value)
+            utilisateur.IdReference = Convert.ToInt32(row["id_reference"]);
+
+        return utilisateur;
+    }
+    #endregion
+
     #region Commandes
     /// <summary>
     /// Récupère toutes les commandes enregistrées dans la base de données.

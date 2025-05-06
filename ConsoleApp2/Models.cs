@@ -126,8 +126,22 @@ public class Cuisinier
             return "Commande #" + IdCommande + " - " + DateCommande.ToShortDateString() + " - " + Montant + "€";
         }
     }
+    public class Utilisateur
+    {
+        public int IdUtilisateur { get; set; }
+        public string Email { get; set; }
+        public string MotDePasse { get; set; }
+        public string Role { get; set; } // ADMIN, CUISINIER, CLIENT
+        public int? IdReference { get; set; } // ID du client ou du cuisinier associé si applicable
 
-    public class Itineraire
+        public override string ToString()
+        {
+            return $"[{IdUtilisateur}] {Email} - Rôle: {Role}";
+        }
+    }
+
+
+public class Itineraire
     {
         public int IdItineraire;
         public decimal DistanceKm;

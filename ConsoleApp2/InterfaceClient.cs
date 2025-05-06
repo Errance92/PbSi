@@ -1,29 +1,27 @@
 using System;
 using System.Collections.Generic;
 using Karaté;
-
 public class UserInterface
 {
-        private readonly DbAccess db;
-        
-        public UserInterface()
+    private readonly DbAccess db;
+    private readonly AuthenticationManager auth;
+
+    public UserInterface(AuthenticationManager auth)
+    {
+        db = new DbAccess();
+        this.auth = auth;
+    }
+
+    public void Run()
+    {
+        bool exit = false;
+        while (!exit)
         {
-            db = new DbAccess();
-        }
-        
-        public void Run()
-        {
-            bool exit = false;
-            
-            while (!exit)
+            Console.Clear();
+            AfficherMenu();
+            string choice = Console.ReadLine();
+            switch (choice)
             {
-                Console.Clear();
-                AfficherMenu();
-                
-                string choice = Console.ReadLine();
-                
-                switch (choice)
-                {
                 case "1":
                     if (auth.PeutAccederModule("CLIENT"))
                         ClientModule();
@@ -77,36 +75,74 @@ public class UserInterface
                 case "0":
                     exit = true;
                     break;
-                    default: 
+                default:
                     AfficherMessage("Option invalide.");
-                        break;
-                }
+                    break;
             }
-            
-            db.FermerConnection();
         }
+        db.FermerConnection();
+    }
+
+    private void AfficherAccesRefuse()
+    {
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine("\nAccès refusé : vous n'avez pas les droits nécessaires.");
+        Console.ResetColor();
+        WaitForKey();
+    }
+
+    private void AfficherMessage(string message)
+    {
+        Console.WriteLine("\n" + message);
+        WaitForKey();
+    }
+
     /// <summary>
     /// affiche le menu principal
     /// </summary>
     private void AfficherMenu()
+    {
+        Console.ForegroundColor = ConsoleColor.Cyan;
+        Console.WriteLine("=== LIV'IN PARIS ===");
+        Console.ResetColor();
+
+        if (auth.EstConnecte)
         {
-            Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.WriteLine("=== LIV'IN PARIS ===");
-            Console.ResetColor();
-            Console.WriteLine("1. Gestion des Clients");
-            Console.WriteLine("2. Gestion des Cuisiniers");
-            Console.WriteLine("3. Gestion des Plats");
-            Console.WriteLine("4. Gestion des Commandes");
-            Console.WriteLine("0. Quitter");
-            Console.Write("\nVotre choix: ");
+            Console.WriteLine($"Connecté en tant que: {auth.UtilisateurConnecte.Email} ({auth.UtilisateurConnecte.Role})");
         }
+
+        Console.WriteLine("\nMENU PRINCIPAL");
+        Console.WriteLine("----------------");
+
+        if (auth.PeutAccederModule("CLIENT"))
+            Console.WriteLine("1. Gestion des Clients");
+
+        if (auth.PeutAccederModule("CUISINIER"))
+            Console.WriteLine("2. Gestion des Cuisiniers");
+
+        if (auth.PeutAccederModule("PLAT"))
+            Console.WriteLine("3. Gestion des Plats");
+
+        if (auth.PeutAccederModule("COMMANDE"))
+            Console.WriteLine("4. Gestion des Commandes");
+
+        if (auth.PeutAccederModule("STATISTIQUES"))
+            Console.WriteLine("5. Statistiques");
+
+        if (auth.EstAdmin)
+            Console.WriteLine("6. Administration des utilisateurs");
+
+        Console.WriteLine("7. Changer d'utilisateur");
+        Console.WriteLine("0. Quitter");
+        Console.Write("\nVotre choix: ");
+    }
 
     #region Client
     /// <summary>
     /// Gère le sous-menu du module client avec les options pour ajouter, modifier, supprimer ou afficher les clients.
     /// </summary>
 
-    private void ClientModule()
+    public void ClientModule()
         {
             bool exit = false;
             
@@ -129,7 +165,7 @@ public class UserInterface
                 {
                     case "1": AjouterClient(); break;
                     case "2": ModifierClient(); break;
-                    case "3": SupprimerClient(); break;
+            case "3": SupprimerClient(); break;
                     case "4": AfficherToutClients(); break;
                     case "0": exit = true; break;
                     default: 
@@ -1328,6 +1364,96 @@ public class UserInterface
         WaitForKey();
     }
 
+    #endregion
+
+    #region MéthodesOptimisées
+    /// <summary>
+    /// Utilitaire pour saisir un texte avec validation.
+    /// </summary>
+    private string SaisirTexte(string label, bool obligatoire)
+    {
+        while (true)
+        {
+            Console.Write($"{label}: ");
+            string valeur = Console.ReadLine();
+
+            if (string.IsNullOrWhiteSpace(valeur))
+            {
+                if (obligatoire)
+                {
+                    Console.WriteLine($"{label} est obligatoire.");
+                    continue;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+
+            return valeur;
+        }
+    }
+
+    /// <summary>
+    /// Utilitaire pour saisir un entier avec validation.
+    /// </summary>
+    private int SaisirEntier(string label, int min, int max)
+    {
+        while (true)
+        {
+            Console.Write($"{label}: ");
+            if (int.TryParse(Console.ReadLine(), out int valeur) && valeur >= min && valeur <= max)
+            {
+                return valeur;
+            }
+
+            Console.WriteLine($"Valeur invalide. Entrez un nombre entre {min} et {max}.");
+        }
+    }
+
+    /// <summary>
+    /// Utilitaire pour saisir une station de métro avec validation.
+    /// </summary>
+    private string SaisirMetro(string label)
+    {
+        Graphe g = new Graphe();
+
+        while (true)
+        {
+            Console.Write($"{label}: ");
+            string metro = Console.ReadLine();
+
+            bool valide = false;
+            foreach (Noeud n in g.Noeuds)
+            {
+                if (n.Station.ToLower() == metro.ToLower())
+                {
+                    valide = true;
+                    break;
+                }
+            }
+
+            if (valide)
+            {
+                return metro;
+            }
+
+            Console.WriteLine("Station de métro non valide. Voici quelques stations proches:");
+
+            // Afficher 5 stations aléatoires comme suggestions
+            Random rand = new Random();
+            HashSet<int> indices = new HashSet<int>();
+            while (indices.Count < 5 && indices.Count < g.Noeuds.Count)
+            {
+                indices.Add(rand.Next(g.Noeuds.Count));
+            }
+
+            foreach (int idx in indices)
+            {
+                Console.WriteLine("- " + g.Noeuds[idx].Station);
+            }
+        }
+    }
     #endregion
 
     #region Commande

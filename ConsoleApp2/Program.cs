@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Net;
 using SkiaSharp;
 
 namespace Karaté
@@ -9,6 +10,31 @@ namespace Karaté
     {
         public static void Main()
         {
+
+            AuthenticationManager auth = new AuthenticationManager();
+            LoginInterface loginInterface = new LoginInterface(auth);
+
+            if (!loginInterface.ShowLoginScreen())
+            {
+                Console.WriteLine("Au revoir!");
+                return;
+            }
+
+            Console.Title = "Liv'in Paris - Application de partage de repas";
+            try
+            {
+                UserInterface ui = new UserInterface(auth);
+                ui.Run();
+            }
+            catch (Exception ex)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Erreur fatale: " + ex.Message);
+                Console.WriteLine(ex.StackTrace);
+                Console.ResetColor();
+                Console.WriteLine("\nAppuyez sur une touche pour quitter...");
+                Console.ReadKey();
+            }
             ///je sais pas pq mais ici les /// ne s'affiche pas automatiquement
             Graphe graphe = new Graphe();
 
@@ -305,7 +331,7 @@ namespace Karaté
 
                 try
                 {
-                    UserInterface ui = new UserInterface();
+                    UserInterface ui = new UserInterface(auth);
                     ui.Run();
                 }
                 catch (Exception ex)
