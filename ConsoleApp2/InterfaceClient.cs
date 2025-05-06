@@ -24,14 +24,61 @@ public class UserInterface
                 
                 switch (choice)
                 {
-                    case "1": ClientModule(); break;
-                    case "2": CuisinierModule(); break;
-                    case "3": PlatModule(); break;
-                    case "4": CommandeModule(); break;
-                    case "0": exit = true; break;
+                case "1":
+                    if (auth.PeutAccederModule("CLIENT"))
+                        ClientModule();
+                    else
+                        AfficherAccesRefuse();
+                    break;
+                case "2":
+                    if (auth.PeutAccederModule("CUISINIER"))
+                        CuisinierModule();
+                    else
+                        AfficherAccesRefuse();
+                    break;
+                case "3":
+                    if (auth.PeutAccederModule("PLAT"))
+                        PlatModule();
+                    else
+                        AfficherAccesRefuse();
+                    break;
+                case "4":
+                    if (auth.PeutAccederModule("COMMANDE"))
+                        CommandeModule();
+                    else
+                        AfficherAccesRefuse();
+                    break;
+                case "5":
+                    if (auth.PeutAccederModule("STATISTIQUES"))
+                    {
+                        StatistiquesModule statsModule = new StatistiquesModule();
+                        statsModule.Run();
+                    }
+                    else
+                        AfficherAccesRefuse();
+                    break;
+                case "6":
+                    if (auth.EstAdmin)
+                    {
+                        // Implémenter le module d'administration des utilisateurs
+                        AfficherMessage("Module d'administration non implémenté");
+                    }
+                    else
+                        AfficherAccesRefuse();
+                    break;
+                case "7":
+                    auth.Deconnecter();
+                    LoginInterface loginInterface = new LoginInterface(auth);
+                    if (!loginInterface.ShowLoginScreen())
+                    {
+                        exit = true;
+                    }
+                    break;
+                case "0":
+                    exit = true;
+                    break;
                     default: 
-                        Console.WriteLine("Option invalide.");
-                        WaitForKey();
+                    AfficherMessage("Option invalide.");
                         break;
                 }
             }
