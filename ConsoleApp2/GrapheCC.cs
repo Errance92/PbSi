@@ -7,6 +7,9 @@ namespace Karaté
 
     namespace Karaté
     {
+        /// <summary>
+        /// classe graphe pour les laison entre les clients et les cuisniers
+        /// </summary>
         public class GrapheCC
         {
             private List<NoeudCC> noeudsCC;
@@ -28,6 +31,9 @@ namespace Karaté
                 get { return listeAdjacenceCC; }
             }
 
+            /// <summary>
+            /// Initialise le graphe à partir des commandes stockées dans la base de données.
+            /// </summary>
             public GrapheCC()
             {
                 noeudsCC = new List<NoeudCC>();
@@ -66,6 +72,10 @@ namespace Karaté
                 RemplirListeAdjCC();
             }
 
+
+            /// <summary>
+            /// Construit la liste d'adjacence du graphe à partir des liens entre les nœuds.
+            /// </summary>
             public void RemplirListeAdjCC()
             {
                 listeAdjacenceCC = new Dictionary<int, List<int>>();
@@ -106,6 +116,10 @@ namespace Karaté
                 }
             }
 
+            /// <summary>
+            /// Applique l’algorithme de Welsh-Powell pour colorier le graphe 
+            /// </summary>
+            /// <returns>Un dictionnaire associant à chaque noeud son numéro de couleur.</returns>
             public Dictionary<int, int> WelshPowell()
             {
                 Dictionary<int, int> couleurs = new Dictionary<int, int>();
@@ -169,6 +183,12 @@ namespace Karaté
                 return couleurs;
             }
 
+
+
+            /// <summary>
+            /// Analyse les propriétés du graphe basé sur les résultats de la coloration
+            /// </summary>
+            /// <param name="coloration">Coloration résultant de Welsh-Powell</param>
             public void ProprieteGrapheCC(Dictionary<int, int> coloration)
             {
 
@@ -220,6 +240,10 @@ namespace Karaté
                 }
             }
 
+            /// <summary>
+            /// Dessine une représentation visuelle du graphe avec les couleurs appliquées à chaque noeud
+            /// </summary>
+            /// <param name="couleurs">Dictionnaire de coloration de chaque noeuds</param>
             public void DessinerGrapheColoré(Dictionary<int, int> couleurs)
             {
                 int largeur = 1200;
