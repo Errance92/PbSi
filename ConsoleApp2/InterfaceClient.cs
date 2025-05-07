@@ -876,7 +876,7 @@ public class UserInterface
     private void AjouterCuisinier()
     {
         Console.Clear();
-        Console.WriteLine("=== AJOUTER UN CUISINIER ===\n");
+        Console.WriteLine("=== AJOUTER UN CUISINIE ===\n");
 
         Cuisinier c = new Cuisinier();
         c.IdCuisinier = db.ObtenirProchainCuisinier();

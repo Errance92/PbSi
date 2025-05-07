@@ -10,7 +10,7 @@ public class DbAccess
     private MySqlConnection connection;
     public DbAccess()
     {
-        connectionString = "Server=localhost;Port=3306;Database=Liv'in Paris;Uid=root;Pwd=root;CharSet=utf8;";
+        connectionString = "Server=localhost;Port=3306;Database=Liv'in Paris;Uid=root;Pwd=password;CharSet=utf8;";
         Console.WriteLine("Connexion à la base de données initialisée");
     }
 
