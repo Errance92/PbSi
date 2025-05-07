@@ -719,7 +719,15 @@ namespace Karaté
                         int indice2 = lienCourant.NoeudDeux.Identifiant - 1;
                         if (indice1 == a || indice2 == a)
                         {
-                            int v = (indice1 == a) ? indice2 : indice1;
+                            int v;
+                            if (indice1 == a)
+                            {
+                                v = indice2;
+                            }
+                            else
+                            {
+                                v = indice1;
+                            }
                             if (!visite[v] && distances[a] != 10000)
                             {
                                 string ligneCourante = "";

@@ -42,6 +42,7 @@ namespace Karaté
                     Console.WriteLine("8: Afficher les cycles du graphe");
                     Console.WriteLine("9: Tester Dijkstra (chemin le plus court entre deux stations)");
                     Console.WriteLine("10: Tester coloration de graphe");
+                    Console.WriteLine("11: Export XML/JSON");
                     Console.WriteLine("0: Quitter");
                     Console.Write("Votre choix : ");
                     string choix = Console.ReadLine();
@@ -338,24 +339,25 @@ namespace Karaté
             Console.WriteLine($"[JSON] {filePath} généré.");
         }
 
+        /// <summary>
+        /// Teste XML JSON
+        /// </summary>
         static void TestXMLJSON()
         {
             string connStr = "Server=localhost;Port=3306;Database=Liv'in Paris;Uid=root;Pwd=password;CharSet=utf8;";
             using var conn = new MySqlConnection(connStr);
             conn.Open();
 
-            // XML
+
             ExportToXml(conn, "SELECT * FROM Client", "export_clients.xml");
             ExportToXml(conn, "SELECT * FROM Cuisinier", "export_cuisiniers.xml");
             ExportToXml(conn, "SELECT * FROM Commande", "export_commandes.xml");
 
-            // JSON
             ExportToJson(conn, "SELECT * FROM Client", "export_clients.json");
             ExportToJson(conn, "SELECT * FROM Cuisinier", "export_cuisiniers.json");
             ExportToJson(conn, "SELECT * FROM Commande", "export_commandes.json");
 
             conn.Close();
-            // **** FIN EXPORTS ****
 
             Console.WriteLine("Tous les exports sont terminés.");
             Console.ReadKey();
