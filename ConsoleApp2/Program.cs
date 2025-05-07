@@ -9,7 +9,7 @@ namespace Karaté
     {
         public static void Main()
         {
-            Console.ForegroundColor = ConsoleColor.DarkCyan;
+            Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine("=== LIV'IN PARIS ===");
             Console.WriteLine("1. Partie PCC / graphe");
             Console.WriteLine("2. Partie BDD");
