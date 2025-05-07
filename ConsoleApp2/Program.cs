@@ -11,7 +11,7 @@ namespace Karaté
         public static void Main()
         {
 
-            AuthenticationManager auth = new AuthenticationManager();
+            AuthenticationInterface auth = new AuthenticationInterface();
             LoginInterface loginInterface = new LoginInterface(auth);
 
             if (!loginInterface.ShowLoginScreen())

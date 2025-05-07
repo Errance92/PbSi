@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using MySql.Data.MySqlClient;
+using SkiaSharp;
 
 public class DbAccess
 {
@@ -1485,9 +1486,9 @@ public class DbAccess
         utilisateur.MotDePasse = row["mot_de_passe"].ToString();
         utilisateur.Role = row["role"].ToString();
 
-            if (row["id_reference"] != DBNull.Value)
+        if (row["id_reference"] != DBNull.Value)
         {
-                utilisateur.IdReference = Convert.ToInt32(row["id_reference"]);
+            utilisateur.IdReference = Convert.ToInt32(row["id_reference"]);
         }
 
         return utilisateur;
@@ -1529,14 +1530,14 @@ public class DbAccess
     /// <param name="id">ID de l'utilisateur à supprimer</param>
     /// <returns>True si l'opération a réussi, false sinon</returns>
     public bool SupprimerUtilisateur(int id)
-        {
+    {
         string requete = "DELETE FROM Utilisateur WHERE id_utilisateur = @id";
         MySqlParameter paramId = new MySqlParameter("@id", id);
 
         return ExecuterRequeteMAJ(requete, paramId) > 0;
     }
 
-    #endregion
+#endregion
 
     #region Commandes
     /// <summary>

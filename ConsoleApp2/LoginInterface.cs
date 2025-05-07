@@ -3,9 +3,9 @@
 public class LoginInterface
 {
     private readonly DbAccess db;
-    private readonly AuthenticationManager auth;
+    private readonly AuthenticationInterface auth;
 
-    public LoginInterface(AuthenticationManager auth)
+    public LoginInterface(AuthenticationInterface auth)
     {
         this.db = new DbAccess();
         this.auth = auth;
