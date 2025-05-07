@@ -2,11 +2,19 @@
 
 namespace Karaté
 {
+    /// <summary>
+    /// class noeud pour les relations clients cusiniers
+    /// </summary>
 	public class NoeudCC
 	{
 		private int id;
 		private string nom;
 
+        /// <summary>
+        /// constructeur de noeuds cc 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="nom"></param>
 		public NoeudCC(int id, string nom)
 		{
             if (id <= 0)

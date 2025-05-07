@@ -4,429 +4,499 @@ using Karaté;
 
 public class UserInterface
 {
-        private readonly DbAccess db;
-        
-        public UserInterface()
-        {
-            db = new DbAccess();
-        }
-        
-        public void Run()
-        {
-            bool exit = false;
-            
-            while (!exit)
-            {
-                Console.Clear();
-                AfficherMenu();
-                
-                string choice = Console.ReadLine();
-                
-                switch (choice)
-                {
-                    case "1": ClientModule(); break;
-                    case "2": CuisinierModule(); break;
-                    case "3": PlatModule(); break;
-                    case "4": CommandeModule(); break;
-                    case "0": exit = true; break;
-                    default: 
-                        Console.WriteLine("Option invalide.");
-                        WaitForKey();
-                        break;
-                }
-            }
-            
-            db.FermerConnection();
-        }
+    private readonly DbAccess db;
+    private Utilisateur utilisateurConnecte;
+
+    public UserInterface()
+    {
+        db = new DbAccess();
+    }
+
     /// <summary>
-    /// affiche le menu principal
+    /// Point d'entrée principal de l'interface utilisateur.
     /// </summary>
-    private void AfficherMenu()
+    public void Run()
+    {
+        // Démarrer l'authentification
+        AuthentificationInterface authInterface = new AuthentificationInterface();
+        utilisateurConnecte = authInterface.DemarrerAuthentification();
+
+        if (utilisateurConnecte == null)
         {
-            Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.WriteLine("=== LIV'IN PARIS ===");
-            Console.ResetColor();
+            Console.WriteLine("Au revoir!");
+            return;
+        }
+
+        // Menu principal basé sur le rôle de l'utilisateur
+        bool exit = false;
+        while (!exit)
+        {
+            Console.Clear();
+            AfficherMenuPrincipal();
+
+            string choice = Console.ReadLine();
+            switch (choice)
+            {
+                case "1":
+                    if (utilisateurConnecte.Role == "Admin" || utilisateurConnecte.Role == "Client")
+                        ClientModule();
+                    else
+                        AfficherAccesRefuse();
+                    break;
+                case "2":
+                    if (utilisateurConnecte.Role == "Admin" || utilisateurConnecte.Role == "Cuisinier")
+                        CuisinierModule();
+                    else
+                        AfficherAccesRefuse();
+                    break;
+                case "3":
+                    if (utilisateurConnecte.Role == "Admin" || utilisateurConnecte.Role == "Cuisinier")
+                        PlatModule();
+                    else
+                        AfficherAccesRefuse();
+                    break;
+                case "4":
+                    if (utilisateurConnecte.Role == "Admin" || utilisateurConnecte.Role == "Client")
+                        CommandeModule();
+                    else
+                        AfficherAccesRefuse();
+                    break;
+                case "5":
+                    if (utilisateurConnecte.Role == "Admin")
+                        GestionUtilisateursModule();
+                    else
+                        AfficherAccesRefuse();
+                    break;
+                case "6":
+                    // Se déconnecter
+                    exit = true;
+                    utilisateurConnecte = null;
+                    Console.WriteLine("Déconnexion réussie. Au revoir!");
+                    WaitForKey();
+                    break;
+                case "0":
+                    exit = true;
+                    break;
+                default:
+                    Console.WriteLine("Option invalide.");
+                    WaitForKey();
+                    break;
+            }
+        }
+
+        db.FermerConnection();
+    }
+
+    /// <summary>
+    /// Affiche le menu principal adapté au rôle de l'utilisateur.
+    /// </summary>
+    private void AfficherMenuPrincipal()
+    {
+        Console.ForegroundColor = ConsoleColor.Cyan;
+        Console.WriteLine($"=== LIV'IN PARIS - {utilisateurConnecte.Role.ToUpper()} ===");
+        Console.WriteLine($"Bonjour, {utilisateurConnecte.NomUtilisateur}");
+        Console.ResetColor();
+
+        if (utilisateurConnecte.Role == "Admin" || utilisateurConnecte.Role == "Client")
             Console.WriteLine("1. Gestion des Clients");
+
+        if (utilisateurConnecte.Role == "Admin" || utilisateurConnecte.Role == "Cuisinier")
             Console.WriteLine("2. Gestion des Cuisiniers");
+
+        if (utilisateurConnecte.Role == "Admin" || utilisateurConnecte.Role == "Cuisinier")
             Console.WriteLine("3. Gestion des Plats");
+
+        if (utilisateurConnecte.Role == "Admin" || utilisateurConnecte.Role == "Client")
             Console.WriteLine("4. Gestion des Commandes");
-            Console.WriteLine("0. Quitter");
+
+        if (utilisateurConnecte.Role == "Admin")
+            Console.WriteLine("5. Gestion des Utilisateurs");
+
+        Console.WriteLine("6. Se déconnecter");
+        Console.WriteLine("0. Quitter");
+
+        Console.Write("\nVotre choix: ");
+    }
+
+    /// <summary>
+    /// Affiche un message d'accès refusé.
+    /// </summary>
+    private void AfficherAccesRefuse()
+    {
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine("\nAccès refusé. Vous n'avez pas les droits nécessaires pour cette fonctionnalité.");
+        Console.ResetColor();
+        WaitForKey();
+    }
+
+    #region Gestion des utilisateurs
+
+    /// <summary>
+    /// Module pour la gestion des utilisateurs (réservé à l'admin).
+    /// </summary>
+    private void GestionUtilisateursModule()
+    {
+        bool exit = false;
+        while (!exit)
+        {
+            Console.Clear();
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("=== GESTION DES UTILISATEURS ===");
+            Console.ResetColor();
+            Console.WriteLine("1. Afficher tous les utilisateurs");
+            Console.WriteLine("2. Ajouter un utilisateur");
+            Console.WriteLine("3. Modifier un utilisateur");
+            Console.WriteLine("4. Supprimer un utilisateur");
+            Console.WriteLine("0. Retour au menu principal");
+
             Console.Write("\nVotre choix: ");
-        }
+            string choix = Console.ReadLine();
 
-    #region Client
-    /// <summary>
-    /// Gère le sous-menu du module client avec les options pour ajouter, modifier, supprimer ou afficher les clients.
-    /// </summary>
-
-    private void ClientModule()
-        {
-            bool exit = false;
-            
-            while (!exit)
+            switch (choix)
             {
-                Console.Clear();
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine("=== MODULE CLIENT ===");
-                Console.ResetColor();
-                Console.WriteLine("1. Ajouter un client");
-                Console.WriteLine("2. Modifier un client");
-                Console.WriteLine("3. Supprimer un client");
-                Console.WriteLine("4. Afficher tous les clients");
-                Console.WriteLine("0. Retour au menu principal");
-                Console.Write("\nVotre choix: ");
-                
-                string choix = Console.ReadLine();
-                
-                switch (choix)
-                {
-                    case "1": AjouterClient(); break;
-                    case "2": ModifierClient(); break;
-                    case "3": SupprimerClient(); break;
-                    case "4": AfficherToutClients(); break;
-                    case "0": exit = true; break;
-                    default: 
-                        Console.WriteLine("Option invalide.");
-                        WaitForKey();
-                        break;
-                }
+                case "1": AfficherTousUtilisateurs(); break;
+                case "2": AjouterUtilisateur(); break;
+                case "3": ModifierUtilisateur(); break;
+                case "4": SupprimerUtilisateur(); break;
+                case "0": exit = true; break;
+                default:
+                    Console.WriteLine("Option invalide.");
+                    WaitForKey();
+                    break;
             }
         }
-    /// <summary>
-    /// Permet de saisir les informations d'un nouveau client, vérifie la validité du métro, et l'ajoute à la base de données.
-    /// </summary>
+    }
 
-    private void AjouterClient()
+    /// <summary>
+    /// Affiche la liste de tous les utilisateurs.
+    /// </summary>
+    private void AfficherTousUtilisateurs()
     {
         Console.Clear();
-        Console.WriteLine("=== AJOUTER UN CLIENT ===\n");
+        Console.WriteLine("=== LISTE DES UTILISATEURS ===\n");
 
-        Client client = new Client();
-        client.IdClient = db.ObtenirProchainIDClient();
+        List<Utilisateur> utilisateurs = db.RecupererUtilisateurs();
 
-        Console.Write("Nom: ");
-        client.Nom = Console.ReadLine();
-
-        Console.Write("Prénom: ");
-        client.Prenom = Console.ReadLine();
-
-        int numRue;
-        Console.Write("Numéro de rue: ");
-        string saisieNumRue = Console.ReadLine();
-        while (!int.TryParse(saisieNumRue, out numRue))
+        if (utilisateurs.Count == 0)
         {
-            Console.WriteLine("Numéro de rue invalide. Veuillez réessayer : ");
-            saisieNumRue = Console.ReadLine();
-        }
-        client.NumRue = numRue;
-
-        Console.Write("Rue: ");
-        client.NomRue = Console.ReadLine();
-
-        Console.Write("Ville: ");
-        client.Ville = Console.ReadLine();
-
-        Console.Write("Métro le plus proche : ");
-        string saisieMetro = Console.ReadLine();
-        Graphe g = new Graphe();
-        bool test = false;
-        foreach (Noeud n in g.Noeuds)
-        {
-            if (n.Station.ToLower() == saisieMetro.ToLower())
-            {
-                test = true;
-                break;
-            }
-        }
-        while (test == false)
-        {
-            Console.WriteLine("Ce métro n'existe pas.");
-            Console.Write("Métro le plus proche : ");
-            saisieMetro = Console.ReadLine();
-            foreach (Noeud n in g.Noeuds)
-            {
-                if (n.Station.ToLower() == saisieMetro.ToLower())
-                {
-                    test = true;
-                    break;
-                }
-            }
-        }
-        client.Metro = saisieMetro;
-
-        Console.Write("Email (optionnel): ");
-        client.Email = Console.ReadLine();
-
-        Console.Write("Téléphone (optionnel): ");
-        client.Telephone = Console.ReadLine();
-              
-        client.MontantAchat = 0; // un nouveau client a forcement un montant d'achat total a 0
-
-        if (db.AjouterClients(client))
-        {
-            Console.WriteLine("\nClient ajouté avec succès!");
+            Console.WriteLine("Aucun utilisateur trouvé.");
         }
         else
         {
-            Console.WriteLine("\nErreur lors de l'ajout du client.");
+            foreach (Utilisateur utilisateur in utilisateurs)
+            {
+                Console.WriteLine(utilisateur.ToString());
+            }
+
+            Console.WriteLine("\nTotal: " + utilisateurs.Count + " utilisateur(s)");
         }
 
         WaitForKey();
     }
 
     /// <summary>
-    /// Modifie les informations d'un client existant en fonction de son ID, avec vérification des saisies et du métro.
+    /// Ajoute un nouvel utilisateur (admin uniquement).
     /// </summary>
-
-    private void ModifierClient()
+    private void AjouterUtilisateur()
     {
         Console.Clear();
-        Console.WriteLine("=== MODIFIER UN CLIENT ===\n");
+        Console.WriteLine("=== AJOUTER UN UTILISATEUR ===\n");
 
-        Console.Write("ID du client à modifier: ");
-        string saisieId = Console.ReadLine();
-        int id;
-        while (!int.TryParse(saisieId, out id))
+        Utilisateur nouvelUtilisateur = new Utilisateur();
+        nouvelUtilisateur.IdUtilisateur = db.ObtenirProchainIdUtilisateur();
+
+        Console.Write("Nom d'utilisateur: ");
+        string nomUtilisateur = Console.ReadLine();
+
+        if (db.NomUtilisateurExiste(nomUtilisateur))
         {
-            Console.WriteLine("ID invalide. Veuillez réessayer: ");
-            saisieId = Console.ReadLine();
-        }
-
-        Client client = db.ObtenirClientID(id);
-
-        if (client == null)
-        {
-            Console.WriteLine("Aucun client trouvé avec l'ID " + id);
+            Console.WriteLine("\nCe nom d'utilisateur existe déjà.");
             WaitForKey();
             return;
         }
 
-        Console.WriteLine("Modification de " + client.ToString() + "\n");
+        nouvelUtilisateur.NomUtilisateur = nomUtilisateur;
 
-        Console.Write("Nom [" + client.Nom + "]: ");
-        string nom = Console.ReadLine();
-        if (!string.IsNullOrEmpty(nom))
-        {
-            client.Nom = nom;
-        }
+        Console.Write("Mot de passe: ");
+        nouvelUtilisateur.MotDePasse = Console.ReadLine();
 
-        Console.Write("Prénom [" + client.Prenom + "]: ");
-        string prenom = Console.ReadLine();
-        if (!string.IsNullOrEmpty(prenom))
-        {
-            client.Prenom = prenom;
-        }
+        Console.WriteLine("\nRôle:");
+        Console.WriteLine("1. Admin");
+        Console.WriteLine("2. Client");
+        Console.WriteLine("3. Cuisinier");
+        Console.Write("Votre choix: ");
 
-        Console.Write("Numéro de rue [" + client.NumRue + "]: ");
-        string saisieNumRue = Console.ReadLine();
-        if (!string.IsNullOrEmpty(saisieNumRue))
-        {
-            int numRue;
-            while (!int.TryParse(saisieNumRue, out numRue))
-            {
-                Console.WriteLine("Numéro de rue invalide. Veuillez réessayer: ");
-                saisieNumRue = Console.ReadLine();
-            }
-            client.NumRue = numRue;
-        }
+        string choixRole = Console.ReadLine();
 
-        Console.Write("Rue [" + client.NomRue + "]: ");
-        string rue = Console.ReadLine();
-        if (!string.IsNullOrEmpty(rue))
+        switch (choixRole)
         {
-            client.NomRue = rue;
-        }
-
-        Console.Write("Ville [" + client.Ville + "]: ");
-        string ville = Console.ReadLine();
-        if (!string.IsNullOrEmpty(ville))
-        {
-            client.Ville = ville;
-        }
-
-        Console.Write("Métro le plus proche [" + client.Metro + "]: ");
-        string saisieMetro = Console.ReadLine();
-        Graphe g = new Graphe();
-        bool test = false;
-        foreach (Noeud n in g.Noeuds)
-        {
-            if (n.Station.ToLower() == saisieMetro.ToLower())
-            {
-                test = true;
+            case "1":
+                nouvelUtilisateur.Role = "Admin";
+                nouvelUtilisateur.IdReference = null;
                 break;
-            }
-        }
-        while (test == false)
-        {
-            Console.WriteLine("Ce métro n'existe pas.");
-            Console.Write("Métro le plus proche [" + client.Metro + "]: ");
-            saisieMetro = Console.ReadLine();
-            foreach (Noeud n in g.Noeuds)
-            {
-                if (n.Station.ToLower() == saisieMetro.ToLower())
+            case "2":
+                nouvelUtilisateur.Role = "Client";
+                Console.Write("\nID Client associé: ");
+                if (!int.TryParse(Console.ReadLine(), out int idClient))
                 {
-                    test = true;
-                    break;
+                    Console.WriteLine("ID Client invalide.");
+                    WaitForKey();
+                    return;
                 }
-            }
+
+                if (db.ObtenirClientID(idClient) == null)
+                {
+                    Console.WriteLine("Ce client n'existe pas.");
+                    WaitForKey();
+                    return;
+                }
+
+                nouvelUtilisateur.IdReference = idClient;
+                break;
+            case "3":
+                nouvelUtilisateur.Role = "Cuisinier";
+                Console.Write("\nID Cuisinier associé: ");
+                if (!int.TryParse(Console.ReadLine(), out int idCuisinier))
+                {
+                    Console.WriteLine("ID Cuisinier invalide.");
+                    WaitForKey();
+                    return;
+                }
+
+                if (db.ObtenirCuisinierID(idCuisinier) == null)
+                {
+                    Console.WriteLine("Ce cuisinier n'existe pas.");
+                    WaitForKey();
+                    return;
+                }
+
+                nouvelUtilisateur.IdReference = idCuisinier;
+                break;
+            default:
+                Console.WriteLine("Option invalide.");
+                WaitForKey();
+                return;
         }
 
-        if (!string.IsNullOrEmpty(saisieMetro))
+        if (db.AjouterUtilisateur(nouvelUtilisateur))
         {
-            client.Metro = saisieMetro;
-        }
-
-        Console.Write("Email [" + client.Email + "]: ");
-        string email = Console.ReadLine();
-        if (!string.IsNullOrEmpty(email))
-        {
-            client.Email = email;
-        }
-
-        Console.Write("Téléphone [" + client.Telephone + "]: ");
-        string telephone = Console.ReadLine();
-        if (!string.IsNullOrEmpty(telephone))
-        {
-            client.Telephone = telephone;
-        }
-
-        client.MontantAchat = client.MontantAchat; // ne peut etre changee que si commande
-
-        if (db.MAJClient(client))
-        {
-            Console.WriteLine("\nClient modifié avec succès!");
+            Console.WriteLine("\nUtilisateur ajouté avec succès!");
         }
         else
         {
-            Console.WriteLine("\nErreur lors de la modification du client");
+            Console.WriteLine("\nErreur lors de l'ajout de l'utilisateur.");
         }
 
         WaitForKey();
     }
-    /// <summary>
-    /// Supprime un client de la base de données après confirmation, en fonction de son ID.
-    /// </summary>
 
-    private void SupprimerClient()
+    /// <summary>
+    /// Modifie un utilisateur existant.
+    /// </summary>
+    private void ModifierUtilisateur()
     {
         Console.Clear();
-        Console.WriteLine("=== SUPPRIMER UN CLIENT ===\n");
+        Console.WriteLine("=== MODIFIER UN UTILISATEUR ===\n");
 
-        int id;
-        string saisieId;
-        Console.Write("ID du client à supprimer: ");
-        saisieId = Console.ReadLine();
-        while (!int.TryParse(saisieId, out id))
+        Console.Write("ID de l'utilisateur à modifier: ");
+        if (!int.TryParse(Console.ReadLine(), out int id))
         {
-            Console.WriteLine("ID invalide. Veuillez réessayer:");
-            saisieId = Console.ReadLine();
-        }
-
-        Client client = db.ObtenirClientID(id);
-        if (client == null)
-        {
-            Console.WriteLine("Aucun client trouvé avec l'ID " + id);
+            Console.WriteLine("ID invalide.");
             WaitForKey();
             return;
         }
 
-        Console.WriteLine("Êtes-vous sûr de vouloir supprimer " + client.ToString() + " ? (O/N)");
-        string rep = Console.ReadLine();
-        if (rep.ToUpper() != "O")
+        Utilisateur utilisateur = db.ObtenirUtilisateurParId(id);
+
+        if (utilisateur == null)
+        {
+            Console.WriteLine("Utilisateur non trouvé.");
+            WaitForKey();
+            return;
+        }
+
+        Console.WriteLine($"Modification de l'utilisateur: {utilisateur.NomUtilisateur} ({utilisateur.Role})");
+
+        Console.Write($"Nouveau nom d'utilisateur [{utilisateur.NomUtilisateur}]: ");
+        string nouveauNom = Console.ReadLine();
+
+        if (!string.IsNullOrEmpty(nouveauNom) && nouveauNom != utilisateur.NomUtilisateur)
+        {
+            if (db.NomUtilisateurExiste(nouveauNom))
+            {
+                Console.WriteLine("Ce nom d'utilisateur existe déjà.");
+                WaitForKey();
+                return;
+            }
+
+            utilisateur.NomUtilisateur = nouveauNom;
+        }
+
+        Console.Write("Nouveau mot de passe (laissez vide pour conserver l'actuel): ");
+        string nouveauMotDePasse = Console.ReadLine();
+
+        if (!string.IsNullOrEmpty(nouveauMotDePasse))
+        {
+            utilisateur.MotDePasse = nouveauMotDePasse;
+        }
+
+        Console.WriteLine("\nNouveau rôle:");
+        Console.WriteLine("1. Admin");
+        Console.WriteLine("2. Client");
+        Console.WriteLine("3. Cuisinier");
+        Console.WriteLine("4. Conserver le rôle actuel");
+        Console.Write("Votre choix: ");
+
+        string choixRole = Console.ReadLine();
+
+        switch (choixRole)
+        {
+            case "1":
+                utilisateur.Role = "Admin";
+                utilisateur.IdReference = null;
+                break;
+            case "2":
+                utilisateur.Role = "Client";
+                Console.Write("\nID Client associé: ");
+                if (!int.TryParse(Console.ReadLine(), out int idClient))
+                {
+                    Console.WriteLine("ID Client invalide.");
+                    WaitForKey();
+                    return;
+                }
+
+                if (db.ObtenirClientID(idClient) == null)
+                {
+                    Console.WriteLine("Ce client n'existe pas.");
+                    WaitForKey();
+                    return;
+                }
+
+                utilisateur.IdReference = idClient;
+                break;
+            case "3":
+                utilisateur.Role = "Cuisinier";
+                Console.Write("\nID Cuisinier associé: ");
+                if (!int.TryParse(Console.ReadLine(), out int idCuisinier))
+                {
+                    Console.WriteLine("ID Cuisinier invalide.");
+                    WaitForKey();
+                    return;
+                }
+
+                if (db.ObtenirCuisinierID(idCuisinier) == null)
+                {
+                    Console.WriteLine("Ce cuisinier n'existe pas.");
+                    WaitForKey();
+                    return;
+                }
+
+                utilisateur.IdReference = idCuisinier;
+                break;
+            case "4":
+                // Ne rien changer
+                break;
+            default:
+                Console.WriteLine("Option invalide.");
+                WaitForKey();
+                return;
+        }
+
+        if (db.MAJUtilisateur(utilisateur))
+        {
+            Console.WriteLine("\nUtilisateur modifié avec succès!");
+        }
+        else
+        {
+            Console.WriteLine("\nErreur lors de la modification de l'utilisateur.");
+        }
+
+        WaitForKey();
+    }
+
+    /// <summary>
+    /// Supprime un utilisateur existant.
+    /// </summary>
+    private void SupprimerUtilisateur()
+    {
+        Console.Clear();
+        Console.WriteLine("=== SUPPRIMER UN UTILISATEUR ===\n");
+
+        Console.Write("ID de l'utilisateur à supprimer: ");
+        if (!int.TryParse(Console.ReadLine(), out int id))
+        {
+            Console.WriteLine("ID invalide.");
+            WaitForKey();
+            return;
+        }
+
+        Utilisateur utilisateur = db.ObtenirUtilisateurParId(id);
+
+        if (utilisateur == null)
+        {
+            Console.WriteLine("Utilisateur non trouvé.");
+            WaitForKey();
+            return;
+        }
+
+        if (utilisateur.Role == "Admin" && utilisateur.IdUtilisateur == 1)
+        {
+            Console.WriteLine("Vous ne pouvez pas supprimer l'administrateur principal.");
+            WaitForKey();
+            return;
+        }
+
+        if (utilisateur.IdUtilisateur == utilisateurConnecte.IdUtilisateur)
+        {
+            Console.WriteLine("Vous ne pouvez pas supprimer votre propre compte.");
+            WaitForKey();
+            return;
+        }
+
+        Console.WriteLine($"Êtes-vous sûr de vouloir supprimer l'utilisateur: {utilisateur.NomUtilisateur} ({utilisateur.Role}) ? (O/N)");
+        string confirmation = Console.ReadLine().ToUpper();
+
+        if (confirmation != "O")
         {
             Console.WriteLine("Suppression annulée.");
             WaitForKey();
             return;
         }
 
-        if (db.SupprimerClient(id))
-            Console.WriteLine("\nClient supprimé avec succès!");
-        else
-            Console.WriteLine("\nErreur lors de la suppression du client.");
-
-        WaitForKey();
-    }
-    /// <summary>
-    /// Affiche la liste des clients avec la possibilité de trier selon différents critères (nom, rue, montant d'achat).
-    /// </summary>
-
-    private void AfficherToutClients()
-    {
-        Console.Clear();
-        Console.WriteLine("=== LISTE DES CLIENTS ===\n");
-
-        List<Client> clients = db.RecupererClients();
-
-        if (clients.Count == 0)
+        if (db.SupprimerUtilisateur(id))
         {
-            Console.WriteLine("Aucun client trouvé.");
+            Console.WriteLine("\nUtilisateur supprimé avec succès!");
         }
         else
         {
-            Console.WriteLine("Choisissez le type de tri :");
-            Console.WriteLine("1 : Tri par nom");
-            Console.WriteLine("2 : Tri par rue");
-            Console.WriteLine("3 : Tri par montant d'achat");
-            Console.WriteLine("4 : Pas de tri");
-            Console.Write("Votre choix : ");
-            string choixTri = Console.ReadLine().ToUpper();
-
-            switch (choixTri)
-            {
-                case "1":
-                    DbAccess.TrierParNom(clients);
-                    break;
-                case "2":
-                    DbAccess.TrierParRue(clients);
-                    break;
-                case "3":
-                    DbAccess.TrierParMontant(clients);
-                    break;
-                case "4":
-                    break;
-                default:
-                    Console.WriteLine("Option invalide. Aucun tri effectué.");
-                    break;
-            }
-
-            foreach (Client client in clients)
-            {
-                Console.WriteLine(client.ToString());
-            }
-            Console.WriteLine("\nTotal: " + clients.Count + " client(s)");
+            Console.WriteLine("\nErreur lors de la suppression de l'utilisateur.");
         }
 
         WaitForKey();
     }
-    /// <summary>
-    /// Vérifie si une station donnée existe dans une liste de nœuds représentant les stations de métro.
-    /// </summary>
-    /// <param name="nomStation">Le nom de la station à vérifier.</param>
-    /// <param name="listeNoeuds">La liste des nœuds contenant les stations.</param>
-    /// <returns>True si la station est valide, sinon False.</returns>
 
-    public static bool EstStationValide(string nomStation, List<Noeud> listeNoeuds)
+    #endregion
+
+    #region Client
+
+    /// <summary>
+    /// Obtient l'ID du client associé à l'utilisateur connecté.
+    /// </summary>
+    private int ObtenirIdClientConnecte()
     {
-        foreach (Noeud n in listeNoeuds)
-        {
-            if (n.Station.Equals(nomStation, StringComparison.OrdinalIgnoreCase))
-            {
-                return true;
-            }
-        }
-        return false;
+        if (utilisateurConnecte.Role == "Client" && utilisateurConnecte.IdReference.HasValue)
+            return utilisateurConnecte.IdReference.Value;
+        return -1;
     }
+
+    // (Insérer ici le code existant pour AjouterClient, ModifierClient, SupprimerClient, AfficherToutClients)
+    // Ces méthodes restent identiques, mais on a ajouté des vérifications de rôle dans le menu ClientModule
     #endregion
 
     #region Cuisinier
-    /// <summary>
-    /// Gère le sous-menu du module cuisinier avec les options pour ajouter, modifier, supprimer ou afficher les cuisiniers.
-    /// </summary>
-
     private void CuisinierModule()
     {
         bool exit = false;
-
         while (!exit)
         {
             Console.Clear();
@@ -439,14 +509,29 @@ public class UserInterface
             Console.WriteLine("4. Afficher tous les cuisiniers");
             Console.WriteLine("0. Retour au menu principal");
             Console.Write("\nVotre choix: ");
-
             string choix = Console.ReadLine();
-
             switch (choix)
             {
-                case "1": AjouterCuisinier(); break;
-                case "2": ModifierCuisinier(); break;
-                case "3": SupprimerCuisinier(); break;
+                case "1":
+                    if (utilisateurConnecte.Role == "Admin")
+                        AjouterCuisinier();
+                    else
+                        AfficherAccesRefuse();
+                    break;
+                case "2":
+                    if (utilisateurConnecte.Role == "Admin" ||
+                        (utilisateurConnecte.Role == "Cuisinier" &&
+                         utilisateurConnecte.IdReference == ObtenirIdCuisinierConnecte()))
+                        ModifierCuisinier();
+                    else
+                        AfficherAccesRefuse();
+                    break;
+                case "3":
+                    if (utilisateurConnecte.Role == "Admin")
+                        SupprimerCuisinier();
+                    else
+                        AfficherAccesRefuse();
+                    break;
                 case "4": AfficherToutCuisiniers(); break;
                 case "0": exit = true; break;
                 default:
@@ -455,6 +540,16 @@ public class UserInterface
                     break;
             }
         }
+    }
+
+    /// <summary>
+    /// Obtient l'ID du cuisinier associé à l'utilisateur connecté.
+    /// </summary>
+    private int ObtenirIdCuisinierConnecte()
+    {
+        if (utilisateurConnecte.Role == "Cuisinier" && utilisateurConnecte.IdReference.HasValue)
+            return utilisateurConnecte.IdReference.Value;
+        return -1;
     }
     /// <summary>
     /// Permet d'ajouter un nouveau cuisinier avec vérification des informations, validation de la station de métro,
@@ -849,45 +944,6 @@ public class UserInterface
 
     #region Plat
     /// <summary>
-    /// Gère le sous-menu du module plat avec les options pour ajouter, modifier, supprimer ou afficher des plats.
-    /// </summary>
-
-    private void PlatModule()
-    {
-        bool exit = false;
-
-        while (!exit)
-        {
-            Console.Clear();
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("=== MODULE PLAT ===");
-            Console.ResetColor();
-            Console.WriteLine("1. Ajouter un plat");
-            Console.WriteLine("2. Modifier un plat");
-            Console.WriteLine("3. Supprimer un plat");
-            Console.WriteLine("4. Afficher les details d'un plat");
-            Console.WriteLine("5. Afficher tous les plats");
-            Console.WriteLine("0. Retour au menu principal");
-            Console.Write("\nVotre choix: ");
-
-            string choix = Console.ReadLine();
-
-            switch (choix)
-            {
-                case "1": AjouterPlat(); break;
-                case "2": ModifierPlat(); break;
-                case "3": SupprimerPlat(); break;
-                case "4": AfficherPlat(); break;
-                case "5": AfficherToutPlat(); break;
-                case "0": exit = true; break;
-                default:
-                    Console.WriteLine("Option invalide.");
-                    WaitForKey();
-                    break;
-            }
-        } 
-    }
-    /// <summary>
     /// Permet d'ajouter un nouveau plat avec toutes ses informations : nom, type, stock, origine, etc.
     /// Inclut la validation des champs saisis.
     /// </summary>
@@ -1281,6 +1337,147 @@ public class UserInterface
         WaitForKey();
     }
 
+    /// <summary>
+    /// Gère le sous-menu du module plat avec les options pour ajouter, modifier, supprimer ou afficher des plats.
+    /// </summary>
+    private void PlatModule()
+    {
+        bool exit = false;
+        while (!exit)
+        {
+            Console.Clear();
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("=== MODULE PLAT ===");
+            Console.ResetColor();
+            Console.WriteLine("1. Ajouter un plat");
+            Console.WriteLine("2. Modifier un plat");
+            Console.WriteLine("3. Supprimer un plat");
+            Console.WriteLine("4. Afficher les details d'un plat");
+            Console.WriteLine("5. Afficher tous les plats");
+            Console.WriteLine("0. Retour au menu principal");
+            Console.Write("\nVotre choix: ");
+            string choix = Console.ReadLine();
+            switch (choix)
+            {
+                case "1":
+                    if (utilisateurConnecte.Role == "Admin" || utilisateurConnecte.Role == "Cuisinier")
+                        AjouterPlat();
+                    else
+                        AfficherAccesRefuse();
+                    break;
+                case "2":
+                    if (utilisateurConnecte.Role == "Admin" || utilisateurConnecte.Role == "Cuisinier")
+                        ModifierPlat();
+                    else
+                        AfficherAccesRefuse();
+                    break;
+                case "3":
+                    if (utilisateurConnecte.Role == "Admin")
+                        SupprimerPlat();
+                    else
+                        AfficherAccesRefuse();
+                    break;
+                case "4": AfficherPlat(); break;
+                case "5": AfficherToutPlat(); break;
+                case "0": exit = true; break;
+                default:
+                    Console.WriteLine("Option invalide.");
+                    WaitForKey();
+                    break;
+            }
+        }
+    }
+
+    #endregion
+
+    #region MéthodesOptimisées
+    /// <summary>
+    /// Utilitaire pour saisir un texte avec validation.
+    /// </summary>
+    private string SaisirTexte(string label, bool obligatoire)
+    {
+        while (true)
+        {
+            Console.Write($"{label}: ");
+            string valeur = Console.ReadLine();
+
+            if (string.IsNullOrWhiteSpace(valeur))
+            {
+                if (obligatoire)
+                {
+                    Console.WriteLine($"{label} est obligatoire.");
+                    continue;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+
+            return valeur;
+        }
+    }
+
+    /// <summary>
+    /// Utilitaire pour saisir un entier avec validation.
+    /// </summary>
+    private int SaisirEntier(string label, int min, int max)
+    {
+        while (true)
+        {
+            Console.Write($"{label}: ");
+            if (int.TryParse(Console.ReadLine(), out int valeur) && valeur >= min && valeur <= max)
+            {
+                return valeur;
+            }
+
+            Console.WriteLine($"Valeur invalide. Entrez un nombre entre {min} et {max}.");
+        }
+    }
+
+    /// <summary>
+    /// Utilitaire pour saisir une station de métro avec validation.
+    /// </summary>
+    private string SaisirMetro(string label)
+    {
+        Graphe g = new Graphe();
+
+        while (true)
+        {
+            Console.Write($"{label}: ");
+            string metro = Console.ReadLine();
+
+            bool valide = false;
+            foreach (Noeud n in g.Noeuds)
+            {
+                if (n.Station.ToLower() == metro.ToLower())
+                {
+                    valide = true;
+                    break;
+                }
+            }
+
+            if (valide)
+            {
+                return metro;
+            }
+
+            Console.WriteLine("Station de métro non valide. Voici quelques stations proches:");
+
+            // Afficher 5 stations aléatoires comme suggestions
+            Random rand = new Random();
+            HashSet<int> indices = new HashSet<int>();
+            while (indices.Count < 5 && indices.Count < g.Noeuds.Count)
+            {
+                indices.Add(rand.Next(g.Noeuds.Count));
+            }
+
+            foreach (int idx in indices)
+            {
+                Console.WriteLine("- " + g.Noeuds[idx].Station);
+            }
+        }
+    }
     #endregion
 
     #region Commande
@@ -1289,36 +1486,38 @@ public class UserInterface
     /// </summary>
 
     private void CommandeModule()
+    {
+        bool exit = false;
+        while (!exit)
         {
-            bool exit = false;
-            
-            while (!exit)
+            Console.Clear();
+            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.WriteLine("=== MODULE COMMANDE ===");
+            Console.ResetColor();
+            Console.WriteLine("1. Créer une commande");
+            Console.WriteLine("2. Afficher les détails d'une commande");
+            Console.WriteLine("3. Afficher toutes les commandes");
+            Console.WriteLine("0. Retour au menu principal");
+            Console.Write("\nVotre choix: ");
+            string choice = Console.ReadLine();
+            switch (choice)
             {
-                Console.Clear();
-                Console.ForegroundColor = ConsoleColor.Magenta;
-                Console.WriteLine("=== MODULE COMMANDE ===");
-                Console.ResetColor();
-                Console.WriteLine("1. Créer une commande");
-                Console.WriteLine("2. Afficher les détails d'une commande");
-                Console.WriteLine("3. Afficher toutes les commandes");
-                Console.WriteLine("0. Retour au menu principal");
-                Console.Write("\nVotre choix: ");
-                
-                string choice = Console.ReadLine();
-                
-                switch (choice)
-                {
-                    case "1": PasserCommande(); break;
-                    case "2": AfficherCommandeParID(); break;
-                    case "3": AfficherToutesCommandes(); break;
-                    case "0": exit = true; break;
-                    default: 
-                        Console.WriteLine("Option invalide.");
-                        WaitForKey();
-                        break;
-                }
+                case "1":
+                    if (utilisateurConnecte.Role == "Admin" || utilisateurConnecte.Role == "Client")
+                        PasserCommande();
+                    else
+                        AfficherAccesRefuse();
+                    break;
+                case "2": AfficherCommandeParID(); break;
+                case "3": AfficherToutesCommandes(); break;
+                case "0": exit = true; break;
+                default:
+                    Console.WriteLine("Option invalide.");
+                    WaitForKey();
+                    break;
             }
         }
+    }
 
     /// <summary>
     /// Crée une nouvelle commande en associant un client, un plat, un cuisinier et un moyen de paiement.
@@ -1330,13 +1529,23 @@ public class UserInterface
         Console.Clear();
         Console.WriteLine("=== PASSER UNE COMMANDE ===\n");
 
-        Console.Write("ID du client : ");
         int idClient;
-        string saisieId = Console.ReadLine();
-        while (!int.TryParse(saisieId, out idClient) || db.ObtenirClientID(idClient) == null)
+
+        // Si c'est un client qui passe commande, on utilise son ID automatiquement
+        if (utilisateurConnecte.Role == "Client" && utilisateurConnecte.IdReference.HasValue)
         {
-            Console.WriteLine("ID invalide ou client inexistant. Réessayez : ");
-            saisieId = Console.ReadLine();
+            idClient = utilisateurConnecte.IdReference.Value;
+        }
+        else
+        {
+            // Sinon, demander l'ID du client (pour l'admin)
+            Console.Write("ID du client : ");
+            string saisieId = Console.ReadLine();
+            while (!int.TryParse(saisieId, out idClient) || db.ObtenirClientID(idClient) == null)
+            {
+                Console.WriteLine("ID invalide ou client inexistant. Réessayez : ");
+                saisieId = Console.ReadLine();
+            }
         }
 
         Client client = db.ObtenirClientID(idClient);
