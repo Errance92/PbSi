@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Karaté.Karaté;
 using SkiaSharp;
 
 namespace Karaté
@@ -35,6 +36,7 @@ namespace Karaté
                     Console.WriteLine("7: Vérifier la connexité du graphe");
                     Console.WriteLine("8: Afficher les cycles du graphe");
                     Console.WriteLine("9: Tester Dijkstra (chemin le plus court entre deux stations)");
+                    Console.WriteLine("10: Tester coloration de graphe");
                     Console.WriteLine("0: Quitter");
                     Console.Write("Votre choix : ");
                     string choix = Console.ReadLine();
@@ -71,6 +73,10 @@ namespace Karaté
                         case "9":
                             TesterDijkstra(graphe);
                             break;
+                        case "10":
+                            GrapheCC grapheCC = new GrapheCC();
+                            grapheCC.ExecuterColoration();
+                            break;
                         case "0":
                             continu = false;
                             break;
@@ -90,16 +96,13 @@ namespace Karaté
                 Console.Title = "Liv'in Paris - Application de partage de repas";
                 try
                 {
-                    // Vérifier si la table Utilisateur existe, sinon la créer
                     DbAccess db = new DbAccess();
                     try
                     {
                         var test = db.ExecuterRequete("SELECT COUNT(*) FROM Utilisateur");
-                        // La table existe déjà
                     }
                     catch
                     {
-                        // La table n'existe pas, créons-la
                         string scriptCreationTable = @"
                             CREATE TABLE IF NOT EXISTS Utilisateur (
                                 id_utilisateur INT PRIMARY KEY,

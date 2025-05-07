@@ -343,6 +343,17 @@ namespace Karaté
                 }
             }
 
+
+            /// <summary>
+            /// Exécute toutes les étapes d’analyse du graphe
+            /// </summary>
+            public void ExecuterColoration()
+            {
+                Dictionary<int, int> coloration = WelshPowell();
+                ProprieteGrapheCC(coloration);
+                DessinerGrapheColoré(coloration);
+            }
+
         }
     }
 }
