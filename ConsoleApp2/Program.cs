@@ -9,6 +9,31 @@ namespace Karaté
     {
         public static void Main()
         {
+
+            AuthenticationInterface auth = new AuthenticationInterface();
+            LoginInterface loginInterface = new LoginInterface(auth);
+
+            if (!loginInterface.ShowLoginScreen())
+            {
+                Console.WriteLine("Au revoir!");
+                return;
+            }
+
+            Console.Title = "Liv'in Paris - Application de partage de repas";
+            try
+            {
+                UserInterface ui = new UserInterface(auth);
+                ui.Run();
+            }
+            catch (Exception ex)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("Erreur fatale: " + ex.Message);
+                Console.WriteLine(ex.StackTrace);
+                Console.ResetColor();
+                Console.WriteLine("\nAppuyez sur une touche pour quitter...");
+                Console.ReadKey();
+            }
             ///je sais pas pq mais ici les /// ne s'affiche pas automatiquement
             Graphe graphe = new Graphe();
 
@@ -124,10 +149,8 @@ namespace Karaté
                     }
                     Console.WriteLine();
                 }
-
                 Console.WriteLine("Nombre de cycles détectes : " + cycles.Count);
             }
-
 
             static void TesterDijkstra(Graphe graphe)
             {
@@ -173,152 +196,4 @@ namespace Karaté
                     {
                         Console.WriteLine("Aucun chemin trouvé entre " + depart + " et " + arrivee);
                     }
-                    else
-                    {
-                        Console.WriteLine("Chemin le plus court entre " + depart + " et " + arrivee + " :");
-                        foreach (string segment in chemin)
-                        {
-                            Console.WriteLine(segment);
-                        }
-                        Console.WriteLine("Coût total : " + cout);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("Erreur : " + ex.Message);
-                }
-            }
-
-            static void TesterFloyd(Graphe graphe)
-            {
-                Console.Write("Entrez la station de départ : ");
-                string depart = Console.ReadLine();
-                Console.Write("Entrez la station d'arrivée : ");
-                string arrivee = Console.ReadLine();
-                try
-                {
-                    List<string> chemin = graphe.FloydChemin(depart, arrivee);
-                    int cout = graphe.FloydCout(depart, arrivee);
-                    if (chemin.Count == 0)
-                    {
-                        Console.WriteLine("Aucun chemin trouvé entre " + depart + " et " + arrivee);
-                    }
-                    else
-                    {
-                        Console.WriteLine("Chemin le plus court entre " + depart + " et " + arrivee + " :");
-                        foreach (string segment in chemin)
-                        {
-                            Console.WriteLine(segment);
-                        }
-                        Console.WriteLine("Coût total : " + cout);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("Erreur : " + ex.Message);
-                }
-            }
-
-
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine("=== LIV'IN PARIS ===");
-            Console.ResetColor();
-            Console.WriteLine("1. Partie PCC / graphe");
-            Console.WriteLine("2. Partie BDD");
-            string res = Console.ReadLine();
-
-            while(res != "1" && res != "2")
-            {
-                Console.WriteLine("Saisie incorrect");
-                res = Console.ReadLine();
-            }
-
-            if (res.ToLower() == "1")
-            {
-                bool continu = true;
-                while (continu)
-                {
-                    Console.Clear();
-                    Console.WriteLine("Veuillez choisir une option :");
-                    Console.WriteLine("1: Dessiner le graphe");
-                    Console.WriteLine("2: Afficher les propriétés du graphe");
-                    Console.WriteLine("3: Afficher la matrice d'adjacence");
-                    Console.WriteLine("4: Afficher la liste d'adjacence");
-                    Console.WriteLine("5: Effectuer un parcours BFS");
-                    Console.WriteLine("6: Effectuer un parcours DFS");
-                    Console.WriteLine("7: Vérifier la connexité du graphe");
-                    Console.WriteLine("8: Afficher les cycles du graphe");
-                    Console.WriteLine("9: Tester Dijkstra (chemin le plus court entre deux stations)");
-                    Console.WriteLine("0: Quitter");
-                    Console.Write("Votre choix : ");
-
-                    string choix = Console.ReadLine();
-                    Console.Clear();
-
-                    switch (choix)
-                    {
-                        case "1":
-                            graphe.DessinerGraphe();
-                            break;
-                        case "2":
-                            graphe.Propriété();
-                            break;
-                        case "3":
-                            AfficherMatriceAdj(graphe.MatriceAdjacence);
-                            break;
-                        case "4":
-                            AfficherListeAdjNom(graphe.ListeAdjacenceNom);
-                            break;
-                        case "5":
-                            AfficherBFS(graphe);
-                            break;
-                        case "6":
-                            AfficherDFS(graphe);
-                            break;
-                        case "7":
-                            Connexite(graphe);
-                            break;
-                        case "8":
-                            AfficherCycles(graphe);
-                            break;
-                        case "9":
-                            TesterDijkstra(graphe);
-                            break;
-                        case "0":
-                            continu = false;
-                            break;
-                        default:
-                            Console.WriteLine("Choix non reconnu, veuillez réessayer.");
-                            break;
-                    }
-
-                    Console.WriteLine("\nTapez 'q' pour revenir au menu principal...");
-                    while (Console.ReadLine().ToLower() != "q")
-                    {
-                        Console.WriteLine("Tapez 'q' pour revenir au menu principal...");
-                    }
-                }
-            }
-            else if (res.ToLower() == "2")
-            {
-                Console.Title = "Liv'in Paris - Application de partage de repas";
-
-                try
-                {
-                    UserInterface ui = new UserInterface();
-                    ui.Run();
-                }
-                catch (Exception ex)
-                {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine("Erreur fatale: "+ ex.Message);
-                    Console.WriteLine(ex.StackTrace);
-                    Console.ResetColor();
-                    Console.WriteLine("\nAppuyez sur une touche pour quitter...");
-                    Console.ReadKey();
-                }
-            }
-            
-        }
-    }
 }

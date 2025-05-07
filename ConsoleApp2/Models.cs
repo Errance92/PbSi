@@ -127,10 +127,38 @@ public class Cuisinier
         }
     }
 
-    public class Itineraire
+
+public class Itineraire
     {
         public int IdItineraire;
         public decimal DistanceKm;
         public int DureeMin;
         public string Chemin;
     }
+
+public class Utilisateur
+{
+    public int IdUtilisateur { get; set; }
+    public string NomUtilisateur { get; set; }
+    public string MotDePasse { get; set; }
+    public string Role { get; set; } // "Admin", "Client", "Cuisinier"
+    public int? IdReference { get; set; } // ID du client ou cuisinier associé
+
+    public Utilisateur()
+    {
+    }
+
+    public Utilisateur(int id, string nomUtilisateur, string motDePasse, string role, int? idReference = null)
+    {
+        IdUtilisateur = id;
+        NomUtilisateur = nomUtilisateur;
+        MotDePasse = motDePasse;
+        Role = role;
+        IdReference = idReference;
+    }
+
+    public override string ToString()
+    {
+        return $"[{IdUtilisateur}] {NomUtilisateur} - {Role}";
+    }
+}
