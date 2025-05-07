@@ -1345,104 +1345,28 @@ public class DbAccess
     #endregion
 
     #region Utilisateurs
-    /// <summary>
-    /// Vérifie si les identifiants fournis correspondent à un utilisateur valide.
-    /// </summary>
-    /// <param name="email">Email de l'utilisateur</param>
-    /// <param name="motDePasse">Mot de passe de l'utilisateur</param>
-    /// <returns>L'utilisateur authentifié ou null si échec</returns>
-    public Utilisateur Authentifier(string email, string motDePasse)
-    {
-        string requete = "SELECT * FROM Utilisateur WHERE email = @email AND mot_de_passe = @motDePasse";
-
-        MySqlParameter paramEmail = new MySqlParameter("@email", email);
-        MySqlParameter paramMotDePasse = new MySqlParameter("@motDePasse", motDePasse);
-
-        DataTable table = ExecuterRequete(requete, paramEmail, paramMotDePasse);
-
-        if (table.Rows.Count == 0)
-            return null;
-
-        DataRow row = table.Rows[0];
-        Utilisateur utilisateur = new Utilisateur
-        {
-            IdUtilisateur = Convert.ToInt32(row["id_utilisateur"]),
-            Email = row["email"].ToString(),
-            MotDePasse = row["mot_de_passe"].ToString(),
-            Role = row["role"].ToString()
-        };
-
-        if (row["id_reference"] != DBNull.Value)
-            utilisateur.IdReference = Convert.ToInt32(row["id_reference"]);
-
-        return utilisateur;
-    }
 
     /// <summary>
-    /// Vérifie si un email est déjà utilisé.
-    /// </summary>
-    /// <param name="email">Email à vérifier</param>
-    /// <returns>True si l'email est déjà utilisé, sinon False</returns>
-    public bool EmailExiste(string email)
-    {
-        string requete = "SELECT COUNT(*) FROM Utilisateur WHERE email = @email";
-        object resultat = ExecuterRequeteScalaire(requete, new MySqlParameter("@email", email));
-        return Convert.ToInt32(resultat) > 0;
-    }
-
-    /// <summary>
-    /// Crée un nouvel utilisateur.
-    /// </summary>
-    /// <param name="utilisateur">Données de l'utilisateur à créer</param>
-    /// <returns>True si la création a réussi, sinon False</returns>
-    public bool CreerUtilisateur(Utilisateur utilisateur)
-    {
-        string requete = @"INSERT INTO Utilisateur (email, mot_de_passe, role, id_reference) 
-                     VALUES (@email, @motDePasse, @role, @idReference)";
-
-        MySqlParameter paramEmail = new MySqlParameter("@email", utilisateur.Email);
-        MySqlParameter paramMotDePasse = new MySqlParameter("@motDePasse", utilisateur.MotDePasse);
-        MySqlParameter paramRole = new MySqlParameter("@role", utilisateur.Role);
-        MySqlParameter paramIdReference;
-
-        if (utilisateur.IdReference.HasValue)
-            paramIdReference = new MySqlParameter("@idReference", utilisateur.IdReference.Value);
-        else
-            paramIdReference = new MySqlParameter("@idReference", DBNull.Value);
-
-        try
-        {
-            return ExecuterRequeteMAJ(requete, paramEmail, paramMotDePasse, paramRole, paramIdReference) > 0;
-        }
-        catch (Exception)
-        {
-            return false;
-        }
-    }
-
-    /// <summary>
-    /// Récupère tous les utilisateurs.
+    /// Récupère tous les utilisateurs du système.
     /// </summary>
     /// <returns>Liste des utilisateurs</returns>
-    public List<Utilisateur> ObtenirTousUtilisateurs()
+    public List<Utilisateur> RecupererUtilisateurs()
     {
         List<Utilisateur> utilisateurs = new List<Utilisateur>();
-        string requete = "SELECT * FROM Utilisateur";
-
-        DataTable table = ExecuterRequete(requete);
+        var table = ExecuterRequete("SELECT * FROM Utilisateur");
 
         foreach (DataRow row in table.Rows)
         {
-            Utilisateur utilisateur = new Utilisateur
-            {
-                IdUtilisateur = Convert.ToInt32(row["id_utilisateur"]),
-                Email = row["email"].ToString(),
-                MotDePasse = row["mot_de_passe"].ToString(),
-                Role = row["role"].ToString()
-            };
+            Utilisateur utilisateur = new Utilisateur();
+            utilisateur.IdUtilisateur = Convert.ToInt32(row["id_utilisateur"]);
+            utilisateur.NomUtilisateur = row["nom_utilisateur"].ToString();
+            utilisateur.MotDePasse = row["mot_de_passe"].ToString();
+            utilisateur.Role = row["role"].ToString();
 
             if (row["id_reference"] != DBNull.Value)
+            {
                 utilisateur.IdReference = Convert.ToInt32(row["id_reference"]);
+            }
 
             utilisateurs.Add(utilisateur);
         }
@@ -1451,32 +1375,167 @@ public class DbAccess
     }
 
     /// <summary>
-    /// Obtient un utilisateur par son email.
+    /// Authentifie un utilisateur en vérifiant ses identifiants.
     /// </summary>
-    /// <param name="email">Email de l'utilisateur</param>
-    /// <returns>L'utilisateur correspondant ou null</returns>
-    public Utilisateur ObtenirUtilisateurParEmail(string email)
+    /// <param name="nomUtilisateur">Nom d'utilisateur</param>
+    /// <param name="motDePasse">Mot de passe</param>
+    /// <returns>L'utilisateur authentifié ou null si échec</returns>
+    public Utilisateur AuthenticateUser(string nomUtilisateur, string motDePasse)
     {
-        string requete = "SELECT * FROM Utilisateur WHERE email = @email";
-        DataTable table = ExecuterRequete(requete, new MySqlParameter("@email", email));
+        string requete = "SELECT * FROM Utilisateur WHERE nom_utilisateur = @nom AND mot_de_passe = @mdp";
+
+        MySqlParameter paramNom = new MySqlParameter("@nom", nomUtilisateur);
+        MySqlParameter paramMdp = new MySqlParameter("@mdp", motDePasse);
+
+        var table = ExecuterRequete(requete, paramNom, paramMdp);
 
         if (table.Rows.Count == 0)
             return null;
 
         DataRow row = table.Rows[0];
-        Utilisateur utilisateur = new Utilisateur
-        {
-            IdUtilisateur = Convert.ToInt32(row["id_utilisateur"]),
-            Email = row["email"].ToString(),
-            MotDePasse = row["mot_de_passe"].ToString(),
-            Role = row["role"].ToString()
-        };
+        Utilisateur utilisateur = new Utilisateur();
+        utilisateur.IdUtilisateur = Convert.ToInt32(row["id_utilisateur"]);
+        utilisateur.NomUtilisateur = row["nom_utilisateur"].ToString();
+        utilisateur.MotDePasse = row["mot_de_passe"].ToString();
+        utilisateur.Role = row["role"].ToString();
 
         if (row["id_reference"] != DBNull.Value)
+        {
             utilisateur.IdReference = Convert.ToInt32(row["id_reference"]);
+        }
 
         return utilisateur;
     }
+
+    /// <summary>
+    /// Vérifie si un nom d'utilisateur existe déjà.
+    /// </summary>
+    /// <param name="nomUtilisateur">Nom d'utilisateur à vérifier</param>
+    /// <returns>True si le nom existe, false sinon</returns>
+    public bool NomUtilisateurExiste(string nomUtilisateur)
+    {
+        string requete = "SELECT COUNT(*) FROM Utilisateur WHERE nom_utilisateur = @nom";
+        MySqlParameter paramNom = new MySqlParameter("@nom", nomUtilisateur);
+
+        object resultat = ExecuterRequeteScalaire(requete, paramNom);
+        int count = Convert.ToInt32(resultat);
+
+        return count > 0;
+    }
+
+    /// <summary>
+    /// Récupère le prochain ID disponible pour un nouvel utilisateur.
+    /// </summary>
+    /// <returns>Le prochain ID disponible</returns>
+    public int ObtenirProchainIdUtilisateur()
+    {
+        object resultat = ExecuterRequeteScalaire("SELECT MAX(id_utilisateur) FROM Utilisateur");
+
+        if (resultat == DBNull.Value)
+            return 1;
+        else
+            return Convert.ToInt32(resultat) + 1;
+    }
+
+    /// <summary>
+    /// Ajoute un nouvel utilisateur.
+    /// </summary>
+    /// <param name="utilisateur">L'utilisateur à ajouter</param>
+    /// <returns>True si l'opération a réussi, false sinon</returns>
+    public bool AjouterUtilisateur(Utilisateur utilisateur)
+    {
+        string requete = @"INSERT INTO Utilisateur (id_utilisateur, nom_utilisateur, mot_de_passe, role, id_reference)
+                         VALUES (@id, @nom, @mdp, @role, @ref)";
+
+        MySqlParameter paramId = new MySqlParameter("@id", utilisateur.IdUtilisateur);
+        MySqlParameter paramNom = new MySqlParameter("@nom", utilisateur.NomUtilisateur);
+        MySqlParameter paramMdp = new MySqlParameter("@mdp", utilisateur.MotDePasse);
+        MySqlParameter paramRole = new MySqlParameter("@role", utilisateur.Role);
+        MySqlParameter paramRef;
+
+        if (utilisateur.IdReference.HasValue)
+            paramRef = new MySqlParameter("@ref", utilisateur.IdReference.Value);
+        else
+            paramRef = new MySqlParameter("@ref", DBNull.Value);
+
+        var parametres = new MySqlParameter[] { paramId, paramNom, paramMdp, paramRole, paramRef };
+
+        return ExecuterRequeteMAJ(requete, parametres) > 0;
+    }
+
+    /// <summary>
+    /// Récupère un utilisateur par son ID.
+    /// </summary>
+    /// <param name="id">ID de l'utilisateur</param>
+    /// <returns>L'utilisateur ou null s'il n'existe pas</returns>
+    public Utilisateur ObtenirUtilisateurParId(int id)
+    {
+        string requete = "SELECT * FROM Utilisateur WHERE id_utilisateur = @id";
+        MySqlParameter paramId = new MySqlParameter("@id", id);
+
+        var table = ExecuterRequete(requete, paramId);
+
+        if (table.Rows.Count == 0)
+            return null;
+
+        DataRow row = table.Rows[0];
+        Utilisateur utilisateur = new Utilisateur();
+        utilisateur.IdUtilisateur = Convert.ToInt32(row["id_utilisateur"]);
+        utilisateur.NomUtilisateur = row["nom_utilisateur"].ToString();
+        utilisateur.MotDePasse = row["mot_de_passe"].ToString();
+        utilisateur.Role = row["role"].ToString();
+
+            if (row["id_reference"] != DBNull.Value)
+        {
+                utilisateur.IdReference = Convert.ToInt32(row["id_reference"]);
+        }
+
+        return utilisateur;
+    }
+
+    /// <summary>
+    /// Met à jour les informations d'un utilisateur existant.
+    /// </summary>
+    /// <param name="utilisateur">L'utilisateur avec les nouvelles informations</param>
+    /// <returns>True si l'opération a réussi, false sinon</returns>
+    public bool MAJUtilisateur(Utilisateur utilisateur)
+    {
+        string requete = @"UPDATE Utilisateur
+                          SET nom_utilisateur = @nom,
+                              mot_de_passe = @mdp,
+                              role = @role,
+                              id_reference = @ref
+                          WHERE id_utilisateur = @id";
+
+        MySqlParameter paramId = new MySqlParameter("@id", utilisateur.IdUtilisateur);
+        MySqlParameter paramNom = new MySqlParameter("@nom", utilisateur.NomUtilisateur);
+        MySqlParameter paramMdp = new MySqlParameter("@mdp", utilisateur.MotDePasse);
+        MySqlParameter paramRole = new MySqlParameter("@role", utilisateur.Role);
+        MySqlParameter paramRef;
+
+        if (utilisateur.IdReference.HasValue)
+            paramRef = new MySqlParameter("@ref", utilisateur.IdReference.Value);
+        else
+            paramRef = new MySqlParameter("@ref", DBNull.Value);
+
+        var parametres = new MySqlParameter[] { paramId, paramNom, paramMdp, paramRole, paramRef };
+
+        return ExecuterRequeteMAJ(requete, parametres) > 0;
+    }
+
+    /// <summary>
+    /// Supprime un utilisateur par son ID.
+    /// </summary>
+    /// <param name="id">ID de l'utilisateur à supprimer</param>
+    /// <returns>True si l'opération a réussi, false sinon</returns>
+    public bool SupprimerUtilisateur(int id)
+        {
+        string requete = "DELETE FROM Utilisateur WHERE id_utilisateur = @id";
+        MySqlParameter paramId = new MySqlParameter("@id", id);
+
+        return ExecuterRequeteMAJ(requete, paramId) > 0;
+    }
+
     #endregion
 
     #region Commandes

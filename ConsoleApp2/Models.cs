@@ -129,22 +129,26 @@ public class Cuisinier
     public class Utilisateur
     {
         public int IdUtilisateur { get; set; }
-        public string Email { get; set; }
+    public string NomUtilisateur { get; set; }
         public string MotDePasse { get; set; }
-        public string Role { get; set; } // ADMIN, CUISINIER, CLIENT
-        public int? IdReference { get; set; } // ID du client ou du cuisinier associé si applicable
+    public string Role { get; set; } // "Admin", "Client", "Cuisinier"
+    public int? IdReference { get; set; } // ID du client ou cuisinier associé
 
-        public override string ToString()
+    public Utilisateur()
         {
-            return $"[{IdUtilisateur}] {Email} - Rôle: {Role}";
         }
+
+    public Utilisateur(int id, string nomUtilisateur, string motDePasse, string role, int? idReference = null)
+    {
+        IdUtilisateur = id;
+        NomUtilisateur = nomUtilisateur;
+        MotDePasse = motDePasse;
+        Role = role;
+        IdReference = idReference;
     }
 
-
-public class Itineraire
+    public override string ToString()
     {
-        public int IdItineraire;
-        public decimal DistanceKm;
-        public int DureeMin;
-        public string Chemin;
+        return $"[{IdUtilisateur}] {NomUtilisateur} - {Role}";
+    }
     }

@@ -246,7 +246,7 @@ namespace Karaté
             }
 
 
-            Console.ForegroundColor = ConsoleColor.Red;
+            Console.ForegroundColor = ConsoleColor.Blue;
             Console.WriteLine("=== LIV'IN PARIS ===");
             Console.ResetColor();
             Console.WriteLine("1. Partie PCC / graphe");
