@@ -120,6 +120,8 @@ public class DbAccess
     }
     #endregion
 
+
+
     #region Clients
     /// <summary>
     /// Récupère l'ensemble des clients présents dans la base de données.
@@ -1537,7 +1539,7 @@ public class DbAccess
         return ExecuterRequeteMAJ(requete, paramId) > 0;
     }
 
-#endregion
+    #endregion
 
     #region Commandes
     /// <summary>
