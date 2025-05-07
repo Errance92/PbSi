@@ -3,6 +3,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Karaté.Karaté;
 using SkiaSharp;
+using System.Data;
+using System.IO;
+using System.Text.Json;
+using MySql.Data.MySqlClient;
+
 
 namespace Karaté
 {
@@ -77,6 +82,9 @@ namespace Karaté
                             GrapheCC grapheCC = new GrapheCC();
                             grapheCC.ExecuterColoration();
                             break;
+                        case "11":
+                            TestXMLJSON();
+                        break;
                         case "0":
                             continu = false;
                             break;
@@ -283,5 +291,75 @@ namespace Karaté
                 Console.WriteLine("Erreur : " + ex.Message);
             }
         }
+
+        /// <summary>
+        /// Récupère le résultat de la requête SQL dans un DataTable, l’enrobe dans un DataSet 
+        /// et écrit directement un fichier XML.
+        /// </summary>
+        static void ExportToXml(MySqlConnection conn, string sql, string filePath)
+        {
+            using var cmd = new MySqlCommand(sql, conn);
+            using var da = new MySqlDataAdapter(cmd);
+            var dt = new DataTable();
+            da.Fill(dt);
+
+            var ds = new DataSet(Path.GetFileNameWithoutExtension(filePath));
+            ds.Tables.Add(dt);
+            ds.WriteXml(filePath);
+
+            Console.WriteLine($"[XML] {filePath} généré.");
+        }
+
+        /// <summary>
+        /// Lit la requête SQL avec un DataReader et écrit au fur et à mesure un tableau JSON.
+        /// </summary>
+        static void ExportToJson(MySqlConnection conn, string sql, string filePath)
+        {
+            using var cmd = new MySqlCommand(sql, conn);
+            using var reader = cmd.ExecuteReader();
+            using var fs = File.Create(filePath);
+            using var writer = new Utf8JsonWriter(fs, new JsonWriterOptions { Indented = true });
+
+            writer.WriteStartArray();
+            while (reader.Read())
+            {
+                writer.WriteStartObject();
+                for (int i = 0; i < reader.FieldCount; i++)
+                {
+                    writer.WritePropertyName(reader.GetName(i));
+                    var val = reader.GetValue(i);
+                    JsonSerializer.Serialize(writer, val, val?.GetType() ?? typeof(object));
+                }
+                writer.WriteEndObject();
+            }
+            writer.WriteEndArray();
+            writer.Flush();
+
+            Console.WriteLine($"[JSON] {filePath} généré.");
+        }
+
+        static void TestXMLJSON()
+        {
+            string connStr = "Server=localhost;Port=3306;Database=Liv'in Paris;Uid=root;Pwd=password;CharSet=utf8;";
+            using var conn = new MySqlConnection(connStr);
+            conn.Open();
+
+            // XML
+            ExportToXml(conn, "SELECT * FROM Client", "export_clients.xml");
+            ExportToXml(conn, "SELECT * FROM Cuisinier", "export_cuisiniers.xml");
+            ExportToXml(conn, "SELECT * FROM Commande", "export_commandes.xml");
+
+            // JSON
+            ExportToJson(conn, "SELECT * FROM Client", "export_clients.json");
+            ExportToJson(conn, "SELECT * FROM Cuisinier", "export_cuisiniers.json");
+            ExportToJson(conn, "SELECT * FROM Commande", "export_commandes.json");
+
+            conn.Close();
+            // **** FIN EXPORTS ****
+
+            Console.WriteLine("Tous les exports sont terminés.");
+            Console.ReadKey();
+        }
+
     }
 }
